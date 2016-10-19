@@ -47,9 +47,13 @@ android {
 
     buildTypes {
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
+    }
 }
 
 
 dependencies {
-    compile group: 'com.j256.ormlite', name: 'ormlite-android', version: '5.0'
+    compile 'com.j256.ormlite:ormlite-android:5.0'
 }
