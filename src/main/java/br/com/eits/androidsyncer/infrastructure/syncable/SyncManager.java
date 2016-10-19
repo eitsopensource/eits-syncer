@@ -18,10 +18,6 @@ public class SyncManager
      *
      */
     private static final SyncManager INSTANCE = new SyncManager();
-    /**
-     *
-     */
-    private static final String FILE_NAME = "sync.db";
 
     /*-------------------------------------------------------------------
     * 		 					ATTRIBUTES
