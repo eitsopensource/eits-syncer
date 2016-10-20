@@ -74,17 +74,6 @@ public class SyncManager
     /**
      *
      */
-    public static void requestSync( Bundle extras )
-    {
-        ContentResolver.requestSync( INSTANCE.syncAccount,
-                INSTANCE.contentAuthority,
-                new Bundle(extras)
-        );
-    }
-
-    /**
-     *
-     */
     public static void requestSyncNow( Bundle extras )
     {
         extras = extras == null ? new Bundle(extras) : extras;
@@ -94,6 +83,17 @@ public class SyncManager
         ContentResolver.requestSync( INSTANCE.syncAccount,
                 INSTANCE.contentAuthority,
                 extras
+        );
+    }
+
+    /**
+     *
+     */
+    public static void requestSync( Bundle extras )
+    {
+        ContentResolver.requestSync( INSTANCE.syncAccount,
+                INSTANCE.contentAuthority,
+                new Bundle(extras)
         );
     }
 
