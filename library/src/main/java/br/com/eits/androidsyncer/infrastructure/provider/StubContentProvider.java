@@ -1,0 +1,83 @@
+package br.com.eits.androidsyncer.infrastructure.provider;
+
+import android.content.ContentProvider;
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.net.Uri;
+import android.util.Log;
+
+/*
+ * Define an implementation of ContentProvider that stubs out all methods
+ */
+public class StubContentProvider extends ContentProvider
+{
+    /*-------------------------------------------------------------------
+    * 		 					ATTRIBUTES
+    *-------------------------------------------------------------------*/
+
+    /*-------------------------------------------------------------------
+	 * 		 					CONSTRUCTORS
+	 *-------------------------------------------------------------------*/
+
+    /*-------------------------------------------------------------------
+	 * 		 					BEHAVIORS
+	 *-------------------------------------------------------------------*/
+    /*
+     * Always return true, indicating that the provider loaded correctly.
+     */
+    @Override
+    public boolean onCreate()
+    {
+        Log.i(this.toString(), "onCreate");
+        return true;
+    }
+
+    /*
+     * Return no type for MIME type
+     */
+    @Override
+    public String getType(Uri uri)
+    {
+        Log.i(this.toString(), "getType");
+        return null;
+    }
+
+    /*
+     * query() always returns no results
+     */
+    @Override
+    public Cursor query( Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder)
+    {
+        Log.i(this.toString(), "query");
+        return null;
+    }
+
+    /*
+     * insert() always returns null (no URI)
+     */
+    @Override
+    public Uri insert(Uri uri, ContentValues values)
+    {
+        Log.i(this.toString(), "insert");
+        return null;
+    }
+
+    /*
+     * delete() always returns "no rows affected" (0)
+     */
+    @Override
+    public int delete(Uri uri, String selection, String[] selectionArgs)
+    {
+        Log.i(this.toString(), "delete");
+        return 0;
+    }
+
+    /*
+     * update() always returns "no rows affected" (0)
+     */
+    public int update( Uri uri, ContentValues values, String selection, String[] selectionArgs)
+    {
+        Log.i(this.toString(), "update");
+        return 0;
+    }
+}
