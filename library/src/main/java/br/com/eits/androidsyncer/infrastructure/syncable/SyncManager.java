@@ -4,6 +4,7 @@ import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.os.Bundle;
 
 import java.io.Serializable;
 import java.util.List;
@@ -68,6 +69,18 @@ public class SyncManager
 
         // Inform the system that this account is eligible for auto sync when the network is up
         ContentResolver.setSyncAutomatically( INSTANCE.syncAccount, INSTANCE.contentAuthority, true );
+    }
+
+
+    /**
+     *
+     */
+    public static void requestSync()
+    {
+        ContentResolver.requestSync( INSTANCE.syncAccount,
+                INSTANCE.contentAuthority,
+                Bundle.EMPTY
+        );
     }
 
     /**
