@@ -1,11 +1,14 @@
 package br.com.eits.androidsyncer.infrastructure.syncable;
 
 import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.content.ContentResolver;
+import android.content.Context;
 
 import java.io.Serializable;
 import java.util.List;
 
+import br.com.eits.androidsyncer.application.ApplicationHolder;
 import br.com.eits.androidsyncer.domain.entity.Revision;
 import br.com.eits.androidsyncer.domain.entity.RevisionType;
 
@@ -50,6 +53,13 @@ public class SyncManager
      */
     public static void setupRemoteSync( Account syncAccount, String contentAuthority )
     {
+        final AccountManager accountManager = ((AccountManager) ApplicationHolder.CONTEXT.getSystemService(Context.ACCOUNT_SERVICE));
+
+        if ( !accountManager.addAccountExplicitly(syncAccount, null, null) )
+        {
+            throw new IllegalStateException("Was not to possible to add a sync account.");
+        }
+
         INSTANCE.syncAccount = syncAccount;
         INSTANCE.contentAuthority = contentAuthority;
 

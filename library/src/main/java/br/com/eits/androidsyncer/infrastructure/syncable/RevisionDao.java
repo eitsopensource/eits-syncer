@@ -10,6 +10,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
+import br.com.eits.androidsyncer.application.ApplicationHolder;
 import br.com.eits.androidsyncer.domain.entity.Revision;
 
 /**
@@ -22,22 +23,12 @@ class RevisionDao
      */
     private static final String FILE_NAME = "sync.db";
 
-    /**
-     *
-     */
-    private static final Context CONTEXT;
-
     static
     {
         try
         {
-            final Class<?> clazz = Class.forName("android.app.ActivityThread");
-            final Method method = clazz.getDeclaredMethod("currentApplication");
-
-            CONTEXT = (Context) method.invoke(null);
-
             boolean found = false;
-            final String[] files = CONTEXT.fileList();
+            final String[] files = ApplicationHolder.CONTEXT.fileList();
             for ( int i = 0; i < files.length; i++ )
             {
                 if ( files[i] == FILE_NAME )
@@ -48,7 +39,7 @@ class RevisionDao
 
             if ( !found )
             {
-                final FileOutputStream fileOutputStream = CONTEXT.openFileOutput(FILE_NAME, Context.MODE_PRIVATE);
+                final FileOutputStream fileOutputStream = ApplicationHolder.CONTEXT.openFileOutput(FILE_NAME, Context.MODE_PRIVATE);
                 final ObjectOutputStream objectOutputStream = new ObjectOutputStream( fileOutputStream );
                 objectOutputStream.writeObject( new ArrayList<Revision>() );
                 objectOutputStream.close();
@@ -85,7 +76,7 @@ class RevisionDao
     {
         try
         {
-            final FileOutputStream fileOutputStream = CONTEXT.openFileOutput(FILE_NAME, Context.MODE_PRIVATE);
+            final FileOutputStream fileOutputStream = ApplicationHolder.CONTEXT.openFileOutput(FILE_NAME, Context.MODE_PRIVATE);
             final ObjectOutputStream objectOutputStream = new ObjectOutputStream( fileOutputStream );
             objectOutputStream.writeObject( revisions );
             objectOutputStream.close();
@@ -105,7 +96,7 @@ class RevisionDao
     {
         try
         {
-            final FileInputStream fileInputStream = CONTEXT.openFileInput(FILE_NAME);
+            final FileInputStream fileInputStream = ApplicationHolder.CONTEXT.openFileInput(FILE_NAME);
             final ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
             final List<Revision> revisions = (List<Revision>) objectInputStream.readObject();
             return revisions;
