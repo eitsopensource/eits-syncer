@@ -71,15 +71,29 @@ public class SyncManager
         ContentResolver.setSyncAutomatically( INSTANCE.syncAccount, INSTANCE.contentAuthority, true );
     }
 
+    /**
+     *
+     */
+    public static void requestSync( Bundle extras )
+    {
+        ContentResolver.requestSync( INSTANCE.syncAccount,
+                INSTANCE.contentAuthority,
+                new Bundle(extras)
+        );
+    }
 
     /**
      *
      */
-    public static void requestSync()
+    public static void requestSyncNow( Bundle extras )
     {
+        extras = extras == null ? new Bundle(extras) : extras;
+        extras.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
+        extras.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
+
         ContentResolver.requestSync( INSTANCE.syncAccount,
                 INSTANCE.contentAuthority,
-                Bundle.EMPTY
+                extras
         );
     }
 
