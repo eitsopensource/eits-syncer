@@ -1,1 +1,3 @@
+rootProject.name = 'android-syncer'
 include ':library'
+
