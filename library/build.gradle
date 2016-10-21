@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'com.github.dcendents.android-maven'
 
 group = 'com.github.eitsopensource'
-version = '0.0.2-SNAPSHOT'
+version = '0.0.5-SNAPSHOT'
 project.archivesBaseName = 'android-syncer'
 
 android {
@@ -11,8 +11,6 @@ android {
     defaultConfig {
         minSdkVersion 22
         targetSdkVersion 24
-        versionCode 1
-        versionName "0.0.2-SNAPSHOT"
         consumerProguardFiles 'proguard-rules.pro'
     }
     compileOptions {
