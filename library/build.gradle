@@ -2,15 +2,15 @@ apply plugin: 'com.android.library'
 apply plugin: 'com.github.dcendents.android-maven'
 
 group = 'com.github.eitsopensource'
-version = '0.0.5-SNAPSHOT'
+version = '0.0.6-SNAPSHOT'
 project.archivesBaseName = 'android-syncer'
 
 android {
     compileSdkVersion 24
     buildToolsVersion "24.0.0"
     defaultConfig {
-        minSdkVersion 22
-        targetSdkVersion 24
+        minSdkVersion 21
+        targetSdkVersion 21
         consumerProguardFiles 'proguard-rules.pro'
     }
     compileOptions {
@@ -57,4 +57,3 @@ artifacts {
 //    task.from variant.javaCompile.destinationDir
 //    artifacts.add('archives', task);
 //}
-

@@ -3,11 +3,17 @@
  */
 package br.com.eits.androidsyncer.domain.entity;
 
+import com.j256.ormlite.field.DataType;
+import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.table.DatabaseTable;
+
 import java.io.Serializable;
+import java.util.Calendar;
 
 /**
  *
  */
+@DatabaseTable(tableName = "_revision_")
 public class Revision implements Serializable
 {
 
@@ -22,23 +28,39 @@ public class Revision implements Serializable
 	/**
 	 *
 	 */
-	private Long id;
+	@DatabaseField(id = true, allowGeneratedIdInsert = false, canBeNull = false)
+	private Long time;
 	/**
 	 * 
 	 */
+	@DatabaseField(canBeNull = false)
 	private String entityClassName;
 	/**
 	 *
 	 */
+	@DatabaseField(canBeNull = false)
+	private Boolean synced;
+	/**
+	 *
+	 */
+	@DatabaseField(canBeNull = false, dataType=DataType.SERIALIZABLE)
 	private Serializable entityId;
 	/**
 	 *
 	 */
+	@DatabaseField(canBeNull = false, dataType = DataType.ENUM_STRING)
 	private RevisionType type;
 
 	/*-------------------------------------------------------------------
 	 *				 		     CONSTRUCTORS
 	 *-------------------------------------------------------------------*/
+	/**
+	 *
+	 */
+	public Revision()
+	{
+		this.time = Calendar.getInstance().getTimeInMillis();
+	}
 
 	/*-------------------------------------------------------------------
 	 *				 		     BEHAVIORS
@@ -56,7 +78,7 @@ public class Revision implements Serializable
 
 		Revision revision = (Revision) o;
 
-		if (id != null ? !id.equals(revision.id) : revision.id != null) return false;
+		if (time != null ? !time.equals(revision.time) : revision.time != null) return false;
 		if (entityClassName != null ? !entityClassName.equals(revision.entityClassName) : revision.entityClassName != null)
 			return false;
 		if (entityId != null ? !entityId.equals(revision.entityId) : revision.entityId != null)
@@ -71,7 +93,7 @@ public class Revision implements Serializable
 	@Override
 	public int hashCode()
 	{
-		int result = id != null ? id.hashCode() : 0;
+		int result = time != null ? time.hashCode() : 0;
 		result = 31 * result + (entityClassName != null ? entityClassName.hashCode() : 0);
 		result = 31 * result + (entityId != null ? entityId.hashCode() : 0);
 		result = 31 * result + (type != null ? type.hashCode() : 0);
@@ -86,18 +108,18 @@ public class Revision implements Serializable
 	 *
 	 * @return
      */
-	public Long getId()
+	public Long getTime()
 	{
-		return id;
+		return this.time;
 	}
 
 	/**
 	 *
-	 * @param id
+	 * @param time
      */
-	public void setId(Long id)
+	public void setTime(Long time)
 	{
-		this.id = id;
+		this.time = time;
 	}
 
 	/**
@@ -152,5 +174,23 @@ public class Revision implements Serializable
 	public void setType(RevisionType type)
 	{
 		this.type = type;
+	}
+
+	/**
+	 *
+	 * @return
+     */
+	public Boolean getSynced()
+	{
+		return synced;
+	}
+
+	/**
+	 *
+	 * @param synced
+     */
+	public void setSynced(Boolean synced)
+	{
+		this.synced = synced;
 	}
 }
