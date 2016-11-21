@@ -11,9 +11,9 @@ import java.util.List;
 
 import br.com.eits.androidsyncer.application.ApplicationHolder;
 import br.com.eits.androidsyncer.domain.entity.Revision;
-import br.com.eits.androidsyncer.domain.entity.RevisionType;
 import br.com.eits.androidsyncer.infrastructure.dao.ORMOpenHelper;
 import br.com.eits.androidsyncer.infrastructure.dao.RevisionDao;
+import br.com.eits.syncer.domain.entity.RevisionType;
 
 /**
  *
@@ -186,6 +186,7 @@ public class LocalRepositoryService<Entity, ID extends Serializable>
      */
     private Revision insertRevisionAndRequestSync(ID id, RevisionType revisionType )
     {
+        //create a new revision
         final Revision revision = new Revision();
         revision.setEntityClassName( this.entityClass.getName() );
         revision.setEntityId(id);

@@ -22,6 +22,7 @@ android {
 }
 
 dependencies {
+    compile 'br.com.eits.syncer:eits-syncer-java:'+version
     compile 'com.j256.ormlite:ormlite-android:5.0'
 }
 

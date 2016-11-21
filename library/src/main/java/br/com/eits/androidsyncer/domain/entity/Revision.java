@@ -10,6 +10,8 @@ import com.j256.ormlite.table.DatabaseTable;
 import java.io.Serializable;
 import java.util.Calendar;
 
+import br.com.eits.syncer.domain.entity.RevisionType;
+
 /**
  *
  */
