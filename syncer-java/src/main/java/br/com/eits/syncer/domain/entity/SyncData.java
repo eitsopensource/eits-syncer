@@ -1,5 +1,8 @@
 package br.com.eits.syncer.domain.entity;
 
+import java.util.List;
+import java.util.Map;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -7,7 +10,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * 
  * @author rodrigo.p.fraga
  */
-public class EntityUpdatedId
+public class SyncData
 {
 	/*-------------------------------------------------------------------
 	 *				 		     ATTRIBUTES
@@ -15,60 +18,44 @@ public class EntityUpdatedId
 	/**
 	 * 
 	 */
-	private Object oldId;
+	private Long revision;
 	/**
 	 * 
 	 */
-	private Object newId;
-	/**
-	 * 
-	 */
-	private Object entity;
+	private Map<RevisionType, List<Object>> entities;
+	
 
 	/*-------------------------------------------------------------------
 	 *				 		     CONSTRUCTOR
 	 *-------------------------------------------------------------------*/
 	/**
 	 * 
-	 * @param oldId
-	 * @param newId
-	 * @param entity
+	 * @param revision
+	 * @param entities
 	 */
 	@JsonCreator
-	public EntityUpdatedId( @JsonProperty("oldId") Object oldId, @JsonProperty("newId") Object newId, @JsonProperty("entity") Object entity )
+	public SyncData( @JsonProperty("revision") Long revision, @JsonProperty("entities") Map<RevisionType, List<Object>> entities )
 	{
-		this.oldId = oldId;
-		this.newId = newId;
-		this.entity = entity;
+		this.revision = revision;
+		this.entities = entities;
 	}
-	
+
+
 	/*-------------------------------------------------------------------
 	 *				 		     GETTERS AND SETTERS
 	 *-------------------------------------------------------------------*/
 	/**
-	 * 
-	 * @return
+	 * @return the entities
 	 */
-	public Object getOldId()
+	public Map<RevisionType, List<Object>> getEntities()
 	{
-		return oldId;
+		return entities;
 	}
-
 	/**
-	 * 
-	 * @return
+	 * @return the revision
 	 */
-	public Object getNewId()
+	public Long getRevision()
 	{
-		return newId;
-	}
-
-	/**
-	 * 
-	 * @return
-	 */
-	public Object getEntity()
-	{
-		return entity;
+		return revision;
 	}
 }
