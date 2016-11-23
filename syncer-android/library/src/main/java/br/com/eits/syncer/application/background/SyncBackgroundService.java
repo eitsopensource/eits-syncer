@@ -12,13 +12,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import br.com.eits.syncer.Syncer;
 import br.com.eits.syncer.application.ApplicationHolder;
+import br.com.eits.syncer.application.restful.ISyncResource;
+import br.com.eits.syncer.domain.entity.EntityUpdatedId;
 import br.com.eits.syncer.domain.entity.Revision;
+import br.com.eits.syncer.domain.entity.RevisionType;
+import br.com.eits.syncer.domain.entity.SyncData;
 import br.com.eits.syncer.infrastructure.dao.ORMOpenHelper;
 import br.com.eits.syncer.infrastructure.dao.RevisionDao;
-import br.com.eits.syncer.domain.entity.EntityUpdatedId;
-import br.com.eits.syncer.domain.entity.RevisionType;
-import br.com.eits.syncer.infrastructure.delegate.Syncer;
 
 /**
  * Define a Service that returns an IBinder for the sync adapter class,
@@ -118,8 +120,9 @@ public class SyncBackgroundService extends JobService
         {
             Log.wtf( UpdateAppsAsyncTask.class.getSimpleName(), "doInBackground -> "+ params );
 
-            //FIXME tratar problema de conexao, serializacao, sync das entities remote
+            final ISyncResource syncResource = Syncer.getSyncResource();
 
+            //FIXME tratar problema de conexao, serializacao, sync das entities remote
             //-VERIFICAR A DEMORA
             //    -VERIFICAR SE OS AGENDAMENTOS SAO EM ORDEM
             //    -VERIFICAR A TRHEAD DE AGENDAMENTO
@@ -130,7 +133,9 @@ public class SyncBackgroundService extends JobService
             final Map<RevisionType, List<Object>> localEntities = this.listEntitiesByRevisionType( revisions );
 
             //sync these remotely
-            final Map<RevisionType, List<Object>> remoteEntities = Syncer.instance().syncronize( localEntities );
+            final long lastRevision = revisions.get(revisions.size()-1).getTime();
+            final SyncData localSyncData = new SyncData( lastRevision, localEntities );
+            final SyncData remoteSyncData = syncResource.syncronize( localSyncData );
 
             //save revisions synced
             for ( Revision revision : revisions )
@@ -140,7 +145,7 @@ public class SyncBackgroundService extends JobService
             }
 
             //now we must sync the remote entities
-            this.syncRemoteEntities( remoteEntities );
+            this.syncRemoteEntities( remoteSyncData.getEntities() );
 
             return params;
         }

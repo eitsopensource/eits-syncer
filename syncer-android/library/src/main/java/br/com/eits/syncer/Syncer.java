@@ -1,14 +1,21 @@
 package br.com.eits.syncer;
 
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
+import android.content.ComponentName;
+import android.content.Context;
+import android.util.Log;
+
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.util.List;
-import java.util.Map;
+import java.io.Serializable;
 import java.util.Objects;
 
+import br.com.eits.syncer.application.ApplicationHolder;
+import br.com.eits.syncer.application.background.SyncBackgroundService;
 import br.com.eits.syncer.application.restful.ISyncResource;
-import br.com.eits.syncer.domain.entity.RevisionType;
+import br.com.eits.syncer.domain.service.LocalRepositoryService;
 import feign.Feign;
 import feign.RequestInterceptor;
 import feign.auth.BasicAuthRequestInterceptor;
@@ -22,6 +29,11 @@ import feign.jaxrs.JAXRSContract;
  */
 public class Syncer
 {
+	/**
+	 *
+	 */
+	private static final int SYNC_NOW_JOB_ID = -9999;
+
 	/**
 	 * 
 	 */
@@ -78,67 +90,100 @@ public class Syncer
 	{
 		REQUEST_INTERCEPTOR = null;
 	}
-	
+
 	/**
-	 * 
+	 *
+	 * @param entityClass
 	 * @return
 	 */
-	public static Syncer instance()
+	public static <T, ID extends Serializable> LocalRepositoryService<T, ID> forEntity(Class<T> entityClass )
 	{
-		return new Syncer();
+		return new LocalRepositoryService<T, ID>( entityClass );
 	}
 
-	/*-------------------------------------------------------------------
-	 * 		 					ATTRIBUTES
-	 *-------------------------------------------------------------------*/
-	/**
-	 * 
-	 */
-	protected ISyncResource syncResource;
-	
-	/**
-	 * 
-	 */
-	private Syncer()
-	{
-		MAPPER.enableDefaultTyping();
-		MAPPER.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
-		MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
-	}
-
-	/*-------------------------------------------------------------------
+    /*-------------------------------------------------------------------
 	 * 		 					BEHAVIORS
 	 *-------------------------------------------------------------------*/
 	/**
 	 *
+	 */
+	public static void requestSyncNow()
+	{
+		Objects.requireNonNull( URL, "You must configure the URL to sync." );
+
+		final JobScheduler jobScheduler = (JobScheduler) ApplicationHolder.CONTEXT.getSystemService(Context.JOB_SCHEDULER_SERVICE);
+
+		final ComponentName serviceName = new ComponentName(ApplicationHolder.CONTEXT, SyncBackgroundService.class);
+		final JobInfo jobInfo = new JobInfo.Builder(SYNC_NOW_JOB_ID, serviceName)
+				.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+				.setRequiresDeviceIdle(false)
+				.setRequiresCharging(false)
+				.setPersisted(true)
+				.build();
+
+		final int result = jobScheduler.schedule(jobInfo);
+
+		if ( result != JobScheduler.RESULT_SUCCESS )
+		{
+			throw new IllegalArgumentException("Was not possible to schedule for sync.");
+		}
+		else
+		{
+			Log.d(Syncer.class.getSimpleName(), "Job scheduled successfully");
+		}
+	}
+
+	/**
+	 *
+	 */
+	public static void requestSync( long fromRevision )
+	{
+		Objects.requireNonNull( URL, "You must configure the URL to sync." );
+
+		final JobScheduler jobScheduler = (JobScheduler) ApplicationHolder.CONTEXT.getSystemService(Context.JOB_SCHEDULER_SERVICE);
+
+		final ComponentName serviceName = new ComponentName(ApplicationHolder.CONTEXT, SyncBackgroundService.class);
+		final JobInfo jobInfo = new JobInfo.Builder( new Long(fromRevision).intValue() , serviceName)
+				.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+				.setRequiresDeviceIdle(false)
+				.setRequiresCharging(false)
+				.setPersisted(true)
+				.build();
+
+		final int result = jobScheduler.schedule(jobInfo);
+
+		if ( result != JobScheduler.RESULT_SUCCESS )
+		{
+			throw new IllegalArgumentException("Error doing the local operation. Was not possible to schedule for sync.");
+		}
+		else
+		{
+			Log.d(Syncer.class.getSimpleName(), "Job scheduled successfully for revision: "+fromRevision);
+		}
+	}
+
+	/**
+	 *
 	 * @return
 	 */
-	protected void configureSyncResource()
+	public static ISyncResource getSyncResource()
 	{
-		if ( this.syncResource != null ) return;
 		Objects.requireNonNull( URL, "You must configure the URL to sync." );
-		
+
+		MAPPER.enableDefaultTyping();
+		MAPPER.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
+		MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
+
 		final Feign.Builder builder = Feign.builder()
-					.contract( new JAXRSContract() )
-					.encoder( new JacksonEncoder( MAPPER ) )
-					.decoder( new JacksonDecoder( MAPPER ) );
+				.contract( new JAXRSContract() )
+				.encoder( new JacksonEncoder( MAPPER ) )
+				.decoder( new JacksonDecoder( MAPPER ) );
 
 		if ( REQUEST_INTERCEPTOR != null )
 		{
 			builder.requestInterceptor( REQUEST_INTERCEPTOR );
 		}
 
-		this.syncResource = builder.target( ISyncResource.class, URL );
-	}
-	
-	/**
-	 * 
-	 * @param localEntities
-	 * @return
-	 */
-	public Map<RevisionType, List<Object>> syncronize( Map<RevisionType, List<Object>> localEntities )
-	{
-		this.configureSyncResource();
-		return this.syncResource.syncronize( localEntities );
+		return builder.target( ISyncResource.class, URL );
 	}
 }

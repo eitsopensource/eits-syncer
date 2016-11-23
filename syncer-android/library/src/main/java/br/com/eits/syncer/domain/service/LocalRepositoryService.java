@@ -9,16 +9,17 @@ import java.io.Serializable;
 import java.sql.SQLException;
 import java.util.List;
 
+import br.com.eits.syncer.Syncer;
 import br.com.eits.syncer.application.ApplicationHolder;
 import br.com.eits.syncer.domain.entity.Revision;
+import br.com.eits.syncer.domain.entity.RevisionType;
 import br.com.eits.syncer.infrastructure.dao.ORMOpenHelper;
 import br.com.eits.syncer.infrastructure.dao.RevisionDao;
-import br.com.eits.syncer.domain.entity.RevisionType;
 
 /**
  *
  */
-class LocalRepositoryService<Entity, ID extends Serializable>
+public class LocalRepositoryService<Entity, ID extends Serializable>
 {
     /*-------------------------------------------------------------------
     * 		 					ATTRIBUTES
@@ -31,10 +32,6 @@ class LocalRepositoryService<Entity, ID extends Serializable>
      *
      */
     private final RevisionDao revisionDao;
-    /**
-     *
-     */
-    private final ScheduleService scheduleService;
     /**
      *
      */
@@ -58,8 +55,6 @@ class LocalRepositoryService<Entity, ID extends Serializable>
         this.revisionDao = new RevisionDao( this.helper.getRuntimeExceptionDao(Revision.class) );
 
         this.setupEntityDao();
-
-        this.scheduleService = new ScheduleService();
     }
 
     /*-------------------------------------------------------------------
@@ -195,7 +190,7 @@ class LocalRepositoryService<Entity, ID extends Serializable>
 
         this.revisionDao.create( revision );
 
-        this.scheduleService.requestSync( revision );
+        Syncer.requestSync( revision.getTime() );
         return revision;
     }
 }

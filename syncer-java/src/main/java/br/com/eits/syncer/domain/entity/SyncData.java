@@ -23,7 +23,6 @@ public class SyncData
 	 * 
 	 */
 	private Map<RevisionType, List<Object>> entities;
-	
 
 	/*-------------------------------------------------------------------
 	 *				 		     CONSTRUCTOR
