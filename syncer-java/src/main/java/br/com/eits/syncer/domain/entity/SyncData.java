@@ -1,7 +1,6 @@
 package br.com.eits.syncer.domain.entity;
 
-import java.util.List;
-import java.util.Map;
+import java.util.LinkedHashMap;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -20,9 +19,10 @@ public class SyncData
 	 */
 	private Long revision;
 	/**
-	 * 
+	 * An ordered map of revision types and entities.
+	 * The order is important to sync logic.
 	 */
-	private Map<RevisionType, List<Object>> entities;
+	private LinkedHashMap<RevisionType, Object> entitiesByRevision;
 
 	/*-------------------------------------------------------------------
 	 *				 		     CONSTRUCTOR
@@ -33,10 +33,10 @@ public class SyncData
 	 * @param entities
 	 */
 	@JsonCreator
-	public SyncData( @JsonProperty("revision") Long revision, @JsonProperty("entities") Map<RevisionType, List<Object>> entities )
+	public SyncData( @JsonProperty("revision") Long revision, @JsonProperty("entitiesByRevision") LinkedHashMap<RevisionType, Object> entitiesByRevision )
 	{
 		this.revision = revision;
-		this.entities = entities;
+		this.entitiesByRevision = entitiesByRevision;
 	}
 
 
@@ -46,9 +46,9 @@ public class SyncData
 	/**
 	 * @return the entities
 	 */
-	public Map<RevisionType, List<Object>> getEntities()
+	public LinkedHashMap<RevisionType, Object> getEntitiesByRevision()
 	{
-		return entities;
+		return entitiesByRevision;
 	}
 	/**
 	 * @return the revision
