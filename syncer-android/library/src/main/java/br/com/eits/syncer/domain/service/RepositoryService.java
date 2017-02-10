@@ -51,7 +51,7 @@ public class RepositoryService<T>
      */
     public Revision insert( T entity )
     {
-        final Revision revision = new Revision( entity, RevisionType.INSERT, true );
+        final Revision revision = new Revision( entity, RevisionType.INSERT );
         revision.setEntityId(UUID.randomUUID().toString());
 
         this.revisionDao.open();
@@ -115,8 +115,8 @@ public class RepositoryService<T>
     /**
      *
      */
-    public QueryBuilder<Entity, ID> queryBuilder()
-    {
-        return this.dao.queryBuilder();
-    }
+//    public QueryBuilder<Entity, ID> queryBuilder()
+//    {
+//        return this.dao.queryBuilder();
+//    }
 }

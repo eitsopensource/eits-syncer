@@ -69,7 +69,6 @@ public class RevisionDao<T>
         values.put(SQLiteHelper.COLUMN_ENTITY_ID, this.toJSON( revision.getEntityId()  ) );
         values.put(SQLiteHelper.COLUMN_ENTITY_CLASSNAME, revision.getEntityClassName() );
         values.put(SQLiteHelper.COLUMN_SYNCED, revision.getSynced() );
-        values.put(SQLiteHelper.COLUMN_MUST_SYNC, revision.getMustSync() );
         values.put(SQLiteHelper.COLUMN_TYPE, revision.getType().ordinal() );
 
         final Long insertId = this.database.insert(SQLiteHelper.TABLE_REVISION, null, values);

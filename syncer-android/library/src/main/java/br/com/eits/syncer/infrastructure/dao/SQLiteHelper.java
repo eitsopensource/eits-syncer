@@ -16,7 +16,6 @@ public class SQLiteHelper extends SQLiteOpenHelper
     public static final String TABLE_REVISION = "revision";
     public static final String COLUMN_REVISION = "revision";
     public static final String COLUMN_SYNCED = "synced";
-    public static final String COLUMN_MUST_SYNC = "must_sync";
     public static final String COLUMN_TYPE = "type";
     public static final String COLUMN_ENTITY = "entity";
     public static final String COLUMN_ENTITY_ID = "entity_id";
@@ -28,7 +27,6 @@ public class SQLiteHelper extends SQLiteOpenHelper
     public static final String[] TABLE_REVISION_COLUMNS = {
             SQLiteHelper.COLUMN_REVISION,
             SQLiteHelper.COLUMN_SYNCED,
-            SQLiteHelper.COLUMN_MUST_SYNC,
             SQLiteHelper.COLUMN_TYPE,
             SQLiteHelper.COLUMN_ENTITY,
             SQLiteHelper.COLUMN_ENTITY_ID,
@@ -41,7 +39,6 @@ public class SQLiteHelper extends SQLiteOpenHelper
             + TABLE_REVISION + "( "
                 + COLUMN_REVISION + " INTEGER PRIMARY KEY, "
                 + COLUMN_SYNCED + " BOOLEAN NOT NULL, "
-                + COLUMN_MUST_SYNC + " BOOLEAN NOT NULL, "
                 + COLUMN_TYPE + " TINYINT NOT NULL, "
                 + COLUMN_ENTITY + " TEXT NOT NULL, "
                 + COLUMN_ENTITY_ID + " TEXT NOT NULL, "

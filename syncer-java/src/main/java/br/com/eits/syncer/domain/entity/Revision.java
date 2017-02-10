@@ -31,10 +31,6 @@ public class Revision<T> implements Serializable
 	/**
 	 *
 	 */
-	private Boolean mustSync;
-	/**
-	 *
-	 */
 	private RevisionType type;
 	/**
 	 *
@@ -58,12 +54,11 @@ public class Revision<T> implements Serializable
 	 * @param type
 	 */
 	@JsonCreator
-	public Revision( @JsonProperty("entity") T entity, @JsonProperty("type") RevisionType type, @JsonProperty("mustSync") Boolean mustSync )
+	public Revision( @JsonProperty("entity") T entity, @JsonProperty("type") RevisionType type )
 	{
 		this.revision = Calendar.getInstance().getTimeInMillis();
 		this.entity = entity;
 		this.entityClassName = entity.getClass().getName();
-		this.mustSync = mustSync;
 		this.type = type;
 		this.synced = false;
 	}
@@ -87,7 +82,6 @@ public class Revision<T> implements Serializable
 		final Revision<T> revision = (Revision<T>) o;
 		return Objects.equals(revision, revision.revision) &&
 				Objects.equals(synced, revision.synced) &&
-				Objects.equals(mustSync, revision.mustSync) &&
 				type == revision.type &&
 				Objects.equals(entity, revision.entity) &&
 				Objects.equals(entityClassName, revision.entityClassName);
@@ -100,7 +94,7 @@ public class Revision<T> implements Serializable
 	@Override
 	public int hashCode()
 	{
-		return Objects.hash(revision, synced, mustSync, type, entity, entityClassName);
+		return Objects.hash(revision, synced, type, entity, entityClassName);
 	}
 
 	/*-------------------------------------------------------------------
@@ -157,14 +151,6 @@ public class Revision<T> implements Serializable
 	public Long getRevision()
 	{
 		return this.revision;
-	}
-
-	/**
-	 * @return the mustSync
-	 */
-	public Boolean getMustSync()
-	{
-		return this.mustSync;
 	}
 
 	/**
