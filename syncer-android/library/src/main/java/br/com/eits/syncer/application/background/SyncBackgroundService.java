@@ -20,7 +20,6 @@ import br.com.eits.syncer.domain.entity.EntityUpdatedId;
 import br.com.eits.syncer.domain.entity.Revision;
 import br.com.eits.syncer.domain.entity.RevisionType;
 import br.com.eits.syncer.domain.entity.SyncData;
-import br.com.eits.syncer.infrastructure.dao.ORMOpenHelper;
 import br.com.eits.syncer.infrastructure.dao.RevisionDao;
 
 /**

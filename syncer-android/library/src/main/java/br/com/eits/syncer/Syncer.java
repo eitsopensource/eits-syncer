@@ -15,7 +15,7 @@ import java.util.Objects;
 import br.com.eits.syncer.application.ApplicationHolder;
 import br.com.eits.syncer.application.background.SyncBackgroundService;
 import br.com.eits.syncer.application.restful.ISyncResource;
-import br.com.eits.syncer.domain.service.LocalRepositoryService;
+import br.com.eits.syncer.domain.service.RepositoryService;
 import feign.Feign;
 import feign.RequestInterceptor;
 import feign.auth.BasicAuthRequestInterceptor;
@@ -93,12 +93,24 @@ public class Syncer
 
 	/**
 	 *
+	 */
+	public static ObjectMapper getMapper()
+	{
+		MAPPER.enableDefaultTyping();
+		MAPPER.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
+		MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
+
+		return MAPPER;
+	}
+
+	/**
+	 *
 	 * @param entityClass
 	 * @return
 	 */
-	public static <T, ID extends Serializable> LocalRepositoryService<T, ID> forEntity(Class<T> entityClass )
+	public static <T, ID extends Serializable> RepositoryService<T, ID> forEntity(Class<T> entityClass )
 	{
-		return new LocalRepositoryService<T, ID>( entityClass );
+		return new RepositoryService<T, ID>( entityClass );
 	}
 
     /*-------------------------------------------------------------------
@@ -170,14 +182,10 @@ public class Syncer
 	{
 		Objects.requireNonNull( URL, "You must configure the URL to sync." );
 
-		MAPPER.enableDefaultTyping();
-		MAPPER.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
-		MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
-
 		final Feign.Builder builder = Feign.builder()
 				.contract( new JAXRSContract() )
-				.encoder( new JacksonEncoder( MAPPER ) )
-				.decoder( new JacksonDecoder( MAPPER ) );
+				.encoder( new JacksonEncoder( getMapper() ) )
+				.decoder( new JacksonDecoder( getMapper() ) );
 
 		if ( REQUEST_INTERCEPTOR != null )
 		{
