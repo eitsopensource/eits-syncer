@@ -1,6 +1,7 @@
 package br.com.eits.syncer.domain.service;
 
-import com.j256.ormlite.stmt.QueryBuilder;
+
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import java.util.List;
 import java.util.UUID;
@@ -9,10 +10,6 @@ import br.com.eits.syncer.Syncer;
 import br.com.eits.syncer.domain.entity.Revision;
 import br.com.eits.syncer.domain.entity.RevisionType;
 import br.com.eits.syncer.infrastructure.dao.RevisionDao;
-
-import static android.icu.text.Normalizer.NO;
-import static android.os.Build.ID;
-import static com.fasterxml.jackson.annotation.JsonProperty.Access.AUTO;
 
 /**
  *
@@ -74,7 +71,7 @@ public class RepositoryService<T>
         this.revisionDao.insertRevision( revision );
         this.revisionDao.close();
 
-        Syncer.requestSync( revision.getId() );
+        Syncer.requestSync( revision.getRevision() );
 
         return entity;
     }
@@ -90,7 +87,7 @@ public class RepositoryService<T>
         this.revisionDao.insertRevision( revision );
         this.revisionDao.close();
 
-        Syncer.requestSync( revision.getId() );
+        Syncer.requestSync( revision.getRevision() );
     }
 
     /**
@@ -104,12 +101,13 @@ public class RepositoryService<T>
     /**
      *
      */
-    public T findById( ID id )
+    public T findById( JsonTypeInfo.Id id )
     {
-        COMO FAZER COM A ID DA ENTIDADE?
-            COLOCAR NO JSON? AUTO GERAR?
-        VER COMO OS NOSQL FAZEM..
-        return this.dao.queryForId(id);
+//        COMO FAZER COM A ID DA ENTIDADE?
+//            COLOCAR NO JSON? AUTO GERAR?
+//        VER COMO OS NOSQL FAZEM..
+//        return this.revisionDao.queryForId(id);
+        return null;
     }
 
     /**

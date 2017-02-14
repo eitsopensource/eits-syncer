@@ -2,6 +2,7 @@ package br.com.eits.syncer.infrastructure.dao;
 
 import android.content.Context;
 
+import br.com.eits.syncer.domain.entity.Revision;
 import io.requery.android.database.sqlite.SQLiteDatabase;
 import io.requery.android.database.sqlite.SQLiteOpenHelper;
 
@@ -71,13 +72,15 @@ public class SQLiteHelper extends SQLiteOpenHelper
     }
 
     /**
-     *
      * @param database
      * @param oldVersion
      * @param newVersion
      */
     @Override
-    public void onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion)
-    {
+    public void onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion) {
+
+    }
+
+    public void getRuntimeExceptionDao(Class<Revision> revisionClass) {
     }
 }

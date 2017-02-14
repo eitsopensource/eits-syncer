@@ -36,6 +36,7 @@ public class Revision<T> implements Serializable
 	 *
 	 */
 	private T entity;
+	
 	/**
 	 *
 	 */

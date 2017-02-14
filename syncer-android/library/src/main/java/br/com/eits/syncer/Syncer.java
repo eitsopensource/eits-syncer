@@ -108,9 +108,10 @@ public class Syncer
 	 * @param entityClass
 	 * @return
 	 */
-	public static <T, ID extends Serializable> RepositoryService<T, ID> forEntity(Class<T> entityClass )
+	public static <T, ID extends Serializable> RepositoryService<T> forEntity(Class<T> entityClass )
 	{
-		return new RepositoryService<T, ID>( entityClass );
+//		return new RepositoryService<T, ID>( entityClass );
+		return new RepositoryService<T>( entityClass );
 	}
 
     /*-------------------------------------------------------------------

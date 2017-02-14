@@ -61,7 +61,7 @@ public class RevisionDao<T>
      * @param revision
      * @return
      */
-    public Revision insertRevision( Revision<T> revision )
+    public Revision insertRevision(Revision<T> revision )
     {
         final ContentValues values = new ContentValues();
         values.put(SQLiteHelper.COLUMN_REVISION, revision.getRevision() );
@@ -104,6 +104,35 @@ public class RevisionDao<T>
         return entities;
     }
 
+
+    /**
+     *
+     * @param column
+     * @return
+     */
+    public List<T> queryForEq( String column, Object value )
+    {
+
+        final List<T> entities = new ArrayList<>();
+
+        final Cursor cursor = database.query(
+                SQLiteHelper.TABLE_REVISION, null,
+                column + " = " + value,
+                null, null, null, null);
+
+        cursor.moveToFirst();
+        while ( !cursor.isAfterLast() )
+        {
+            final T entity = this.toEntity( cursor.getString(0), null);
+            entities.add( entity );
+            cursor.moveToNext();
+        }
+        cursor.close();
+
+        return entities;
+
+    }
+
     /**
      *
      * @param entity
@@ -137,4 +166,6 @@ public class RevisionDao<T>
             throw new IllegalArgumentException("Error serializing the entity", e);
         }
     }
+
+
 }
