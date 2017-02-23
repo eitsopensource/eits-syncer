@@ -149,6 +149,7 @@ public class Syncer
 	/**
 	 *
 	 */
+
 	public static void requestSync( long fromRevision )
 	{
 		Objects.requireNonNull( URL, "You must configure the URL to sync." );
