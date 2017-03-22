@@ -134,7 +134,15 @@ public class Syncer
 				.setPersisted(true)
 				.build();
 
-		final int result = jobScheduler.schedule(jobInfo);
+		Integer result = null;
+
+		try {
+			result = jobScheduler.schedule(jobInfo);
+		} catch (Exception e)
+		{
+			System.out.println("================== EXCEPTION ========== " + e);
+		}
+
 
 		if ( result != JobScheduler.RESULT_SUCCESS )
 		{
@@ -149,7 +157,6 @@ public class Syncer
 	/**
 	 *
 	 */
-
 	public static void requestSync( long fromRevision )
 	{
 		Objects.requireNonNull( URL, "You must configure the URL to sync." );
@@ -164,7 +171,14 @@ public class Syncer
 				.setPersisted(true)
 				.build();
 
-		final int result = jobScheduler.schedule(jobInfo);
+		Integer result = null;
+
+		try {
+			result = jobScheduler.schedule(jobInfo);
+		} catch (Exception e)
+		{
+			System.out.println("================== EXCEPTION ========== " + e);
+		}
 
 		if ( result != JobScheduler.RESULT_SUCCESS )
 		{

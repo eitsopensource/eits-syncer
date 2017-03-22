@@ -109,6 +109,11 @@ public class Revision<T> implements Serializable
 	{
 		return this.entityClassName;
 	}
+	
+	public void setEntityClassName(String entityClassName)
+	{
+		this.entityClassName = entityClassName;
+	}
 
 	/**
 	 *
@@ -144,6 +149,11 @@ public class Revision<T> implements Serializable
 	public void setSynced(Boolean synced)
 	{
 		this.synced = synced;
+	}
+	
+	public void setRevision(Long revision)
+	{
+		this.revision = revision;
 	}
 
 	/**

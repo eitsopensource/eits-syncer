@@ -46,7 +46,7 @@ public class RepositoryService<T>
     /**
      *
      */
-    public Revision insert( T entity )
+    public Revision insert(T entity )
     {
         final Revision revision = new Revision( entity, RevisionType.INSERT );
         revision.setEntityId(UUID.randomUUID().toString());
@@ -56,7 +56,6 @@ public class RepositoryService<T>
         revisionDao.close();
 
         Syncer.requestSync( revision.getRevision() );
-
         return revision;
     }
 

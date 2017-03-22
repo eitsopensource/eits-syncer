@@ -10,6 +10,7 @@ import java.util.List;
 import br.com.eits.syncer.Syncer;
 import br.com.eits.syncer.application.ApplicationHolder;
 import br.com.eits.syncer.domain.entity.Revision;
+import br.com.eits.syncer.domain.entity.RevisionType;
 import io.requery.android.database.sqlite.SQLiteDatabase;
 
 /**
@@ -110,20 +111,23 @@ public class RevisionDao<T>
      * @param column
      * @return
      */
-    public List<T> queryForEq( String column, Object value )
+    public List<Revision> queryForEq( String column, Object value )
     {
 
-        final List<T> entities = new ArrayList<>();
+        final List<Revision> entities = new ArrayList<>();
 
         final Cursor cursor = database.query(
                 SQLiteHelper.TABLE_REVISION, null,
-                column + " = " + value,
-                null, null, null, null);
+                column + " = ?" ,
+                new Object[] {value}, null, null, null);
 
         cursor.moveToFirst();
         while ( !cursor.isAfterLast() )
         {
-            final T entity = this.toEntity( cursor.getString(0), null);
+            Revision entity = null;
+
+            entity = this.revisionParse(cursor);
+
             entities.add( entity );
             cursor.moveToNext();
         }
@@ -131,6 +135,35 @@ public class RevisionDao<T>
 
         return entities;
 
+    }
+
+    private Revision revisionParse(Cursor cursor)
+    {
+        RevisionType revisionType = null;
+
+        switch (cursor.getInt(2))
+        {
+            case (0):
+                revisionType = RevisionType.INSERT;
+                break;
+            case (1):
+                revisionType = RevisionType.UPDATE;
+                break;
+            case(2):
+                revisionType = RevisionType.REMOVE;
+                break;
+            case(3):
+                revisionType = RevisionType.UPDATE_ID;
+                break;
+        }
+
+        Revision revision = new Revision( cursor.getString(3), revisionType );
+        revision.setRevision(cursor.getLong(0));
+        revision.setSynced(cursor.getLong(1) == 1 ? true : false );
+        revision.setEntityId(cursor.getString(4));
+        revision.setEntityClassName(cursor.getString(5));
+
+        return revision;
     }
 
     /**

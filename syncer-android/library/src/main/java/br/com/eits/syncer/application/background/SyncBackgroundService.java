@@ -132,15 +132,15 @@ public class SyncBackgroundService extends JobService
                 final ISyncResource syncResource = Syncer.getSyncResource();
 
 
-                //TODO Talvez isso seja importante
 //                final QueryBuilder<Revision, Long> queryBuilder = SyncBackgroundService.this.revisionDao.queryBuilder();
 //                queryBuilder
 //                        .orderBy("time", true)
 //                        .where()
 //                            .eq("synced", false);
 
-
-                final List<Revision> revisions = SyncBackgroundService.this.revisionDao.queryForEq("synced", false);
+                SyncBackgroundService.this.revisionDao.open();
+                final List<Revision> revisions = SyncBackgroundService.this.revisionDao.queryForEq(SQLiteHelper.COLUMN_SYNCED, 0);
+                SyncBackgroundService.this.revisionDao.close();
 
                 //request witch entities we have to sync
                 final LinkedHashMap<RevisionType, Object> localEntities = this.listEntitiesByRevisionType( revisions );
@@ -201,8 +201,11 @@ public class SyncBackgroundService extends JobService
                 }
                 else
                 {
-//                    final Object entity = dao.queryForId( revision.getEntityId() );
-//                    entitiesByRevisionType.put( revision.getType(), entity );
+                    SyncBackgroundService.this.revisionDao.open();
+                    final Object entity = SyncBackgroundService.this.revisionDao.queryForEq(SQLiteHelper.COLUMN_REVISION, revision.getRevision());
+                    SyncBackgroundService.this.revisionDao.close();
+
+                    entitiesByRevisionType.put( revision.getType(), entity );
                 }
             }
 
@@ -215,6 +218,7 @@ public class SyncBackgroundService extends JobService
          */
         private void syncRemoteEntities( Map<RevisionType, Object> entitiesByRevisionType )
         {
+            System.out.println("lalala");
 //            for ( Map.Entry<RevisionType, Object> entry : entitiesByRevisionType.entrySet() )
 //            {
 //                switch ( entry.getKey() )

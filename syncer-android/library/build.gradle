@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'maven-publish'
 
-group = 'com.github.xlucasdemelo'
+group = 'br.com.eits.syncer'
 version = '0.0.6-SNAPSHOT'
 project.archivesBaseName = 'eits-syncer-android'
 
@@ -29,6 +29,7 @@ android {
 dependencies {
     compile 'io.requery:sqlite-android:3.15.1'
     compile 'br.com.eits.syncer:eits-syncer-java:'+version
+    compile 'com.j256.ormlite:ormlite-android:5.0'
 }
 
 // build a jar with source files
