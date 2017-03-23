@@ -66,7 +66,12 @@ public class RevisionDao<T>
     {
         final ContentValues values = new ContentValues();
         values.put(SQLiteHelper.COLUMN_REVISION, revision.getRevision() );
-        values.put(SQLiteHelper.COLUMN_ENTITY, this.toJSON( revision.getEntity() ) );
+
+        String json = this.toJSON( revision.getEntity() );
+
+        String entityJson = json.substring( json.indexOf(",") + 1, json.lastIndexOf("}") + 1 );
+
+        values.put(SQLiteHelper.COLUMN_ENTITY, entityJson );
         values.put(SQLiteHelper.COLUMN_ENTITY_ID, this.toJSON( revision.getEntityId()  ) );
         values.put(SQLiteHelper.COLUMN_ENTITY_CLASSNAME, revision.getEntityClassName() );
         values.put(SQLiteHelper.COLUMN_SYNCED, revision.getSynced() );

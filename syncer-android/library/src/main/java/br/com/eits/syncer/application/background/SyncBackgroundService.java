@@ -12,7 +12,6 @@ import java.util.Map;
 
 import br.com.eits.syncer.Syncer;
 import br.com.eits.syncer.application.ApplicationHolder;
-import br.com.eits.syncer.application.restful.ISyncResource;
 import br.com.eits.syncer.domain.entity.Revision;
 import br.com.eits.syncer.domain.entity.RevisionType;
 import br.com.eits.syncer.domain.entity.SyncData;
@@ -129,7 +128,7 @@ public class SyncBackgroundService extends JobService
                 //    -VERIFICAR SE OS AGENDAMENTOS SAO EM ORDEM
                 //    -VERIFICAR A TRHEAD DE AGENDAMENTO
                 //    -VERIFICAR QUANDO REMOVE / ALTERA
-                final ISyncResource syncResource = Syncer.getSyncResource();
+//                final ISyncResource syncResource = Syncer.getSyncResource();
 
 
 //                final QueryBuilder<Revision, Long> queryBuilder = SyncBackgroundService.this.revisionDao.queryBuilder();
@@ -139,7 +138,7 @@ public class SyncBackgroundService extends JobService
 //                            .eq("synced", false);
 
                 SyncBackgroundService.this.revisionDao.open();
-                final List<Revision> revisions = SyncBackgroundService.this.revisionDao.queryForEq(SQLiteHelper.COLUMN_SYNCED, 0);
+                final List<Revision<?>> revisions = SyncBackgroundService.this.revisionDao.queryForEq(SQLiteHelper.COLUMN_SYNCED, 0);
                 SyncBackgroundService.this.revisionDao.close();
 
                 //request witch entities we have to sync
@@ -147,8 +146,8 @@ public class SyncBackgroundService extends JobService
 
                 //sync these remotely
                 final long lastRevision = revisions.get(revisions.size()-1).getRevision();
-                final SyncData localSyncData = new SyncData( lastRevision, null, null);
-                final SyncData remoteSyncData = syncResource.syncronize( localSyncData );
+                final SyncData localSyncData = new SyncData( lastRevision, null, revisions);
+                final SyncData remoteSyncData = Syncer.syncronize(localSyncData);
 
                 //save revisions synced
                 for ( Revision revision : revisions )
@@ -174,7 +173,7 @@ public class SyncBackgroundService extends JobService
          * @param revisions
          * @return
          */
-        private LinkedHashMap<RevisionType, Object> listEntitiesByRevisionType( List<Revision> revisions )
+        private LinkedHashMap<RevisionType, Object> listEntitiesByRevisionType( List<Revision<?>> revisions )
         {
             final LinkedHashMap<RevisionType, Object> entitiesByRevisionType = new LinkedHashMap<>();
 

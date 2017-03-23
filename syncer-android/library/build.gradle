@@ -30,6 +30,9 @@ dependencies {
     compile 'io.requery:sqlite-android:3.15.1'
     compile 'br.com.eits.syncer:eits-syncer-java:'+version
     compile 'com.j256.ormlite:ormlite-android:5.0'
+
+//    compile group: 'com.netflix.feign', name: 'feign-jaxrs', version: '8.18.0'
+//    compile group: 'com.netflix.feign', name: 'feign-jackson', version: '8.18.0'
 }
 
 // build a jar with source files

@@ -10,15 +10,20 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.Serializable;
+import java.lang.reflect.Type;
 import java.util.Objects;
 
 import br.com.eits.syncer.application.ApplicationHolder;
 import br.com.eits.syncer.application.background.SyncBackgroundService;
 import br.com.eits.syncer.application.restful.ISyncResource;
+import br.com.eits.syncer.domain.entity.SyncData;
 import br.com.eits.syncer.domain.service.RepositoryService;
 import feign.Feign;
 import feign.RequestInterceptor;
+import feign.RequestTemplate;
 import feign.auth.BasicAuthRequestInterceptor;
+import feign.codec.EncodeException;
+import feign.codec.Encoder;
 import feign.jackson.JacksonDecoder;
 import feign.jackson.JacksonEncoder;
 import feign.jaxrs.JAXRSContract;
@@ -98,6 +103,7 @@ public class Syncer
 	{
 		MAPPER.enableDefaultTyping();
 		MAPPER.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
+
 		MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
 
 		return MAPPER;
@@ -210,4 +216,43 @@ public class Syncer
 
 		return builder.target( ISyncResource.class, URL );
 	}
+
+	/**
+	 *
+	 * @return
+     */
+	public static SyncData syncronize( SyncData localSyncData )
+	{
+		Objects.requireNonNull( URL, "You must configure the URL to sync." );
+
+		final ISyncResource syncResource = Feign.builder()
+				.contract( new JAXRSContract() )
+				.encoder(new Encoder()
+				{
+					@Override
+					public void encode(Object object, Type bodyType, RequestTemplate template) throws EncodeException
+					{
+						try
+						{
+							ObjectMapper mapper = new ObjectMapper();
+							String jsonInString = mapper.writeValueAsString(object);
+
+							template.body( jsonInString );
+						}
+						catch (Exception e)
+						{
+							e.printStackTrace();
+							throw new EncodeException(e.getMessage());
+						}
+					}
+				})
+				.decoder( new JacksonDecoder( getMapper() ) )
+				.requestInterceptor( REQUEST_INTERCEPTOR )
+				.target(ISyncResource.class, URL);
+
+		final SyncData syncDataServer = syncResource.syncronize(localSyncData);
+
+		return syncDataServer;
+	}
+
 }
