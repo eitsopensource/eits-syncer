@@ -58,27 +58,22 @@ public class RevisionDao<T>
     }
 
     /**
-     *
      * @param revision
      * @return
      */
-    public Revision insertRevision(Revision<T> revision )
+    public Revision insertRevision( Revision<T> revision )
     {
         final ContentValues values = new ContentValues();
-        values.put(SQLiteHelper.COLUMN_REVISION, revision.getRevision() );
+        
+        values.put( SQLiteHelper.COLUMN_REVISION, revision.getRevision() );
+        values.put( SQLiteHelper.COLUMN_ENTITY, this.toJSON( revision.getEntity() ) );
+        values.put( SQLiteHelper.COLUMN_ENTITY_ID, this.toJSON( revision.getEntityId()  ) );
+        values.put( SQLiteHelper.COLUMN_ENTITY_CLASSNAME, revision.getEntityClassName() );
+        values.put( SQLiteHelper.COLUMN_SYNCED, revision.getSynced() );
+        values.put( SQLiteHelper.COLUMN_TYPE, revision.getType().ordinal() );
 
-        String json = this.toJSON( revision.getEntity() );
-
-        String entityJson = json.substring( json.indexOf(",") + 1, json.lastIndexOf("}") + 1 );
-
-        values.put(SQLiteHelper.COLUMN_ENTITY, entityJson );
-        values.put(SQLiteHelper.COLUMN_ENTITY_ID, this.toJSON( revision.getEntityId()  ) );
-        values.put(SQLiteHelper.COLUMN_ENTITY_CLASSNAME, revision.getEntityClassName() );
-        values.put(SQLiteHelper.COLUMN_SYNCED, revision.getSynced() );
-        values.put(SQLiteHelper.COLUMN_TYPE, revision.getType().ordinal() );
-
-        final Long insertId = this.database.insert(SQLiteHelper.TABLE_REVISION, null, values);
-        Log.d(RevisionDao.class.getSimpleName(), insertId.toString());
+        final Long insertId = this.database.insert( SQLiteHelper.TABLE_REVISION, null, values );
+        Log.d( RevisionDao.class.getSimpleName(), insertId.toString() );
 
         return revision;
     }
@@ -142,6 +137,10 @@ public class RevisionDao<T>
 
     }
 
+    /**
+     * @param cursor
+     * @return
+     */
     private Revision revisionParse(Cursor cursor)
     {
         RevisionType revisionType = null;
@@ -176,11 +175,11 @@ public class RevisionDao<T>
      * @param entity
      * @return
      */
-    private String toJSON(Object entity)
+    public String toJSON( Object entity )
     {
         try
         {
-            return Syncer.getMapper().writeValueAsString(entity);
+            return Syncer.getMapper().writeValueAsString( entity );
         }
         catch ( Exception e )
         {
@@ -193,7 +192,7 @@ public class RevisionDao<T>
      * @param entityClass
      * @return
      */
-    private T toEntity( String json, Class<T> entityClass )
+    public T toEntity( String json, Class<T> entityClass )
     {
         try
         {
@@ -204,6 +203,4 @@ public class RevisionDao<T>
             throw new IllegalArgumentException("Error serializing the entity", e);
         }
     }
-
-
 }

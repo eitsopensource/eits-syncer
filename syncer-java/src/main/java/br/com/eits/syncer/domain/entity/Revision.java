@@ -36,7 +36,7 @@ public class Revision<T> implements Serializable
 	 *
 	 */
 	private T entity;
-	
+
 	/**
 	 *
 	 */
@@ -72,45 +72,45 @@ public class Revision<T> implements Serializable
 	 *
 	 * @param o
 	 * @return
-     */
+	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	public boolean equals(Object o)
+	public boolean equals( Object o )
 	{
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+		if ( this == o ) return true;
+		if ( o == null || getClass() != o.getClass() ) return false;
 
-		final Revision<T> revision = (Revision<T>) o;
-		return Objects.equals(revision, revision.revision) &&
-				Objects.equals(synced, revision.synced) &&
-				type == revision.type &&
-				Objects.equals(entity, revision.entity) &&
-				Objects.equals(entityClassName, revision.entityClassName);
+		final Revision<T> revision = ( Revision<T> ) o;
+		return Objects.equals( revision, revision.revision ) && Objects.equals( synced, revision.synced ) && type == revision.type && Objects.equals( entity, revision.entity ) && Objects.equals( entityClassName, revision.entityClassName );
 	}
 
 	/**
 	 *
 	 * @return
-     */
+	 */
 	@Override
 	public int hashCode()
 	{
-		return Objects.hash(revision, synced, type, entity, entityClassName);
+		return Objects.hash( revision, synced, type, entity, entityClassName );
 	}
 
 	/*-------------------------------------------------------------------
-    *				 		   GETTERS AND SETTERS
-    *-------------------------------------------------------------------*/
+	 *				 		   GETTERS AND SETTERS
+	 *-------------------------------------------------------------------*/
 	/**
 	 *
 	 * @return
-     */
+	 */
 	public String getEntityClassName()
 	{
 		return this.entityClassName;
 	}
-	
-	public void setEntityClassName(String entityClassName)
+
+	/**
+	 * 
+	 * @param entityClassName
+	 */
+	public void setEntityClassName( String entityClassName )
 	{
 		this.entityClassName = entityClassName;
 	}
@@ -118,16 +118,24 @@ public class Revision<T> implements Serializable
 	/**
 	 *
 	 * @return
-     */
+	 */
 	public RevisionType getType()
 	{
 		return this.type;
 	}
 
 	/**
+	 * 
+	 */
+	public void setEntity( T entity )
+	{
+		this.entity = entity;
+	}
+
+	/**
 	 *
 	 * @return
-     */
+	 */
 	public T getEntity()
 	{
 		return this.entity;
@@ -146,12 +154,12 @@ public class Revision<T> implements Serializable
 	 *
 	 * @param synced
 	 */
-	public void setSynced(Boolean synced)
+	public void setSynced( Boolean synced )
 	{
 		this.synced = synced;
 	}
-	
-	public void setRevision(Long revision)
+
+	public void setRevision( Long revision )
 	{
 		this.revision = revision;
 	}

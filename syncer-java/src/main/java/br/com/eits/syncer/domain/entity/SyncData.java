@@ -25,7 +25,7 @@ public class SyncData
 	/**
 	 * An ordered revision list to sync logic.
 	 */
-	private List<Revision<?>> revisions;
+	private List<Object> revisions;
 
 	/*-------------------------------------------------------------------
 	 *				 		     CONSTRUCTOR
@@ -36,7 +36,7 @@ public class SyncData
 	 * @param entities
 	 */
 	@JsonCreator
-	public SyncData( @JsonProperty("lastRevision") Long lastRevision, @JsonProperty("version") Integer version, @JsonProperty("revisions") List<Revision<?>> revisions )
+	public SyncData( @JsonProperty("lastRevision") Long lastRevision, @JsonProperty("version") Integer version, @JsonProperty("revisions") List<Object> revisions )
 	{
 		this.lastRevision = lastRevision;
 		this.version = version;
@@ -68,7 +68,7 @@ public class SyncData
 	 * 
 	 * @return
 	 */
-	public List<Revision<?>> getRevisions()
+	public List<Object> getRevisions()
 	{
 		return this.revisions;
 	}

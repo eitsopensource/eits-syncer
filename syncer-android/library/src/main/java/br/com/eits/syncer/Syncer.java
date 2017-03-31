@@ -6,8 +6,12 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.util.Log;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonTypeId;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 import java.io.Serializable;
 import java.lang.reflect.Type;
@@ -101,10 +105,14 @@ public class Syncer
 	 */
 	public static ObjectMapper getMapper()
 	{
-		MAPPER.enableDefaultTyping();
-		MAPPER.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
-
 		MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
+		MAPPER.configure( SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false );
+		MAPPER.configure( SerializationFeature.INDENT_OUTPUT, true );
+
+		MAPPER.setSerializationInclusion( JsonInclude.Include.NON_NULL );
+
+		MAPPER.enableDefaultTyping();
+		MAPPER.enableDefaultTyping( ObjectMapper.DefaultTyping.JAVA_LANG_OBJECT );
 
 		return MAPPER;
 	}
@@ -234,10 +242,7 @@ public class Syncer
 					{
 						try
 						{
-							ObjectMapper mapper = new ObjectMapper();
-							String jsonInString = mapper.writeValueAsString(object);
-
-							template.body( jsonInString );
+							template.body( getMapper().writeValueAsString( object ) );
 						}
 						catch (Exception e)
 						{
