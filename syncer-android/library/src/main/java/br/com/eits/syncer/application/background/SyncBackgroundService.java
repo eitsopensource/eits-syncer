@@ -135,7 +135,6 @@ public class SyncBackgroundService extends JobService
 
                 SyncBackgroundService.this.revisionDao.open();
                 final List<Object> revisions = SyncBackgroundService.this.revisionDao.queryForEq(SQLiteHelper.COLUMN_SYNCED, 0);
-                SyncBackgroundService.this.revisionDao.close();
 
                 for( Object entry : revisions )
                 {
@@ -150,26 +149,20 @@ public class SyncBackgroundService extends JobService
                 final SyncData localSyncData = new SyncData( lastRevision, null, revisions );
                 final SyncData remoteSyncData = Syncer.syncronize( localSyncData );
 
-                final List<Object> remoteRevisions = remoteSyncData.getRevisions();
+                //remove all revisions not synced
+                SyncBackgroundService.this.revisionDao.removeAllNotSynced();
 
+                //save remote revisions as synced
+                final List<Object> remoteRevisions = remoteSyncData.getRevisions();
                 for( Object entry : remoteRevisions )
                 {
-                    if( entry instanceof EntityUpdatedId )
-                    {
-
-                    }
+                    final Revision revision = (Revision) entry;
+                    final Revision newRevision = new Revision( revision.getEntity(), RevisionType.UPDATE );
+                    newRevision.setSynced( true );
+                    SyncBackgroundService.this.revisionDao.insertRevision( newRevision );
                 }
 
-                //save revisions synced
-                //for ( Revision revision : revisions )
-                //{
-                  //  revision.setSynced(true);
-//                    SyncBackgroundService.this.revisionDao.update(revision);//
-                //}
-
-                //now we must sync the remote entities
-//                this.syncRemoteEntities( remoteSyncData.getEntitiesByRevision() );
-
+                SyncBackgroundService.this.revisionDao.close();
                 return params;
             }
             catch( Exception e )
@@ -177,48 +170,6 @@ public class SyncBackgroundService extends JobService
                 e.printStackTrace();
                 throw new RuntimeException(e);
             }
-        }
-
-        /**
-         *
-         * @param entitiesByRevisionType
-         */
-        private void syncRemoteEntities( Map<RevisionType, Object> entitiesByRevisionType )
-        {
-            System.out.println("lalala");
-//            for ( Map.Entry<RevisionType, Object> entry : entitiesByRevisionType.entrySet() )
-//            {
-//                switch ( entry.getKey() )
-//                {
-//                    case INSERT:
-//                    {
-//
-//                        final RuntimeExceptionDao dao = this.createDao( entry.getValue().getClass().getName() );
-//                        dao.create(entry.getValue());
-//                        break;
-//                    }
-//                    case UPDATE:
-//                    {
-//                        final RuntimeExceptionDao dao = this.createDao( entry.getValue().getClass().getName() );
-//                        dao.update(entry.getValue());
-//                        break;
-//                    }
-//                    case UPDATE_ID:
-//                    {
-//                        final EntityUpdatedId entityUpdatedId = (EntityUpdatedId) entry.getValue();
-//                        final RuntimeExceptionDao dao = this.createDao( entityUpdatedId.getEntity().getClass().getName() );
-//                        dao.updateId( entityUpdatedId.getEntity(), entityUpdatedId.getNewId() );
-//                        break;
-//                    }
-//                    case REMOVE:
-//                    {
-//                        final RuntimeExceptionDao dao = this.createDao( entry.getValue().getClass().getName() );
-//                        dao.delete(entry.getValue());
-//                        break;
-//                    }
-//                    default: break;
-//                }
-//            }
         }
 
         /**

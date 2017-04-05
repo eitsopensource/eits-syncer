@@ -56,6 +56,11 @@ public class Syncer
 	 * 
 	 */
 	private static String URL;
+
+	/**
+	 *
+	 */
+	private static JobScheduler jobScheduler;
 	
 	/**
 	 * 
@@ -122,7 +127,7 @@ public class Syncer
 	 * @param entityClass
 	 * @return
 	 */
-	public static <T, ID extends Serializable> RepositoryService<T> forEntity(Class<T> entityClass )
+	public static <T, ID extends Serializable> RepositoryService<T> forEntity( Class<T> entityClass )
 	{
 //		return new RepositoryService<T, ID>( entityClass );
 		return new RepositoryService<T>( entityClass );
@@ -138,7 +143,8 @@ public class Syncer
 	{
 		Objects.requireNonNull( URL, "You must configure the URL to sync." );
 
-		final JobScheduler jobScheduler = (JobScheduler) ApplicationHolder.CONTEXT.getSystemService(Context.JOB_SCHEDULER_SERVICE);
+		if( jobScheduler == null )
+			jobScheduler = (JobScheduler) ApplicationHolder.CONTEXT.getSystemService(Context.JOB_SCHEDULER_SERVICE);
 
 		final ComponentName serviceName = new ComponentName(ApplicationHolder.CONTEXT, SyncBackgroundService.class);
 		final JobInfo jobInfo = new JobInfo.Builder(SYNC_NOW_JOB_ID, serviceName)
@@ -149,6 +155,8 @@ public class Syncer
 				.build();
 
 		Integer result = null;
+
+        jobScheduler.cancelAll();
 
 		try {
 			result = jobScheduler.schedule(jobInfo);
@@ -175,9 +183,10 @@ public class Syncer
 	{
 		Objects.requireNonNull( URL, "You must configure the URL to sync." );
 
-		final JobScheduler jobScheduler = (JobScheduler) ApplicationHolder.CONTEXT.getSystemService(Context.JOB_SCHEDULER_SERVICE);
+        if( jobScheduler == null )
+            jobScheduler = (JobScheduler) ApplicationHolder.CONTEXT.getSystemService(Context.JOB_SCHEDULER_SERVICE);
 
-		final ComponentName serviceName = new ComponentName(ApplicationHolder.CONTEXT, SyncBackgroundService.class);
+        final ComponentName serviceName = new ComponentName(ApplicationHolder.CONTEXT, SyncBackgroundService.class);
 		final JobInfo jobInfo = new JobInfo.Builder( new Long(fromRevision).intValue() , serviceName)
 				.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
 				.setRequiresDeviceIdle(false)
@@ -186,6 +195,8 @@ public class Syncer
 				.build();
 
 		Integer result = null;
+
+        jobScheduler.cancelAll();
 
 		try {
 			result = jobScheduler.schedule(jobInfo);

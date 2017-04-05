@@ -64,7 +64,7 @@ public class RevisionDao<T>
     public Revision insertRevision( Revision<T> revision )
     {
         final ContentValues values = new ContentValues();
-        
+
         values.put( SQLiteHelper.COLUMN_REVISION, revision.getRevision() );
         values.put( SQLiteHelper.COLUMN_ENTITY, this.toJSON( revision.getEntity() ) );
         values.put( SQLiteHelper.COLUMN_ENTITY_ID, this.toJSON( revision.getEntityId()  ) );
@@ -90,8 +90,8 @@ public class RevisionDao<T>
         final Cursor cursor = database.query(
                 SQLiteHelper.TABLE_REVISION,
                 new String[]{SQLiteHelper.COLUMN_ENTITY},
-                SQLiteHelper.COLUMN_ENTITY_CLASSNAME + " = " + entityClass.getName(),
-                null, null, null, null);
+                SQLiteHelper.COLUMN_ENTITY_CLASSNAME + " = ?",
+                new String[]{ entityClass.getName() }, null, null, null);
 
         cursor.moveToFirst();
         while ( !cursor.isAfterLast() )
@@ -113,7 +113,6 @@ public class RevisionDao<T>
      */
     public List<Revision> queryForEq( String column, Object value )
     {
-
         final List<Revision> entities = new ArrayList<>();
 
         final Cursor cursor = database.query(
@@ -135,6 +134,18 @@ public class RevisionDao<T>
 
         return entities;
 
+    }
+
+    /**
+     *
+     */
+    public void removeAllNotSynced()
+    {
+        database.delete(
+                SQLiteHelper.TABLE_REVISION,
+                SQLiteHelper.COLUMN_SYNCED + " = ?",
+                new String[]{"0"}
+        );
     }
 
     /**
