@@ -21,9 +21,13 @@ public class Revision<T> implements Serializable
 	 *				 		     ATTRIBUTES
 	 *-------------------------------------------------------------------*/
 	/**
+	 * 
+	 */
+	private Long revisionNumber;
+	/**
 	 *
 	 */
-	private Long revision;
+	private Long revisionDate;
 	/**
 	 *
 	 */
@@ -57,7 +61,7 @@ public class Revision<T> implements Serializable
 	@JsonCreator
 	public Revision( @JsonProperty("entity") T entity, @JsonProperty("type") RevisionType type )
 	{
-		this.revision = Calendar.getInstance().getTimeInMillis();
+		this.revisionDate = Calendar.getInstance().getTimeInMillis();
 		this.entity = entity;
 		this.entityClassName = entity.getClass().getName();
 		this.type = type;
@@ -81,7 +85,7 @@ public class Revision<T> implements Serializable
 		if ( o == null || getClass() != o.getClass() ) return false;
 
 		final Revision<T> revision = ( Revision<T> ) o;
-		return Objects.equals( revision, revision.revision ) && Objects.equals( synced, revision.synced ) && type == revision.type && Objects.equals( entity, revision.entity ) && Objects.equals( entityClassName, revision.entityClassName );
+		return Objects.equals( revision, revision.revisionDate ) && Objects.equals( synced, revision.synced ) && type == revision.type && Objects.equals( entity, revision.entity ) && Objects.equals( entityClassName, revision.entityClassName );
 	}
 
 	/**
@@ -91,7 +95,7 @@ public class Revision<T> implements Serializable
 	@Override
 	public int hashCode()
 	{
-		return Objects.hash( revision, synced, type, entity, entityClassName );
+		return Objects.hash( revisionDate, revisionNumber, synced, type, entity, entityClassName );
 	}
 
 	/*-------------------------------------------------------------------
@@ -159,17 +163,20 @@ public class Revision<T> implements Serializable
 		this.synced = synced;
 	}
 
-	public void setRevision( Long revision )
+	/**
+	 * @param revisionDate
+	 */
+	public void setRevisionDate( Long revisionDate )
 	{
-		this.revision = revision;
+		this.revisionDate = revisionDate;
 	}
 
 	/**
 	 * @return the id
 	 */
-	public Long getRevision()
+	public Long getRevisionDate()
 	{
-		return this.revision;
+		return this.revisionDate;
 	}
 
 	/**
@@ -186,5 +193,21 @@ public class Revision<T> implements Serializable
 	public void setEntityId( String entityId )
 	{
 		this.entityId = entityId;
+	}
+
+	/**
+	 * @return
+	 */
+	public Long getRevisionNumber()
+	{
+		return revisionNumber;
+	}
+
+	/**
+	 * @param id
+	 */
+	public void setRevisionNumber( Long revisionNumber )
+	{
+		this.revisionNumber = revisionNumber;
 	}
 }

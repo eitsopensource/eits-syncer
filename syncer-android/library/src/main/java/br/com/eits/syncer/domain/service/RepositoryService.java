@@ -1,8 +1,11 @@
 package br.com.eits.syncer.domain.service;
 
 
+import android.database.Cursor;
+
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -10,12 +13,12 @@ import br.com.eits.syncer.Syncer;
 import br.com.eits.syncer.domain.entity.Revision;
 import br.com.eits.syncer.domain.entity.RevisionType;
 import br.com.eits.syncer.infrastructure.dao.RevisionDao;
+import br.com.eits.syncer.infrastructure.dao.SQLiteHelper;
 
 /**
  *
  */
-public class RepositoryService<T>
-{
+public class RepositoryService<T> {
     /*-------------------------------------------------------------------
     * 		 					ATTRIBUTES
     *-------------------------------------------------------------------*/
@@ -31,11 +34,11 @@ public class RepositoryService<T>
     /*-------------------------------------------------------------------
 	 * 		 					CONSTRUCTORS
 	 *-------------------------------------------------------------------*/
+
     /**
      *
      */
-    public RepositoryService( Class<T> entityClass )
-    {
+    public RepositoryService(Class<T> entityClass) {
         this.entityClass = entityClass;
         this.revisionDao = new RevisionDao();
     }
@@ -43,34 +46,33 @@ public class RepositoryService<T>
     /*-------------------------------------------------------------------
 	 * 		 					BEHAVIORS
 	 *-------------------------------------------------------------------*/
+
     /**
      *
      */
-    public Revision insert( T entity )
-    {
-        final Revision revision = new Revision( entity, RevisionType.INSERT );
+    public Revision insert(T entity) {
+        final Revision revision = new Revision(entity, RevisionType.INSERT);
         revision.setEntityId(UUID.randomUUID().toString());
 
         revisionDao.open();
-        revisionDao.insertRevision( revision );
+        revisionDao.insertRevision(revision);
         revisionDao.close();
 
-        Syncer.requestSync( revision.getRevision() );
+        Syncer.requestSync(revision.getRevisionDate());
         return revision;
     }
 
     /**
      *
      */
-    public T update( T entity )
-    {
-        final Revision revision = new Revision( entity, RevisionType.UPDATE );
+    public T update(T entity) {
+        final Revision revision = new Revision(entity, RevisionType.UPDATE);
 
         this.revisionDao.open();
-        this.revisionDao.insertRevision( revision );
+        this.revisionDao.insertRevision(revision);
         this.revisionDao.close();
 
-        Syncer.requestSync( revision.getRevision() );
+        Syncer.requestSync(revision.getRevisionDate());
 
         return entity;
     }
@@ -78,42 +80,108 @@ public class RepositoryService<T>
     /**
      *
      */
-    public void remove( T entity )
-    {
-        final Revision revision = new Revision( entity, RevisionType.REMOVE );
+    public void remove(T entity) {
+        final Revision revision = new Revision(entity, RevisionType.REMOVE);
 
         this.revisionDao.open();
-        this.revisionDao.insertRevision( revision );
+        this.revisionDao.insertRevision(revision);
         this.revisionDao.close();
 
-        Syncer.requestSync( revision.getRevision() );
+        Syncer.requestSync(revision.getRevisionDate());
     }
 
     /**
      *
      */
-    public List<T> listAll()
+    public List<T> listAll() {
+        return this.revisionDao.listAll(entityClass);
+    }
+
+    /**
+     * @return
+     */
+    public List<T> listByFilters( String filters )
     {
-        return this.revisionDao.listAll( entityClass );
+        List<T> entities = new ArrayList<T>();
+
+        filters = filters == null ? "" : filters;
+
+        String joinTable = "json_each(" + SQLiteHelper.COLUMN_ENTITY + ")";
+        String[] columnsToShow = null;
+
+        String where = SQLiteHelper.COLUMN_ENTITY_CLASSNAME + " = ? AND json_each.type NOT IN ( 'object', 'array' ) AND json_each.value LIKE '%" + filters + "%'";
+        Object [] whereArguments = new Object[] { this.entityClass.getName() };
+
+        String groupBy = "json_extract(" + SQLiteHelper.COLUMN_ENTITY + ", '$." + SQLiteHelper.COLUMN_ID + "')";
+        String having = SQLiteHelper.TABLE_REVISION + "." + SQLiteHelper.COLUMN_TYPE + " <> " + RevisionType.REMOVE.ordinal();
+        String orderBy = SQLiteHelper.COLUMN_REVISION_DATE + " DESC";
+
+        this.revisionDao.open();
+        List<Revision> revisions = this.revisionDao.queryForRevisions( joinTable, columnsToShow, where, whereArguments, groupBy, having, orderBy );
+        this.revisionDao.close();
+
+        for( Revision revision : revisions )
+        {
+            entities.add( this.entityClass.cast( revision.getEntity() ) );
+        }
+
+        return entities;
     }
 
     /**
-     *
+     * @param filters
+     * @param relatedEntityClass
+     * @param relatedEntityId
+     * @return
      */
-    public T findById( JsonTypeInfo.Id id )
+    public List<T> listByFiltersLookingForRelatedEntity( String filters, Class<?> relatedEntityClass, Long relatedEntityId )
     {
-//        COMO FAZER COM A ID DA ENTIDADE?
-//            COLOCAR NO JSON? AUTO GERAR?
-//        VER COMO OS NOSQL FAZEM..
-//        return this.revisionDao.queryForId(id);
-        return null;
+        List<T> entities = new ArrayList<T>();
+
+        filters = filters == null ? "" : filters;
+
+        String joinTable = "json_each(" + SQLiteHelper.COLUMN_ENTITY + ")";
+        String[] columnsToShow = null;
+        String where = SQLiteHelper.COLUMN_ENTITY_CLASSNAME + " = ? AND " +
+                "json_extract("+ SQLiteHelper.COLUMN_ENTITY + ", '$." + relatedEntityClass.getSimpleName().toLowerCase() + "." + SQLiteHelper.COLUMN_ID + "') = ? AND " +
+                "json_each.type NOT IN ( 'object', 'array' ) AND json_each.value LIKE '%" + filters + "%'";
+
+        Object [] whereArguments = new Object[] { this.entityClass.getName(), relatedEntityId };
+
+        String groupBy = "json_extract(" + SQLiteHelper.COLUMN_ENTITY + ", '$." + SQLiteHelper.COLUMN_ID + "')";
+        String having = SQLiteHelper.TABLE_REVISION + "." + SQLiteHelper.COLUMN_TYPE + " <> " + RevisionType.REMOVE.ordinal();
+        String orderBy = SQLiteHelper.COLUMN_REVISION_DATE + " DESC";
+
+        this.revisionDao.open();
+        List<Revision> revisions = this.revisionDao.queryForRevisions( joinTable, columnsToShow, where, whereArguments, groupBy, having, orderBy );
+        this.revisionDao.close();
+
+        for( Revision revision : revisions )
+        {
+            entities.add( this.entityClass.cast( revision.getEntity() ) );
+        }
+
+        return entities;
     }
 
     /**
      *
      */
-//    public QueryBuilder<Entity, ID> queryBuilder()
-//    {
-//        return this.dao.queryBuilder();
-//    }
+    public T findById( Long entityId )
+    {
+        String[] columnsToShow = null;
+
+        String where = SQLiteHelper.COLUMN_ENTITY_CLASSNAME + " = ? AND json_extract("+ SQLiteHelper.COLUMN_ENTITY + ", '$." + SQLiteHelper.COLUMN_ID + "') = ? ";
+        Object[] whereArguments = new Object[] { this.entityClass.getName(), entityId };
+
+        String groupBy = null;
+        String having = null;
+        String orderBy = SQLiteHelper.COLUMN_REVISION_DATE + " DESC";
+
+        this.revisionDao.open();
+        Revision revision = this.revisionDao.queryForRevision( columnsToShow, where, whereArguments, groupBy, having, orderBy );
+        this.revisionDao.close();
+
+        return this.entityClass.cast( revision.getEntity() );
+    }
 }

@@ -60,7 +60,7 @@ public class Syncer
 	/**
 	 *
 	 */
-	private static JobScheduler jobScheduler;
+	public static JobScheduler jobScheduler;
 	
 	/**
 	 * 
@@ -156,8 +156,6 @@ public class Syncer
 
 		Integer result = null;
 
-        jobScheduler.cancelAll();
-
 		try {
 			result = jobScheduler.schedule(jobInfo);
 		} catch (Exception e)
@@ -179,7 +177,7 @@ public class Syncer
 	/**
 	 *
 	 */
-	public static void requestSync( long fromRevision )
+	public static void requestSync( Long revisionDate )
 	{
 		Objects.requireNonNull( URL, "You must configure the URL to sync." );
 
@@ -187,7 +185,7 @@ public class Syncer
             jobScheduler = (JobScheduler) ApplicationHolder.CONTEXT.getSystemService(Context.JOB_SCHEDULER_SERVICE);
 
         final ComponentName serviceName = new ComponentName(ApplicationHolder.CONTEXT, SyncBackgroundService.class);
-		final JobInfo jobInfo = new JobInfo.Builder( new Long(fromRevision).intValue() , serviceName)
+		final JobInfo jobInfo = new JobInfo.Builder( SYNC_NOW_JOB_ID, serviceName)
 				.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
 				.setRequiresDeviceIdle(false)
 				.setRequiresCharging(false)
@@ -195,8 +193,6 @@ public class Syncer
 				.build();
 
 		Integer result = null;
-
-        jobScheduler.cancelAll();
 
 		try {
 			result = jobScheduler.schedule(jobInfo);
@@ -211,7 +207,7 @@ public class Syncer
 		}
 		else
 		{
-			Log.d(Syncer.class.getSimpleName(), "Job scheduled successfully for revision: "+fromRevision);
+			Log.d(Syncer.class.getSimpleName(), "Job scheduled successfully for revision");
 		}
 	}
 

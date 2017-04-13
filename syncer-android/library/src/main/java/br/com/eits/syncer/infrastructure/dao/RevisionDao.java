@@ -65,12 +65,13 @@ public class RevisionDao<T>
     {
         final ContentValues values = new ContentValues();
 
-        values.put( SQLiteHelper.COLUMN_REVISION, revision.getRevision() );
+        values.put( SQLiteHelper.COLUMN_REVISION_DATE, revision.getRevisionDate() );
+        values.put( SQLiteHelper.COLUMN_REVISION_NUMBER, revision.getRevisionNumber() );
+        values.put( SQLiteHelper.COLUMN_SYNCED, revision.getSynced() );
+        values.put( SQLiteHelper.COLUMN_TYPE, revision.getType().ordinal() );
         values.put( SQLiteHelper.COLUMN_ENTITY, this.toJSON( revision.getEntity() ) );
         values.put( SQLiteHelper.COLUMN_ENTITY_ID, this.toJSON( revision.getEntityId()  ) );
         values.put( SQLiteHelper.COLUMN_ENTITY_CLASSNAME, revision.getEntityClassName() );
-        values.put( SQLiteHelper.COLUMN_SYNCED, revision.getSynced() );
-        values.put( SQLiteHelper.COLUMN_TYPE, revision.getType().ordinal() );
 
         final Long insertId = this.database.insert( SQLiteHelper.TABLE_REVISION, null, values );
         Log.d( RevisionDao.class.getSimpleName(), insertId.toString() );
@@ -118,7 +119,7 @@ public class RevisionDao<T>
         final Cursor cursor = database.query(
                 SQLiteHelper.TABLE_REVISION, null,
                 column + " = ?" ,
-                new Object[] {value}, null, null, null);
+                new Object[] {value}, null, null, SQLiteHelper.COLUMN_REVISION_DATE + " ASC");
 
         cursor.moveToFirst();
         while ( !cursor.isAfterLast() )
@@ -133,7 +134,84 @@ public class RevisionDao<T>
         cursor.close();
 
         return entities;
+    }
 
+    /**
+     * @param columnsToShow
+     * @param where
+     * @param whereArguments
+     * @param groupBy
+     * @param having
+     * @param orderBy
+     * @return
+     */
+    public Revision queryForRevision( String[] columnsToShow, String where, Object[] whereArguments, String groupBy, String having, String orderBy )
+    {
+        Revision revision = null;
+
+        final Cursor cursor = database.query( SQLiteHelper.TABLE_REVISION, columnsToShow, where, whereArguments, groupBy, having, orderBy );
+
+        cursor.moveToFirst();
+        if ( !cursor.isAfterLast() )
+        {
+            revision = this.revisionParse( cursor );
+        }
+        cursor.close();
+
+        return revision;
+    }
+
+    /**
+     * @param columnsToShow
+     * @param where
+     * @param whereArguments
+     * @param groupBy
+     * @param having
+     * @param orderBy
+     * @return
+     */
+    public List<Revision> queryForRevisions( String joinTable, String[] columnsToShow, String where, Object[] whereArguments, String groupBy, String having, String orderBy )
+    {
+        String tables = SQLiteHelper.TABLE_REVISION;
+        if( joinTable != null ) {
+            tables = tables.concat( ", " + joinTable );
+        }
+
+        List<Revision> revisions = new ArrayList<Revision>();
+        final Cursor cursor = database.query( tables, columnsToShow, where, whereArguments, groupBy, having, orderBy );
+
+        cursor.moveToFirst();
+        while ( !cursor.isAfterLast() )
+        {
+            revisions.add( this.revisionParse( cursor ) );
+            cursor.moveToNext();
+        }
+        cursor.close();
+
+        return revisions;
+    }
+
+    /**
+
+     * @return
+     */
+    public Revision findLastSyncedRevision()
+    {
+        Revision revision = null;
+
+        final Cursor cursor = database.query(
+                SQLiteHelper.TABLE_REVISION, null,
+                SQLiteHelper.COLUMN_SYNCED + " = ?" ,
+                new Object[] {"1"}, null, null, SQLiteHelper.COLUMN_REVISION_DATE + " DESC");
+
+        cursor.moveToFirst();
+        if (!cursor.isAfterLast() )
+        {
+            revision = this.revisionParse(cursor);
+        }
+        cursor.close();
+
+        return revision;
     }
 
     /**
@@ -152,31 +230,22 @@ public class RevisionDao<T>
      * @param cursor
      * @return
      */
-    private Revision revisionParse(Cursor cursor)
+    private Revision revisionParse( Cursor cursor )
     {
-        RevisionType revisionType = null;
+        Revision revision = new Revision( cursor.getString( SQLiteHelper.COLUMN_ENTITY_INDEX ), RevisionType.getRevisionTypeByOrdinalValue( cursor.getInt( SQLiteHelper.COLUMN_TYPE_INDEX ) ) );
+        revision.setRevisionDate( cursor.getLong( SQLiteHelper.COLUMN_REVISION_DATE_INDEX ) );
+        revision.setRevisionNumber( cursor.getLong( SQLiteHelper.COLUMN_REVISION_NUMBER_INDEX ) );
+        revision.setSynced( cursor.getLong( SQLiteHelper.COLUMN_SYNCED_INDEX ) == 1 ? true : false );
+        revision.setEntityId( cursor.getString( SQLiteHelper.COLUMN_ENTITY_ID_INDEX ) );
+        revision.setEntityClassName( cursor.getString( SQLiteHelper.COLUMN_ENTITY_CLASSNAME_INDEX ) );
 
-        switch (cursor.getInt(2))
-        {
-            case (0):
-                revisionType = RevisionType.INSERT;
-                break;
-            case (1):
-                revisionType = RevisionType.UPDATE;
-                break;
-            case(2):
-                revisionType = RevisionType.REMOVE;
-                break;
-            case(3):
-                revisionType = RevisionType.UPDATE_ID;
-                break;
+
+        try {
+            Class<T> entityClass = ( Class<T> ) Class.forName( revision.getEntityClassName() );
+            revision.setEntity( this.toEntity( cursor.getString( SQLiteHelper.COLUMN_ENTITY_INDEX ), entityClass ) );
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
         }
-
-        Revision revision = new Revision( cursor.getString(3), revisionType );
-        revision.setRevision(cursor.getLong(0));
-        revision.setSynced(cursor.getLong(1) == 1 ? true : false );
-        revision.setEntityId(cursor.getString(4));
-        revision.setEntityClassName(cursor.getString(5));
 
         return revision;
     }
