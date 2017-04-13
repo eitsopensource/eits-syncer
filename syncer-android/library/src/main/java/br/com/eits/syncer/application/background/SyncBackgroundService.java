@@ -132,7 +132,7 @@ public class SyncBackgroundService extends JobService
                 Syncer.jobScheduler.cancelAll();
 
                 SyncBackgroundService.this.revisionDao.open();
-                final List<Object> revisions = SyncBackgroundService.this.revisionDao.queryForEq(SQLiteHelper.COLUMN_SYNCED, 0);
+                final List<Object> revisions = SyncBackgroundService.this.revisionDao.listUnsyncedRevisions();
 
                 //sync these remotely
                 final Revision lastSyncedRevision = SyncBackgroundService.this.revisionDao.findLastSyncedRevision();

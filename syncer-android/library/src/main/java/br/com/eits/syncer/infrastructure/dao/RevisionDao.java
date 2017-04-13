@@ -80,63 +80,6 @@ public class RevisionDao<T>
     }
 
     /**
-     *
-     * @param entityClass
-     * @return
-     */
-    public List<T> listAll( Class<T> entityClass )
-    {
-        final List<T> entities = new ArrayList<>();
-
-        final Cursor cursor = database.query(
-                SQLiteHelper.TABLE_REVISION,
-                new String[]{SQLiteHelper.COLUMN_ENTITY},
-                SQLiteHelper.COLUMN_ENTITY_CLASSNAME + " = ?",
-                new String[]{ entityClass.getName() }, null, null, null);
-
-        cursor.moveToFirst();
-        while ( !cursor.isAfterLast() )
-        {
-            final T entity = this.toEntity( cursor.getString(0), entityClass );
-            entities.add( entity );
-            cursor.moveToNext();
-        }
-        cursor.close();
-
-        return entities;
-    }
-
-
-    /**
-     *
-     * @param column
-     * @return
-     */
-    public List<Revision> queryForEq( String column, Object value )
-    {
-        final List<Revision> entities = new ArrayList<>();
-
-        final Cursor cursor = database.query(
-                SQLiteHelper.TABLE_REVISION, null,
-                column + " = ?" ,
-                new Object[] {value}, null, null, SQLiteHelper.COLUMN_REVISION_DATE + " ASC");
-
-        cursor.moveToFirst();
-        while ( !cursor.isAfterLast() )
-        {
-            Revision entity = null;
-
-            entity = this.revisionParse(cursor);
-
-            entities.add( entity );
-            cursor.moveToNext();
-        }
-        cursor.close();
-
-        return entities;
-    }
-
-    /**
      * @param columnsToShow
      * @param where
      * @param whereArguments
@@ -192,26 +135,34 @@ public class RevisionDao<T>
     }
 
     /**
-
      * @return
      */
     public Revision findLastSyncedRevision()
     {
-        Revision revision = null;
+        String[] columnsToShow = null;
+        String where = SQLiteHelper.COLUMN_SYNCED + " = ?";
+        Object[] whereArguments = new Object[] {"1"};
+        String groupBy = null;
+        String having = null;
+        String orderBy = SQLiteHelper.COLUMN_REVISION_DATE + " DESC";
 
-        final Cursor cursor = database.query(
-                SQLiteHelper.TABLE_REVISION, null,
-                SQLiteHelper.COLUMN_SYNCED + " = ?" ,
-                new Object[] {"1"}, null, null, SQLiteHelper.COLUMN_REVISION_DATE + " DESC");
+        return this.queryForRevision( columnsToShow, where, whereArguments, groupBy, having, orderBy );
+    }
 
-        cursor.moveToFirst();
-        if (!cursor.isAfterLast() )
-        {
-            revision = this.revisionParse(cursor);
-        }
-        cursor.close();
+    /**
+     * @return
+     */
+    public List<Revision> listUnsyncedRevisions()
+    {
+        String tables = null;
+        String[] columnsToShow = null;
+        String where = SQLiteHelper.COLUMN_SYNCED + " = ?";
+        Object[] whereArguments = new Object[] {"0"};
+        String groupBy = null;
+        String having = null;
+        String orderBy = null;
 
-        return revision;
+        return this.queryForRevisions( tables, columnsToShow, where, whereArguments, groupBy, having, orderBy );
     }
 
     /**

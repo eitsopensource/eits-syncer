@@ -38,7 +38,7 @@ public class RepositoryService<T> {
     /**
      *
      */
-    public RepositoryService(Class<T> entityClass) {
+    public RepositoryService( Class<T> entityClass ) {
         this.entityClass = entityClass;
         this.revisionDao = new RevisionDao();
     }
@@ -50,29 +50,29 @@ public class RepositoryService<T> {
     /**
      *
      */
-    public Revision insert(T entity) {
-        final Revision revision = new Revision(entity, RevisionType.INSERT);
-        revision.setEntityId(UUID.randomUUID().toString());
+    public Revision insert( T entity ) {
+        final Revision revision = new Revision( entity, RevisionType.INSERT );
+        revision.setEntityId( UUID.randomUUID().toString() );
 
         revisionDao.open();
-        revisionDao.insertRevision(revision);
+        revisionDao.insertRevision( revision );
         revisionDao.close();
 
-        Syncer.requestSync(revision.getRevisionDate());
+        Syncer.requestSync();
         return revision;
     }
 
     /**
      *
      */
-    public T update(T entity) {
-        final Revision revision = new Revision(entity, RevisionType.UPDATE);
+    public T update( T entity ) {
+        final Revision revision = new Revision( entity, RevisionType.UPDATE );
 
         this.revisionDao.open();
-        this.revisionDao.insertRevision(revision);
+        this.revisionDao.insertRevision( revision );
         this.revisionDao.close();
 
-        Syncer.requestSync(revision.getRevisionDate());
+        Syncer.requestSync();
 
         return entity;
     }
@@ -80,21 +80,21 @@ public class RepositoryService<T> {
     /**
      *
      */
-    public void remove(T entity) {
-        final Revision revision = new Revision(entity, RevisionType.REMOVE);
+    public void remove( T entity ) {
+        final Revision revision = new Revision( entity, RevisionType.REMOVE );
 
         this.revisionDao.open();
-        this.revisionDao.insertRevision(revision);
+        this.revisionDao.insertRevision( revision );
         this.revisionDao.close();
 
-        Syncer.requestSync(revision.getRevisionDate());
+        Syncer.requestSync();
     }
 
     /**
      *
      */
     public List<T> listAll() {
-        return this.revisionDao.listAll(entityClass);
+        return this.listByFilters( "" );
     }
 
     /**
@@ -174,14 +174,14 @@ public class RepositoryService<T> {
         String where = SQLiteHelper.COLUMN_ENTITY_CLASSNAME + " = ? AND json_extract("+ SQLiteHelper.COLUMN_ENTITY + ", '$." + SQLiteHelper.COLUMN_ID + "') = ? ";
         Object[] whereArguments = new Object[] { this.entityClass.getName(), entityId };
 
-        String groupBy = null;
-        String having = null;
+        String groupBy = "json_extract(" + SQLiteHelper.COLUMN_ENTITY + ", '$." + SQLiteHelper.COLUMN_ID + "')";
+        String having = SQLiteHelper.TABLE_REVISION + "." + SQLiteHelper.COLUMN_TYPE + " <> " + RevisionType.REMOVE.ordinal();
         String orderBy = SQLiteHelper.COLUMN_REVISION_DATE + " DESC";
 
         this.revisionDao.open();
         Revision revision = this.revisionDao.queryForRevision( columnsToShow, where, whereArguments, groupBy, having, orderBy );
         this.revisionDao.close();
 
-        return this.entityClass.cast( revision.getEntity() );
+        return revision != null ? this.entityClass.cast( revision.getEntity() ) : null;
     }
 }
