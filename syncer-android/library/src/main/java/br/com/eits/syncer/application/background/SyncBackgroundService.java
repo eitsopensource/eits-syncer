@@ -5,22 +5,22 @@ import android.app.job.JobService;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.j256.ormlite.dao.RuntimeExceptionDao;
-import com.j256.ormlite.stmt.QueryBuilder;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.lang.reflect.Type;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import br.com.eits.syncer.Syncer;
 import br.com.eits.syncer.application.ApplicationHolder;
-import br.com.eits.syncer.application.restful.ISyncResource;
 import br.com.eits.syncer.domain.entity.EntityUpdatedId;
 import br.com.eits.syncer.domain.entity.Revision;
 import br.com.eits.syncer.domain.entity.RevisionType;
 import br.com.eits.syncer.domain.entity.SyncData;
 import br.com.eits.syncer.infrastructure.dao.RevisionDao;
+import br.com.eits.syncer.infrastructure.dao.SQLiteHelper;
 
 /**
  * Define a Service that returns an IBinder for the sync adapter class,
@@ -35,14 +35,20 @@ public class SyncBackgroundService extends JobService
     /**
      *
      */
-    private final ORMOpenHelper helper = new ORMOpenHelper( ApplicationHolder.CONTEXT );
+//    private final ORMOpenHelper helper = new ORMOpenHelper( ApplicationHolder.CONTEXT );
+
+    /**
+     *
+     */
+    private final SQLiteHelper helper = new SQLiteHelper(ApplicationHolder.CONTEXT);
 
     /**
      *
      */
     public SyncBackgroundService()
     {
-        this.revisionDao = new RevisionDao( this.helper.getRuntimeExceptionDao(Revision.class) );
+//        this.revisionDao = new RevisionDao( this.helper.getRuntimeExceptionDao(Revision.class) );
+        this.revisionDao = new RevisionDao();
     }
 
     /**
@@ -122,140 +128,39 @@ public class SyncBackgroundService extends JobService
 
             try
             {
-                //-VERIFICAR A DEMORA
-                //    -VERIFICAR SE OS AGENDAMENTOS SAO EM ORDEM
-                //    -VERIFICAR A TRHEAD DE AGENDAMENTO
-                //    -VERIFICAR QUANDO REMOVE / ALTERA
-                final ISyncResource syncResource = Syncer.getSyncResource();
+                //Cancel all other jobs if are pending
+                Syncer.jobScheduler.cancelAll();
 
-                final QueryBuilder<Revision, Long> queryBuilder = SyncBackgroundService.this.revisionDao.queryBuilder();
-                queryBuilder
-                        .orderBy("time", true)
-                        .where()
-                            .eq("synced", false);
-
-                final List<Revision> revisions = SyncBackgroundService.this.revisionDao.queryForEq("synced", false);
-
-                //request witch entities we have to sync
-                final LinkedHashMap<RevisionType, Object> localEntities = this.listEntitiesByRevisionType( revisions );
+                SyncBackgroundService.this.revisionDao.open();
+                final List<Object> revisions = SyncBackgroundService.this.revisionDao.listUnsyncedRevisions();
 
                 //sync these remotely
-                final long lastRevision = revisions.get(revisions.size()-1).getTime();
-                final SyncData localSyncData = new SyncData( lastRevision, localEntities );
-                final SyncData remoteSyncData = syncResource.syncronize( localSyncData );
+                final Revision lastSyncedRevision = SyncBackgroundService.this.revisionDao.findLastSyncedRevision();
+                final SyncData localSyncData = new SyncData( lastSyncedRevision != null ? lastSyncedRevision.getRevisionNumber() + 1l : 1l, revisions );
+                final SyncData remoteSyncData = Syncer.syncronize( localSyncData );
 
-                //save revisions synced
-                for ( Revision revision : revisions )
+                //remove all revisions not synced
+                SyncBackgroundService.this.revisionDao.removeAllNotSynced();
+
+                //save remote revisions as synced
+                final List<Object> remoteRevisions = remoteSyncData.getRevisions();
+                for( Object entry : remoteRevisions )
                 {
-                    revision.setSynced(true);
-                    SyncBackgroundService.this.revisionDao.update(revision);
+                    final Revision revision = (Revision) entry;
+                    final Revision newRevision = new Revision( revision.getEntity(), revision.getType() );
+                    newRevision.setRevisionNumber( revision.getRevisionNumber() );
+                    newRevision.setSynced( true );
+
+                    SyncBackgroundService.this.revisionDao.insertRevision( newRevision );
                 }
 
-                //now we must sync the remote entities
-                this.syncRemoteEntities( remoteSyncData.getEntitiesByRevision() );
-
+                SyncBackgroundService.this.revisionDao.close();
                 return params;
             }
             catch( Exception e )
             {
                 e.printStackTrace();
                 throw new RuntimeException(e);
-            }
-        }
-
-        /**
-         *
-         * @param revisions
-         * @return
-         */
-        private LinkedHashMap<RevisionType, Object> listEntitiesByRevisionType( List<Revision> revisions )
-        {
-            final LinkedHashMap<RevisionType, Object> entitiesByRevisionType = new LinkedHashMap<>();
-
-            for ( Revision revision : revisions )
-            {
-                final RuntimeExceptionDao dao = this.createDao( revision.getEntityClassName() );
-
-                if ( revision.getType().equals(RevisionType.REMOVE) )
-                {
-                    try
-                    {
-                        final Map<String, Object> entityToRemove = new HashMap<>();
-                        entityToRemove.put("id", revision.getEntityId());
-                        entityToRemove.put("entityClassName", revision.getEntityClassName() );
-
-                        entitiesByRevisionType.put( RevisionType.REMOVE, entityToRemove );
-                    }
-                    catch( Exception e )
-                    {
-                        throw new RuntimeException(e);
-                    }
-                }
-                else
-                {
-                    final Object entity = dao.queryForId( revision.getEntityId() );
-                    entitiesByRevisionType.put( revision.getType(), entity );
-                }
-            }
-
-            return entitiesByRevisionType;
-        }
-
-        /**
-         *
-         * @param entitiesByRevisionType
-         */
-        private void syncRemoteEntities( Map<RevisionType, Object> entitiesByRevisionType )
-        {
-            for ( Map.Entry<RevisionType, Object> entry : entitiesByRevisionType.entrySet() )
-            {
-                switch ( entry.getKey() )
-                {
-                    case INSERT:
-                    {
-
-                        final RuntimeExceptionDao dao = this.createDao( entry.getValue().getClass().getName() );
-                        dao.create(entry.getValue());
-                        break;
-                    }
-                    case UPDATE:
-                    {
-                        final RuntimeExceptionDao dao = this.createDao( entry.getValue().getClass().getName() );
-                        dao.update(entry.getValue());
-                        break;
-                    }
-                    case UPDATE_ID:
-                    {
-                        final EntityUpdatedId entityUpdatedId = (EntityUpdatedId) entry.getValue();
-                        final RuntimeExceptionDao dao = this.createDao( entityUpdatedId.getEntity().getClass().getName() );
-                        dao.updateId( entityUpdatedId.getEntity(), entityUpdatedId.getNewId() );
-                        break;
-                    }
-                    case REMOVE:
-                    {
-                        final RuntimeExceptionDao dao = this.createDao( entry.getValue().getClass().getName() );
-                        dao.delete(entry.getValue());
-                        break;
-                    }
-                    default: break;
-                }
-            }
-        }
-
-        /**
-         *
-         * @param entityClassName
-         * @return
-         */
-        private RuntimeExceptionDao createDao( String entityClassName )
-        {
-            try
-            {
-                return SyncBackgroundService.this.helper.getRuntimeExceptionDao( Class.forName(entityClassName) );
-            }
-            catch (ClassNotFoundException e)
-            {
-                throw new IllegalStateException(e);
             }
         }
 
