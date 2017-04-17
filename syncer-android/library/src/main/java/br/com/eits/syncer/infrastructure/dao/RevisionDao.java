@@ -10,6 +10,7 @@ import java.util.List;
 import br.com.eits.syncer.Syncer;
 import br.com.eits.syncer.application.ApplicationHolder;
 import br.com.eits.syncer.domain.entity.Revision;
+import br.com.eits.syncer.domain.entity.RevisionType;
 import io.requery.android.database.sqlite.SQLiteDatabase;
 
 /**
@@ -57,51 +58,147 @@ public class RevisionDao<T>
     }
 
     /**
-     *
      * @param revision
      * @return
      */
     public Revision insertRevision( Revision<T> revision )
     {
         final ContentValues values = new ContentValues();
-        values.put(SQLiteHelper.COLUMN_REVISION, revision.getRevision() );
-        values.put(SQLiteHelper.COLUMN_ENTITY, this.toJSON( revision.getEntity() ) );
-        values.put(SQLiteHelper.COLUMN_ENTITY_ID, this.toJSON( revision.getEntityId()  ) );
-        values.put(SQLiteHelper.COLUMN_ENTITY_CLASSNAME, revision.getEntityClassName() );
-        values.put(SQLiteHelper.COLUMN_SYNCED, revision.getSynced() );
-        values.put(SQLiteHelper.COLUMN_TYPE, revision.getType().ordinal() );
 
-        final Long insertId = this.database.insert(SQLiteHelper.TABLE_REVISION, null, values);
-        Log.d(RevisionDao.class.getSimpleName(), insertId.toString());
+        values.put( SQLiteHelper.COLUMN_REVISION_DATE, revision.getRevisionDate() );
+        values.put( SQLiteHelper.COLUMN_REVISION_NUMBER, revision.getRevisionNumber() );
+        values.put( SQLiteHelper.COLUMN_SYNCED, revision.getSynced() );
+        values.put( SQLiteHelper.COLUMN_TYPE, revision.getType().ordinal() );
+        values.put( SQLiteHelper.COLUMN_ENTITY, this.toJSON( revision.getEntity() ) );
+        values.put( SQLiteHelper.COLUMN_ENTITY_ID, this.toJSON( revision.getEntityId()  ) );
+        values.put( SQLiteHelper.COLUMN_ENTITY_CLASSNAME, revision.getEntityClassName() );
+
+        final Long insertId = this.database.insert( SQLiteHelper.TABLE_REVISION, null, values );
+        Log.d( RevisionDao.class.getSimpleName(), insertId.toString() );
 
         return revision;
     }
 
     /**
-     *
-     * @param entityClass
+     * @param columnsToShow
+     * @param where
+     * @param whereArguments
+     * @param groupBy
+     * @param having
+     * @param orderBy
      * @return
      */
-    public List<T> listAll( Class<T> entityClass )
+    public Revision queryForRevision( String[] columnsToShow, String where, Object[] whereArguments, String groupBy, String having, String orderBy )
     {
-        final List<T> entities = new ArrayList<>();
+        Revision revision = null;
 
-        final Cursor cursor = database.query(
-                SQLiteHelper.TABLE_REVISION,
-                new String[]{SQLiteHelper.COLUMN_ENTITY},
-                SQLiteHelper.COLUMN_ENTITY_CLASSNAME + " = " + entityClass.getName(),
-                null, null, null, null);
+        final Cursor cursor = database.query( SQLiteHelper.TABLE_REVISION, columnsToShow, where, whereArguments, groupBy, having, orderBy );
+
+        cursor.moveToFirst();
+        if ( !cursor.isAfterLast() )
+        {
+            revision = this.revisionParse( cursor );
+        }
+        cursor.close();
+
+        return revision;
+    }
+
+    /**
+     * @param columnsToShow
+     * @param where
+     * @param whereArguments
+     * @param groupBy
+     * @param having
+     * @param orderBy
+     * @return
+     */
+    public List<Revision> queryForRevisions( String joinTable, String[] columnsToShow, String where, Object[] whereArguments, String groupBy, String having, String orderBy )
+    {
+        String tables = SQLiteHelper.TABLE_REVISION;
+        if( joinTable != null ) {
+            tables = tables.concat( ", " + joinTable );
+        }
+
+        List<Revision> revisions = new ArrayList<Revision>();
+        final Cursor cursor = database.query( tables, columnsToShow, where, whereArguments, groupBy, having, orderBy );
 
         cursor.moveToFirst();
         while ( !cursor.isAfterLast() )
         {
-            final T entity = this.toEntity( cursor.getString(0), entityClass );
-            entities.add( entity );
+            revisions.add( this.revisionParse( cursor ) );
             cursor.moveToNext();
         }
         cursor.close();
 
-        return entities;
+        return revisions;
+    }
+
+    /**
+     * @return
+     */
+    public Revision findLastSyncedRevision()
+    {
+        String[] columnsToShow = null;
+        String where = SQLiteHelper.COLUMN_SYNCED + " = ?";
+        Object[] whereArguments = new Object[] {"1"};
+        String groupBy = null;
+        String having = null;
+        String orderBy = SQLiteHelper.COLUMN_REVISION_DATE + " DESC";
+
+        return this.queryForRevision( columnsToShow, where, whereArguments, groupBy, having, orderBy );
+    }
+
+    /**
+     * @return
+     */
+    public List<Revision> listUnsyncedRevisions()
+    {
+        String tables = null;
+        String[] columnsToShow = null;
+        String where = SQLiteHelper.COLUMN_SYNCED + " = ?";
+        Object[] whereArguments = new Object[] {"0"};
+        String groupBy = null;
+        String having = null;
+        String orderBy = null;
+
+        return this.queryForRevisions( tables, columnsToShow, where, whereArguments, groupBy, having, orderBy );
+    }
+
+    /**
+     *
+     */
+    public void removeAllNotSynced()
+    {
+        database.delete(
+                SQLiteHelper.TABLE_REVISION,
+                SQLiteHelper.COLUMN_SYNCED + " = ?",
+                new String[]{"0"}
+        );
+    }
+
+    /**
+     * @param cursor
+     * @return
+     */
+    private Revision revisionParse( Cursor cursor )
+    {
+        Revision revision = new Revision( cursor.getString( SQLiteHelper.COLUMN_ENTITY_INDEX ), RevisionType.getRevisionTypeByOrdinalValue( cursor.getInt( SQLiteHelper.COLUMN_TYPE_INDEX ) ) );
+        revision.setRevisionDate( cursor.getLong( SQLiteHelper.COLUMN_REVISION_DATE_INDEX ) );
+        revision.setRevisionNumber( cursor.getLong( SQLiteHelper.COLUMN_REVISION_NUMBER_INDEX ) );
+        revision.setSynced( cursor.getLong( SQLiteHelper.COLUMN_SYNCED_INDEX ) == 1 ? true : false );
+        revision.setEntityId( cursor.getString( SQLiteHelper.COLUMN_ENTITY_ID_INDEX ) );
+        revision.setEntityClassName( cursor.getString( SQLiteHelper.COLUMN_ENTITY_CLASSNAME_INDEX ) );
+
+
+        try {
+            Class<T> entityClass = ( Class<T> ) Class.forName( revision.getEntityClassName() );
+            revision.setEntity( this.toEntity( cursor.getString( SQLiteHelper.COLUMN_ENTITY_INDEX ), entityClass ) );
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        return revision;
     }
 
     /**
@@ -109,11 +206,11 @@ public class RevisionDao<T>
      * @param entity
      * @return
      */
-    private String toJSON(Object entity)
+    public String toJSON( Object entity )
     {
         try
         {
-            return Syncer.getMapper().writeValueAsString(entity);
+            return Syncer.getMapper().writeValueAsString( entity );
         }
         catch ( Exception e )
         {
@@ -126,7 +223,7 @@ public class RevisionDao<T>
      * @param entityClass
      * @return
      */
-    private T toEntity( String json, Class<T> entityClass )
+    public T toEntity( String json, Class<T> entityClass )
     {
         try
         {

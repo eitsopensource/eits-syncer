@@ -14,61 +14,49 @@ public class SyncData
 	/*-------------------------------------------------------------------
 	 *				 		     ATTRIBUTES
 	 *-------------------------------------------------------------------*/
+	
 	/**
 	 * 
 	 */
-	private Long lastRevision;
-	/**
-	 * 
-	 */
-	private Integer version;
+	private Long fromRevisionNumber;
+
 	/**
 	 * An ordered revision list to sync logic.
 	 */
-	private List<Revision<?>> revisions;
+	private List<Object> revisions;
 
 	/*-------------------------------------------------------------------
 	 *				 		     CONSTRUCTOR
 	 *-------------------------------------------------------------------*/
+	
 	/**
-	 * 
-	 * @param revision
-	 * @param entities
+	 * @param fromRevisionNumber
+	 * @param revisions
 	 */
 	@JsonCreator
-	public SyncData( @JsonProperty("lastRevision") Long lastRevision, @JsonProperty("version") Integer version, @JsonProperty("revisions") List<Revision<?>> revisions )
+	public SyncData( @JsonProperty("fromRevisionNumber") Long fromRevisionNumber, @JsonProperty("revisions") List<Object> revisions )
 	{
-		this.lastRevision = lastRevision;
-		this.version = version;
+		this.fromRevisionNumber = fromRevisionNumber;
 		this.revisions = revisions;
 	}
 
 	/*-------------------------------------------------------------------
 	 *				 		     GETTERS AND SETTERS
 	 *-------------------------------------------------------------------*/
+	
 	/**
-	 * 
 	 * @return
 	 */
-	public Long getLastRevision()
+	public Long getFromRevisionNumber()
 	{
-		return this.lastRevision;
+		return this.fromRevisionNumber;
 	}
 
 	/**
 	 * 
 	 * @return
 	 */
-	public Integer getVersion()
-	{
-		return this.version;
-	}
-
-	/**
-	 * 
-	 * @return
-	 */
-	public List<Revision<?>> getRevisions()
+	public List<Object> getRevisions()
 	{
 		return this.revisions;
 	}

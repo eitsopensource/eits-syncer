@@ -21,9 +21,13 @@ public class Revision<T> implements Serializable
 	 *				 		     ATTRIBUTES
 	 *-------------------------------------------------------------------*/
 	/**
+	 * 
+	 */
+	private Long revisionNumber;
+	/**
 	 *
 	 */
-	private Long revision;
+	private Long revisionDate;
 	/**
 	 *
 	 */
@@ -36,6 +40,7 @@ public class Revision<T> implements Serializable
 	 *
 	 */
 	private T entity;
+
 	/**
 	 *
 	 */
@@ -56,7 +61,7 @@ public class Revision<T> implements Serializable
 	@JsonCreator
 	public Revision( @JsonProperty("entity") T entity, @JsonProperty("type") RevisionType type )
 	{
-		this.revision = Calendar.getInstance().getTimeInMillis();
+		this.revisionDate = Calendar.getInstance().getTimeInMillis();
 		this.entity = entity;
 		this.entityClassName = entity.getClass().getName();
 		this.type = type;
@@ -71,57 +76,70 @@ public class Revision<T> implements Serializable
 	 *
 	 * @param o
 	 * @return
-     */
+	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	public boolean equals(Object o)
+	public boolean equals( Object o )
 	{
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+		if ( this == o ) return true;
+		if ( o == null || getClass() != o.getClass() ) return false;
 
-		final Revision<T> revision = (Revision<T>) o;
-		return Objects.equals(revision, revision.revision) &&
-				Objects.equals(synced, revision.synced) &&
-				type == revision.type &&
-				Objects.equals(entity, revision.entity) &&
-				Objects.equals(entityClassName, revision.entityClassName);
+		final Revision<T> revision = ( Revision<T> ) o;
+		return Objects.equals( revision, revision.revisionDate ) && Objects.equals( synced, revision.synced ) && type == revision.type && Objects.equals( entity, revision.entity ) && Objects.equals( entityClassName, revision.entityClassName );
 	}
 
 	/**
 	 *
 	 * @return
-     */
+	 */
 	@Override
 	public int hashCode()
 	{
-		return Objects.hash(revision, synced, type, entity, entityClassName);
+		return Objects.hash( revisionDate, revisionNumber, synced, type, entity, entityClassName );
 	}
 
 	/*-------------------------------------------------------------------
-    *				 		   GETTERS AND SETTERS
-    *-------------------------------------------------------------------*/
+	 *				 		   GETTERS AND SETTERS
+	 *-------------------------------------------------------------------*/
 	/**
 	 *
 	 * @return
-     */
+	 */
 	public String getEntityClassName()
 	{
 		return this.entityClassName;
 	}
 
 	/**
+	 * 
+	 * @param entityClassName
+	 */
+	public void setEntityClassName( String entityClassName )
+	{
+		this.entityClassName = entityClassName;
+	}
+
+	/**
 	 *
 	 * @return
-     */
+	 */
 	public RevisionType getType()
 	{
 		return this.type;
 	}
 
 	/**
+	 * 
+	 */
+	public void setEntity( T entity )
+	{
+		this.entity = entity;
+	}
+
+	/**
 	 *
 	 * @return
-     */
+	 */
 	public T getEntity()
 	{
 		return this.entity;
@@ -140,17 +158,25 @@ public class Revision<T> implements Serializable
 	 *
 	 * @param synced
 	 */
-	public void setSynced(Boolean synced)
+	public void setSynced( Boolean synced )
 	{
 		this.synced = synced;
 	}
 
 	/**
+	 * @param revisionDate
+	 */
+	public void setRevisionDate( Long revisionDate )
+	{
+		this.revisionDate = revisionDate;
+	}
+
+	/**
 	 * @return the id
 	 */
-	public Long getRevision()
+	public Long getRevisionDate()
 	{
-		return this.revision;
+		return this.revisionDate;
 	}
 
 	/**
@@ -167,5 +193,21 @@ public class Revision<T> implements Serializable
 	public void setEntityId( String entityId )
 	{
 		this.entityId = entityId;
+	}
+
+	/**
+	 * @return
+	 */
+	public Long getRevisionNumber()
+	{
+		return revisionNumber;
+	}
+
+	/**
+	 * @param id
+	 */
+	public void setRevisionNumber( Long revisionNumber )
+	{
+		this.revisionNumber = revisionNumber;
 	}
 }

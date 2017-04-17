@@ -29,4 +29,26 @@ public enum RevisionType
     private RevisionType()
     {
     }
+    
+    /**
+     * @param ordinal
+     */
+    public static RevisionType getRevisionTypeByOrdinalValue( int ordinal )
+    {
+    	switch( ordinal )
+    	{
+    		case 0:
+    			return RevisionType.INSERT;
+    		case 1:
+    			return RevisionType.UPDATE;
+    		case 2:
+    			return RevisionType.REMOVE;
+    		case 3:
+    			return RevisionType.UPDATE_ID;
+    		default:
+    			new IllegalArgumentException( "No revision type found for ordinal" );
+    	}
+    	
+    	return null;
+    }
 }
