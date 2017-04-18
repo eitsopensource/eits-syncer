@@ -129,7 +129,7 @@ public class SyncBackgroundService extends JobService
             try
             {
                 //Cancel all other jobs if are pending
-                Syncer.jobScheduler.cancelAll();
+                Syncer.cancelAllScheduledJobs();
 
                 SyncBackgroundService.this.revisionDao.open();
                 final List<Object> revisions = SyncBackgroundService.this.revisionDao.listUnsyncedRevisions();
@@ -154,7 +154,7 @@ public class SyncBackgroundService extends JobService
                     SyncBackgroundService.this.revisionDao.insertRevision( newRevision );
                 }
 
-                SyncBackgroundService.this.revisionDao.close();
+//                SyncBackgroundService.this.revisionDao.close();
                 return params;
             }
             catch( Exception e )
