@@ -70,7 +70,6 @@ public class RevisionDao<T>
         values.put( SQLiteHelper.COLUMN_SYNCED, revision.getSynced() );
         values.put( SQLiteHelper.COLUMN_TYPE, revision.getType().ordinal() );
         values.put( SQLiteHelper.COLUMN_ENTITY, this.toJSON( revision.getEntity() ) );
-        values.put( SQLiteHelper.COLUMN_ENTITY_ID, this.toJSON( revision.getEntityId()  ) );
         values.put( SQLiteHelper.COLUMN_ENTITY_CLASSNAME, revision.getEntityClassName() );
 
         final Long insertId = this.database.insert( SQLiteHelper.TABLE_REVISION, null, values );
@@ -217,7 +216,6 @@ public class RevisionDao<T>
         revision.setRevisionDate( cursor.getLong( SQLiteHelper.COLUMN_REVISION_DATE_INDEX ) );
         revision.setRevisionNumber( cursor.getLong( SQLiteHelper.COLUMN_REVISION_NUMBER_INDEX ) );
         revision.setSynced( cursor.getLong( SQLiteHelper.COLUMN_SYNCED_INDEX ) == 1 ? true : false );
-        revision.setEntityId( cursor.getString( SQLiteHelper.COLUMN_ENTITY_ID_INDEX ) );
         revision.setEntityClassName( cursor.getString( SQLiteHelper.COLUMN_ENTITY_CLASSNAME_INDEX ) );
 
 

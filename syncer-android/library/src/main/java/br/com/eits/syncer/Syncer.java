@@ -268,4 +268,13 @@ public class Syncer
 		return syncDataServer;
 	}
 
+	/**
+	 *
+	 */
+	public static void cancelAllScheduledJobs()
+	{
+		if( jobScheduler != null )
+			jobScheduler.cancelAll();
+	}
+
 }

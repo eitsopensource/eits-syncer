@@ -49,7 +49,6 @@ public class RepositoryService<T> {
      */
     public Revision insertAsSynced( T entity ) {
         final Revision revision = new Revision( entity, RevisionType.UPDATE );
-        revision.setEntityId( UUID.randomUUID().toString() );
         revision.setSynced( true );
 
         revisionDao.open();
@@ -64,32 +63,6 @@ public class RepositoryService<T> {
      */
     public Revision insert( T entity ) {
         final Revision revision = new Revision( entity, RevisionType.INSERT );
-        T entityWithMaxId = this.findByMaxId();
-
-        try {
-            Field entityIdField = entity.getClass().getDeclaredField( SQLiteHelper.COLUMN_ID );
-            Field entityWithMaxIdIdField = entityWithMaxId != null ? entityWithMaxId.getClass().getDeclaredField( SQLiteHelper.COLUMN_ID ) : null;
-            boolean entityIdFieldAccess = entityIdField.isAccessible();
-
-            Long maxId = 1l;
-            if( entityWithMaxIdIdField != null ) {
-                boolean entityWithMaxIdIdFieldAccess = entityWithMaxIdIdField.isAccessible();
-
-                entityWithMaxIdIdField.setAccessible( true );
-                maxId = ( Long ) entityWithMaxIdIdField.get( entityWithMaxId ) + 1l;
-                entityWithMaxIdIdField.setAccessible( entityWithMaxIdIdFieldAccess );
-            }
-
-            entityIdField.setAccessible( true );
-            entityIdField.set( entity, maxId );
-            entityIdField.setAccessible( entityIdFieldAccess );
-        } catch ( NoSuchFieldException e ) {
-            e.printStackTrace();
-        } catch ( IllegalAccessException e ) {
-            e.printStackTrace();
-        }
-
-        revision.setEntityId( UUID.randomUUID().toString() );
 
         revisionDao.open();
         revisionDao.insertRevision( revision );

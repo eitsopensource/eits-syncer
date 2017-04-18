@@ -44,10 +44,6 @@ public class Revision<T> implements Serializable
 	/**
 	 *
 	 */
-	private String entityId;
-	/**
-	 *
-	 */
 	private String entityClassName;
 
 	/*-------------------------------------------------------------------
@@ -177,22 +173,6 @@ public class Revision<T> implements Serializable
 	public Long getRevisionDate()
 	{
 		return this.revisionDate;
-	}
-
-	/**
-	 * @return the entityId
-	 */
-	public String getEntityId()
-	{
-		return entityId;
-	}
-
-	/**
-	 * @param entityId the entityId to set
-	 */
-	public void setEntityId( String entityId )
-	{
-		this.entityId = entityId;
 	}
 
 	/**
