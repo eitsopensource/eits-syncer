@@ -15,7 +15,8 @@ import br.com.eits.syncer.infrastructure.dao.SQLiteHelper;
 /**
  *
  */
-public class RepositoryService<T> {
+public class RepositoryService<T>
+{
     /*-------------------------------------------------------------------
     * 		 					ATTRIBUTES
     *-------------------------------------------------------------------*/
@@ -35,7 +36,8 @@ public class RepositoryService<T> {
     /**
      *
      */
-    public RepositoryService( Class<T> entityClass ) {
+    public RepositoryService( Class<T> entityClass )
+    {
         this.entityClass = entityClass;
         this.revisionDao = new RevisionDao();
     }
@@ -47,7 +49,8 @@ public class RepositoryService<T> {
     /**
      *
      */
-    public Revision insertAsSynced( T entity ) {
+    public Revision insertAsSynced( T entity )
+    {
         final Revision revision = new Revision( entity, RevisionType.UPDATE );
         revision.setSynced( true );
 
@@ -61,7 +64,8 @@ public class RepositoryService<T> {
     /**
      *
      */
-    public Revision insert( T entity ) {
+    public Revision insert( T entity )
+    {
         final Revision revision = new Revision( entity, RevisionType.INSERT );
 
         revisionDao.open();
@@ -76,7 +80,8 @@ public class RepositoryService<T> {
     /**
      *
      */
-    public T update( T entity ) {
+    public T update( T entity )
+    {
         final Revision revision = new Revision( entity, RevisionType.UPDATE );
 
         this.revisionDao.open();
@@ -91,7 +96,8 @@ public class RepositoryService<T> {
     /**
      *
      */
-    public void remove( T entity ) {
+    public void remove( T entity )
+    {
         final Revision revision = new Revision( entity, RevisionType.REMOVE );
 
         this.revisionDao.open();
@@ -104,7 +110,8 @@ public class RepositoryService<T> {
     /**
      *
      */
-    public List<T> listAll() {
+    public List<T> listAll()
+    {
         return this.listByFilters( "" );
     }
 

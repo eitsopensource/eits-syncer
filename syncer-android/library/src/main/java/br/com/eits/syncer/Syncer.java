@@ -130,7 +130,6 @@ public class Syncer
 	 */
 	public static <T, ID extends Serializable> RepositoryService<T> forEntity( Class<T> entityClass )
 	{
-//		return new RepositoryService<T, ID>( entityClass );
 		return new RepositoryService<T>( entityClass );
 	}
 
@@ -273,8 +272,6 @@ public class Syncer
 	 */
 	public static void cancelAllScheduledJobs()
 	{
-		if( jobScheduler != null )
-			jobScheduler.cancelAll();
+		if( jobScheduler != null ) jobScheduler.cancelAll();
 	}
-
 }

@@ -115,11 +115,13 @@ public class RevisionDao<T>
     public List<Revision> queryForRevisions( String joinTable, String[] columnsToShow, String where, Object[] whereArguments, String groupBy, String having, String orderBy )
     {
         String tables = SQLiteHelper.TABLE_REVISION;
-        if( joinTable != null ) {
+
+        if( joinTable != null )
+        {
             tables = tables.concat( ", " + joinTable );
         }
 
-        List<Revision> revisions = new ArrayList<Revision>();
+        List<Revision> revisions = new ArrayList<>();
         final Cursor cursor = database.query( tables, columnsToShow, where, whereArguments, groupBy, having, orderBy );
 
         cursor.moveToFirst();
@@ -145,7 +147,9 @@ public class RevisionDao<T>
     public List<Revision> queryForRevisions( SQLiteDatabase.CursorFactory cursorFactory, boolean distinct, String joinTable, String[] columnsToShow, String where, Object[] whereArguments, String groupBy, String having, String orderBy, String limit )
     {
         String tables = SQLiteHelper.TABLE_REVISION;
-        if( joinTable != null ) {
+
+        if( joinTable != null )
+        {
             tables = tables.concat( ", " + joinTable );
         }
 
@@ -153,6 +157,7 @@ public class RevisionDao<T>
         final Cursor cursor = database.queryWithFactory( cursorFactory, distinct, tables, columnsToShow, where, whereArguments, groupBy, having, orderBy, limit );
 
         cursor.moveToFirst();
+
         while ( !cursor.isAfterLast() )
         {
             revisions.add( this.revisionParse( cursor ) );
