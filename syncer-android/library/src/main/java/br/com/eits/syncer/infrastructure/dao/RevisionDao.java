@@ -135,6 +135,36 @@ public class RevisionDao<T>
     }
 
     /**
+     * @param columnsToShow
+     * @param where
+     * @param whereArguments
+     * @param groupBy
+     * @param having
+     * @param orderBy
+     * @return
+     */
+    public List<Revision> queryForRevisions( SQLiteDatabase.CursorFactory cursorFactory, boolean distinct, String joinTable, String[] columnsToShow, String where, Object[] whereArguments, String groupBy, String having, String orderBy, String limit )
+    {
+        String tables = SQLiteHelper.TABLE_REVISION;
+        if( joinTable != null ) {
+            tables = tables.concat( ", " + joinTable );
+        }
+
+        List<Revision> revisions = new ArrayList<Revision>();
+        final Cursor cursor = database.queryWithFactory( cursorFactory, distinct, tables, columnsToShow, where, whereArguments, groupBy, having, orderBy, limit );
+
+        cursor.moveToFirst();
+        while ( !cursor.isAfterLast() )
+        {
+            revisions.add( this.revisionParse( cursor ) );
+            cursor.moveToNext();
+        }
+        cursor.close();
+
+        return revisions;
+    }
+
+    /**
      * @return
      */
     public Revision findLastSyncedRevision()

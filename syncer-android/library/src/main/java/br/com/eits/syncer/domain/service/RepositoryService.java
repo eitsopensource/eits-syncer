@@ -1,10 +1,7 @@
 package br.com.eits.syncer.domain.service;
 
 
-import android.database.Cursor;
-
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -50,8 +47,48 @@ public class RepositoryService<T> {
     /**
      *
      */
+    public Revision insertAsSynced( T entity ) {
+        final Revision revision = new Revision( entity, RevisionType.UPDATE );
+        revision.setEntityId( UUID.randomUUID().toString() );
+        revision.setSynced( true );
+
+        revisionDao.open();
+        revisionDao.insertRevision( revision );
+        revisionDao.close();
+
+        return revision;
+    }
+
+    /**
+     *
+     */
     public Revision insert( T entity ) {
         final Revision revision = new Revision( entity, RevisionType.INSERT );
+        T entityWithMaxId = this.findByMaxId();
+
+        try {
+            Field entityIdField = entity.getClass().getDeclaredField( SQLiteHelper.COLUMN_ID );
+            Field entityWithMaxIdIdField = entityWithMaxId != null ? entityWithMaxId.getClass().getDeclaredField( SQLiteHelper.COLUMN_ID ) : null;
+            boolean entityIdFieldAccess = entityIdField.isAccessible();
+
+            Long maxId = 1l;
+            if( entityWithMaxIdIdField != null ) {
+                boolean entityWithMaxIdIdFieldAccess = entityWithMaxIdIdField.isAccessible();
+
+                entityWithMaxIdIdField.setAccessible( true );
+                maxId = ( Long ) entityWithMaxIdIdField.get( entityWithMaxId ) + 1l;
+                entityWithMaxIdIdField.setAccessible( entityWithMaxIdIdFieldAccess );
+            }
+
+            entityIdField.setAccessible( true );
+            entityIdField.set( entity, maxId );
+            entityIdField.setAccessible( entityIdFieldAccess );
+        } catch ( NoSuchFieldException e ) {
+            e.printStackTrace();
+        } catch ( IllegalAccessException e ) {
+            e.printStackTrace();
+        }
+
         revision.setEntityId( UUID.randomUUID().toString() );
 
         revisionDao.open();
@@ -59,6 +96,7 @@ public class RepositoryService<T> {
         revisionDao.close();
 
         Syncer.requestSync();
+
         return revision;
     }
 
@@ -143,7 +181,7 @@ public class RepositoryService<T> {
         String joinTable = "json_each(" + SQLiteHelper.COLUMN_ENTITY + ")";
         String[] columnsToShow = null;
         String where = SQLiteHelper.COLUMN_ENTITY_CLASSNAME + " = ? AND " +
-                "json_extract("+ SQLiteHelper.COLUMN_ENTITY + ", '$." + relatedEntityClass.getSimpleName().toLowerCase() + "." + SQLiteHelper.COLUMN_ID + "') = ? AND " +
+                "json_extract("+ SQLiteHelper.COLUMN_ENTITY + ", '$." + this.getSimpleClassNameForEntity( relatedEntityClass ) + "." + SQLiteHelper.COLUMN_ID + "') = ? AND " +
                 "json_each.type NOT IN ( 'object', 'array' ) AND json_each.value LIKE '%" + filters + "%'";
 
         Object [] whereArguments = new Object[] { this.entityClass.getName(), relatedEntityId };
@@ -183,5 +221,42 @@ public class RepositoryService<T> {
         this.revisionDao.close();
 
         return revision != null ? this.entityClass.cast( revision.getEntity() ) : null;
+    }
+
+    /**
+     *
+     */
+    public T findByMaxId()
+    {
+        boolean distinct = false;
+        String joinTable = null;
+        String[] columnsToShow = null;
+
+        String where = SQLiteHelper.COLUMN_ENTITY_CLASSNAME + " = ? ";
+        Object[] whereArguments = new Object[] { this.entityClass.getName() };
+
+        String groupBy = null;
+        String having = null;
+        String orderBy = "json_extract("+ SQLiteHelper.COLUMN_ENTITY + ", '$." + SQLiteHelper.COLUMN_ID + "') DESC ";
+        String limit = "1";
+
+        this.revisionDao.open();
+        List<Revision> revisions = this.revisionDao.queryForRevisions( null, distinct, joinTable, columnsToShow, where, whereArguments, groupBy, having, orderBy, limit );
+        this.revisionDao.close();
+
+        if( revisions.isEmpty() )
+            return null;
+
+        Revision revision = revisions.get( 0 );
+        return revision != null ? this.entityClass.cast( revision.getEntity() ) : null;
+    }
+
+    /**
+     * @param entityClass
+     * @return
+     */
+    private String getSimpleClassNameForEntity( Class<?> entityClass )
+    {
+        return entityClass.getSimpleName().substring(0, 1).toLowerCase() + entityClass.getSimpleName().substring(1);
     }
 }

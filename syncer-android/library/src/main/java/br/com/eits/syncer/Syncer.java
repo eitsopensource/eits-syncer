@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 
 import java.io.Serializable;
 import java.lang.reflect.Type;
+import java.util.Calendar;
 import java.util.Objects;
 
 import br.com.eits.syncer.application.ApplicationHolder;
@@ -140,6 +141,43 @@ public class Syncer
 	/**
 	 *
 	 */
+	public static void requestSyncNow()
+	{
+		Objects.requireNonNull( URL, "You must configure the URL to sync." );
+
+        if( jobScheduler == null )
+            jobScheduler = ( JobScheduler ) ApplicationHolder.CONTEXT.getSystemService( Context.JOB_SCHEDULER_SERVICE );
+
+        final ComponentName serviceName = new ComponentName( ApplicationHolder.CONTEXT, SyncBackgroundService.class );
+		final JobInfo jobInfo = new JobInfo.Builder( SYNC_NOW_JOB_ID , serviceName )
+				.setRequiredNetworkType( JobInfo.NETWORK_TYPE_ANY )
+				.setRequiresDeviceIdle( false )
+				.setRequiresCharging( false )
+				.setPersisted( true )
+				.build();
+
+		Integer result = null;
+
+		try {
+			result = jobScheduler.schedule( jobInfo );
+		} catch ( Exception e )
+		{
+			System.out.println( "================== EXCEPTION ========== " + e );
+		}
+
+		if ( result != JobScheduler.RESULT_SUCCESS )
+		{
+			throw new IllegalArgumentException( "Error doing the local operation. Was not possible to schedule for sync." );
+		}
+		else
+		{
+			Log.d( Syncer.class.getSimpleName(), "Job scheduled successfully for revision" );
+		}
+	}
+
+	/**
+	 *
+	 */
 	public static void requestSync()
 	{
 		Objects.requireNonNull( URL, "You must configure the URL to sync." );
@@ -148,7 +186,7 @@ public class Syncer
             jobScheduler = ( JobScheduler ) ApplicationHolder.CONTEXT.getSystemService( Context.JOB_SCHEDULER_SERVICE );
 
         final ComponentName serviceName = new ComponentName( ApplicationHolder.CONTEXT, SyncBackgroundService.class );
-		final JobInfo jobInfo = new JobInfo.Builder( SYNC_NOW_JOB_ID, serviceName )
+		final JobInfo jobInfo = new JobInfo.Builder( new Long( Calendar.getInstance().getTimeInMillis() ).intValue() , serviceName )
 				.setRequiredNetworkType( JobInfo.NETWORK_TYPE_ANY )
 				.setRequiresDeviceIdle( false )
 				.setRequiresCharging( false )

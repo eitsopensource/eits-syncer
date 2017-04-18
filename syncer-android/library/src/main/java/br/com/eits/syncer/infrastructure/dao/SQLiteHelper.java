@@ -17,32 +17,26 @@ public class SQLiteHelper extends SQLiteOpenHelper
     public static final String TABLE_REVISION = "revision";
 
     public static final String COLUMN_ID = "id";
-    public static final String COLUMN_REVISION_DATE = "revision_date";
     public static final String COLUMN_REVISION_NUMBER = "revision_number";
     public static final String COLUMN_SYNCED = "synced";
     public static final String COLUMN_TYPE = "type";
     public static final String COLUMN_ENTITY = "entity";
-    public static final String COLUMN_ENTITY_ID = "entity_id";
     public static final String COLUMN_ENTITY_CLASSNAME = "entity_class_name";
 
-    public static final int COLUMN_REVISION_DATE_INDEX = 0;
-    public static final int COLUMN_REVISION_NUMBER_INDEX = 1;
-    public static final int COLUMN_SYNCED_INDEX = 2;
-    public static final int COLUMN_TYPE_INDEX = 3;
-    public static final int COLUMN_ENTITY_INDEX = 4;
-    public static final int COLUMN_ENTITY_ID_INDEX = 5;
-    public static final int COLUMN_ENTITY_CLASSNAME_INDEX = 6;
+    public static final int COLUMN_REVISION_NUMBER_INDEX = 0;
+    public static final int COLUMN_SYNCED_INDEX = 1;
+    public static final int COLUMN_TYPE_INDEX = 2;
+    public static final int COLUMN_ENTITY_INDEX = 3;
+    public static final int COLUMN_ENTITY_CLASSNAME_INDEX = 4;
 
     /**
      *
      */
     public static final String[] TABLE_REVISION_COLUMNS = {
-            SQLiteHelper.COLUMN_REVISION_DATE,
             SQLiteHelper.COLUMN_REVISION_NUMBER,
             SQLiteHelper.COLUMN_SYNCED,
             SQLiteHelper.COLUMN_TYPE,
             SQLiteHelper.COLUMN_ENTITY,
-            SQLiteHelper.COLUMN_ENTITY_ID,
             SQLiteHelper.COLUMN_ENTITY_CLASSNAME
     };
 
@@ -50,12 +44,10 @@ public class SQLiteHelper extends SQLiteOpenHelper
     private static final String DATABASE_CREATE =
         "CREATE TABLE "
             + TABLE_REVISION + "( "
-                + COLUMN_REVISION_DATE + " INTEGER PRIMARY KEY, "
                 + COLUMN_REVISION_NUMBER + " INTEGER, "
                 + COLUMN_SYNCED + " BOOLEAN NOT NULL, "
                 + COLUMN_TYPE + " TINYINT NOT NULL, "
                 + COLUMN_ENTITY + " TEXT NOT NULL, "
-                + COLUMN_ENTITY_ID + " TEXT NOT NULL, "
                 + COLUMN_ENTITY_CLASSNAME + " VARCHAR(255) NOT NULL "
         +");";
 
