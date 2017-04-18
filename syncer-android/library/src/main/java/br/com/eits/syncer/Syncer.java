@@ -155,14 +155,7 @@ public class Syncer
 				.setPersisted( true )
 				.build();
 
-		Integer result = null;
-
-		try {
-			result = jobScheduler.schedule( jobInfo );
-		} catch ( Exception e )
-		{
-			System.out.println( "================== EXCEPTION ========== " + e );
-		}
+		final Integer result = jobScheduler.schedule( jobInfo );
 
 		if ( result != JobScheduler.RESULT_SUCCESS )
 		{
@@ -192,14 +185,7 @@ public class Syncer
 				.setPersisted( true )
 				.build();
 
-		Integer result = null;
-
-		try {
-			result = jobScheduler.schedule( jobInfo );
-		} catch ( Exception e )
-		{
-			System.out.println( "================== EXCEPTION ========== " + e );
-		}
+		final Integer result = jobScheduler.schedule( jobInfo );
 
 		if ( result != JobScheduler.RESULT_SUCCESS )
 		{

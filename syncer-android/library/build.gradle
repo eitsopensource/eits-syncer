@@ -25,9 +25,18 @@ android {
     }
 }
 
+def feignVersion = '9.3.1'
+
 dependencies {
     compile 'io.requery:sqlite-android:3.15.1'
     compile 'br.com.eits.syncer:eits-syncer-java:'+version
+    compile 'io.github.openfeign:feign-core:'+feignVersion
+    compile 'io.github.openfeign:feign-jackson:'+feignVersion
+    compile ('io.github.openfeign:feign-jaxrs:'+feignVersion) {
+        exclude module: 'jsr311-api'
+    }
+
+
 }
 
 // build a jar with source files
