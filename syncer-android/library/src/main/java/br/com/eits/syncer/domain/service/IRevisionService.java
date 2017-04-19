@@ -21,6 +21,13 @@ public interface IRevisionService<T>
      * @param entity
      * @return
      */
+    public T insertWithoutSync( T entity );
+
+    /**
+     *
+     * @param entity
+     * @return
+     */
     public T update( T entity );
 
     /**
@@ -34,7 +41,7 @@ public interface IRevisionService<T>
      * @param entityId
      * @return
      */
-    public T findById( long entityId );
+    public T findByEntityId( Object entityId );
 
     /**
      *
@@ -51,12 +58,9 @@ public interface IRevisionService<T>
 
     /**
      *
-     * @param filters
-     * @param relatedEntityClass
-     * @param relatedEntityId
      * @return
      */
-    public List<T> listByFiltersLookingForRelatedEntity( String filters, Class<?> relatedEntityClass, Long relatedEntityId );
+    public IQueryRevisionService query();
 
     /**
      *

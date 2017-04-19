@@ -114,25 +114,28 @@ public class SyncBackgroundService extends JobService
 
             try
             {
-                SyncBackgroundService.this.revisionDao.open();
-                final List<Revision<?>> revisions = SyncBackgroundService.this.revisionDao.listUnsyncedRevisions();
+                final List<Revision<?>> revisions = SyncBackgroundService.this.revisionDao.listByUnsynced();
 
                 //sync these remotely
-                final Revision lastSyncedRevision = SyncBackgroundService.this.revisionDao.findLastSyncedRevision();
-                final SyncData localSyncData = new SyncData( lastSyncedRevision != null ? lastSyncedRevision.getRevisionNumber() + 1l : 1l, revisions );
+                final Revision lastSyncedRevision = SyncBackgroundService.this.revisionDao.findByLastRevisionNumber();
+                final long lastRevisionNumber = lastSyncedRevision != null ? (lastSyncedRevision.getRevisionNumber() + 1L) : 1L;
+                final SyncData localSyncData = new SyncData( lastRevisionNumber, revisions );
                 final SyncData remoteSyncData = SyncBackgroundService.this.syncResource.syncronize( localSyncData );
 
-                //remove all revisions not synced
-                SyncBackgroundService.this.revisionDao.removeAllNotSynced();
+                //remove the local unsynced revisions
+                final String[] revisionIds = new String[localSyncData.getRevisions().size()];
+                for ( int i = 0; i <localSyncData.getRevisions().size(); i++ )
+                {
+                    final Revision<?> revision = localSyncData.getRevisions().get(i);
+                    revisionIds[i] = String.valueOf( revision.getId() );
+                }
+                SyncBackgroundService.this.revisionDao.remove( revisionIds );
 
                 //save remote revisions as synced
-                for( Revision<?> revision : remoteSyncData.getRevisions() )
+                for ( Revision<?> revision : remoteSyncData.getRevisions() )
                 {
-                    final Revision newRevision = new Revision( revision.getEntity(), revision.getType() );
-                    newRevision.setRevisionNumber( revision.getRevisionNumber() );
-                    newRevision.setSynced( true );
-
-                    SyncBackgroundService.this.revisionDao.insertRevision( newRevision );
+                    revision.setSynced(true);
+                    SyncBackgroundService.this.revisionDao.insertRevision( revision );
                 }
 
                 return params;

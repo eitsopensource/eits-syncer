@@ -8,7 +8,6 @@ import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
 import android.util.Log;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -19,7 +18,6 @@ import br.com.eits.syncer.application.ApplicationHolder;
 import br.com.eits.syncer.application.background.SyncBackgroundService;
 import br.com.eits.syncer.application.restful.ISyncResource;
 import br.com.eits.syncer.domain.service.IRevisionService;
-import br.com.eits.syncer.domain.service.ObservableRevisionService;
 import br.com.eits.syncer.domain.service.RevisionService;
 import feign.Contract;
 import feign.Feign;
