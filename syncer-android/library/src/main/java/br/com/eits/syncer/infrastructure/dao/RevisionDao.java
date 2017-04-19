@@ -54,7 +54,7 @@ public class RevisionDao
      */
     public void close()
     {
-        this.helper.close();
+        //this.helper.close();
     }
 
     /**

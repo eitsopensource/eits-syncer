@@ -51,6 +51,15 @@ public interface IRevisionService<T>
 
     /**
      *
+     * @param filters
+     * @param relatedEntityClass
+     * @param relatedEntityId
+     * @return
+     */
+    public List<T> listByFiltersLookingForRelatedEntity( String filters, Class<?> relatedEntityClass, Long relatedEntityId );
+
+    /**
+     *
      * @param activity
      * @return
      */

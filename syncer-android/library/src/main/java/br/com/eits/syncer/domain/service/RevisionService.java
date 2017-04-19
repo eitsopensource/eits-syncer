@@ -158,24 +158,11 @@ public class RevisionService<T> implements IRevisionService<T>
     }
 
     /**
-     *
-
-    public T insertAsSynced( T entity )
-    {
-        final Revision revision = new Revision( entity, RevisionType.UPDATE );
-        revision.setSynced( true );
-         this.insertRevisionAndSync( revision );
-         return entity;
-    }
-     */
-
-    /**
      * @param filters
      * @param relatedEntityClass
      * @param relatedEntityId
      * @return
      */
-    /*
     public List<T> listByFiltersLookingForRelatedEntity( String filters, Class<?> relatedEntityClass, Long relatedEntityId )
     {
         List<T> entities = new ArrayList<T>();
@@ -197,7 +184,7 @@ public class RevisionService<T> implements IRevisionService<T>
         String orderBy = SQLiteHelper.COLUMN_REVISION_DATE + " DESC";
 
         REVISION_DAO.open();
-        final List<Revision> revisions = REVISION_DAO.queryForRevisions( joinTable, columnsToShow, where, whereArguments, groupBy, having, orderBy );
+        final List<Revision<?>> revisions = REVISION_DAO.queryForRevisions( joinTable, columnsToShow, where, whereArguments, groupBy, having, orderBy );
         REVISION_DAO.close();
 
         for( Revision revision : revisions )
@@ -207,33 +194,5 @@ public class RevisionService<T> implements IRevisionService<T>
 
         return entities;
     }
-    */
 
-    /**
-     *
-
-    public T findByMaxId()
-    {
-        boolean distinct = false;
-        String joinTable = null;
-        String[] columnsToShow = null;
-
-        String where = SQLiteHelper.COLUMN_ENTITY_CLASSNAME + " = ? ";
-        Object[] whereArguments = new Object[] { this.entityClass.getName() };
-
-        String groupBy = null;
-        String having = null;
-        String orderBy = "json_extract("+ SQLiteHelper.COLUMN_ENTITY + ", '$." + SQLiteHelper.COLUMN_ID + "') DESC ";
-        String limit = "1";
-
-        REVISION_DAO.open();
-        final List<Revision> revisions = REVISION_DAO.queryForRevisions( null, distinct, joinTable, columnsToShow, where, whereArguments, groupBy, having, orderBy, limit );
-        REVISION_DAO.close();
-
-        if ( revisions.isEmpty() ) return null;
-
-        final Revision revision = revisions.get( 0 );
-        return revision != null ? this.entityClass.cast( revision.getEntity() ) : null;
-    }
-     */
 }
