@@ -23,18 +23,17 @@ public class SyncData
 	/**
 	 * An ordered revision list to sync logic.
 	 */
-	private List<Object> revisions;
+	private List<Revision<?>> revisions;
 
 	/*-------------------------------------------------------------------
 	 *				 		     CONSTRUCTOR
 	 *-------------------------------------------------------------------*/
-	
 	/**
 	 * @param fromRevisionNumber
 	 * @param revisions
 	 */
 	@JsonCreator
-	public SyncData( @JsonProperty("fromRevisionNumber") Long fromRevisionNumber, @JsonProperty("revisions") List<Object> revisions )
+	public SyncData( @JsonProperty("fromRevisionNumber") long fromRevisionNumber, @JsonProperty("revisions") List<Revision<?>> revisions )
 	{
 		this.fromRevisionNumber = fromRevisionNumber;
 		this.revisions = revisions;
@@ -56,7 +55,7 @@ public class SyncData
 	 * 
 	 * @return
 	 */
-	public List<Object> getRevisions()
+	public List<Revision<?>> getRevisions()
 	{
 		return this.revisions;
 	}

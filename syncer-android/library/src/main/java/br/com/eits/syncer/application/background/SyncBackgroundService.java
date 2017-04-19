@@ -5,22 +5,13 @@ import android.app.job.JobService;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.lang.reflect.Type;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import br.com.eits.syncer.Syncer;
-import br.com.eits.syncer.application.ApplicationHolder;
-import br.com.eits.syncer.domain.entity.EntityUpdatedId;
+import br.com.eits.syncer.application.restful.ISyncResource;
 import br.com.eits.syncer.domain.entity.Revision;
-import br.com.eits.syncer.domain.entity.RevisionType;
 import br.com.eits.syncer.domain.entity.SyncData;
 import br.com.eits.syncer.infrastructure.dao.RevisionDao;
-import br.com.eits.syncer.infrastructure.dao.SQLiteHelper;
 
 /**
  * Define a Service that returns an IBinder for the sync adapter class,
@@ -35,20 +26,15 @@ public class SyncBackgroundService extends JobService
     /**
      *
      */
-//    private final ORMOpenHelper helper = new ORMOpenHelper( ApplicationHolder.CONTEXT );
-
-    /**
-     *
-     */
-    private final SQLiteHelper helper = new SQLiteHelper(ApplicationHolder.CONTEXT);
+    private final ISyncResource syncResource;
 
     /**
      *
      */
     public SyncBackgroundService()
     {
-//        this.revisionDao = new RevisionDao( this.helper.getRuntimeExceptionDao(Revision.class) );
         this.revisionDao = new RevisionDao();
+        this.syncResource = Syncer.getSyncResource();
     }
 
     /**
@@ -128,25 +114,20 @@ public class SyncBackgroundService extends JobService
 
             try
             {
-                //Cancel all other jobs if are pending
-                Syncer.cancelAllScheduledJobs();
-
                 SyncBackgroundService.this.revisionDao.open();
-                final List<Object> revisions = SyncBackgroundService.this.revisionDao.listUnsyncedRevisions();
+                final List<Revision<?>> revisions = SyncBackgroundService.this.revisionDao.listUnsyncedRevisions();
 
                 //sync these remotely
                 final Revision lastSyncedRevision = SyncBackgroundService.this.revisionDao.findLastSyncedRevision();
                 final SyncData localSyncData = new SyncData( lastSyncedRevision != null ? lastSyncedRevision.getRevisionNumber() + 1l : 1l, revisions );
-                final SyncData remoteSyncData = Syncer.syncronize( localSyncData );
+                final SyncData remoteSyncData = SyncBackgroundService.this.syncResource.syncronize( localSyncData );
 
                 //remove all revisions not synced
                 SyncBackgroundService.this.revisionDao.removeAllNotSynced();
 
                 //save remote revisions as synced
-                final List<Object> remoteRevisions = remoteSyncData.getRevisions();
-                for( Object entry : remoteRevisions )
+                for( Revision<?> revision : remoteSyncData.getRevisions() )
                 {
-                    final Revision revision = (Revision) entry;
                     final Revision newRevision = new Revision( revision.getEntity(), revision.getType() );
                     newRevision.setRevisionNumber( revision.getRevisionNumber() );
                     newRevision.setSynced( true );
@@ -154,7 +135,6 @@ public class SyncBackgroundService extends JobService
                     SyncBackgroundService.this.revisionDao.insertRevision( newRevision );
                 }
 
-//                SyncBackgroundService.this.revisionDao.close();
                 return params;
             }
             catch( Exception e )

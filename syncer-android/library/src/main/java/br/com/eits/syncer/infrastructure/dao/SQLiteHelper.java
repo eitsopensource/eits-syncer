@@ -86,10 +86,8 @@ public class SQLiteHelper extends SQLiteOpenHelper
      * @param newVersion
      */
     @Override
-    public void onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion) {
+    public void onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion)
+    {
 
-    }
-
-    public void getRuntimeExceptionDao(Class<Revision> revisionClass) {
     }
 }

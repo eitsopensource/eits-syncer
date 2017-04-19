@@ -16,7 +16,7 @@ import io.requery.android.database.sqlite.SQLiteDatabase;
 /**
  * Created by rodrigo.p.fraga on 03/11/16.
  */
-public class RevisionDao<T>
+public class RevisionDao
 {
     /**
      *
@@ -61,7 +61,7 @@ public class RevisionDao<T>
      * @param revision
      * @return
      */
-    public Revision insertRevision( Revision<T> revision )
+    public Revision insertRevision( Revision revision )
     {
         final ContentValues values = new ContentValues();
 
@@ -91,7 +91,7 @@ public class RevisionDao<T>
     {
         Revision revision = null;
 
-        final Cursor cursor = database.query( SQLiteHelper.TABLE_REVISION, columnsToShow, where, whereArguments, groupBy, having, orderBy );
+        final Cursor cursor = this.database.query( SQLiteHelper.TABLE_REVISION, columnsToShow, where, whereArguments, groupBy, having, orderBy );
 
         cursor.moveToFirst();
         if ( !cursor.isAfterLast() )
@@ -112,7 +112,7 @@ public class RevisionDao<T>
      * @param orderBy
      * @return
      */
-    public List<Revision> queryForRevisions( String joinTable, String[] columnsToShow, String where, Object[] whereArguments, String groupBy, String having, String orderBy )
+    public List<Revision<?>> queryForRevisions( String joinTable, String[] columnsToShow, String where, Object[] whereArguments, String groupBy, String having, String orderBy )
     {
         String tables = SQLiteHelper.TABLE_REVISION;
 
@@ -121,8 +121,8 @@ public class RevisionDao<T>
             tables = tables.concat( ", " + joinTable );
         }
 
-        List<Revision> revisions = new ArrayList<>();
-        final Cursor cursor = database.query( tables, columnsToShow, where, whereArguments, groupBy, having, orderBy );
+        List<Revision<?>> revisions = new ArrayList<>();
+        final Cursor cursor = this.database.query( tables, columnsToShow, where, whereArguments, groupBy, having, orderBy );
 
         cursor.moveToFirst();
         while ( !cursor.isAfterLast() )
@@ -144,7 +144,7 @@ public class RevisionDao<T>
      * @param orderBy
      * @return
      */
-    public List<Revision> queryForRevisions( SQLiteDatabase.CursorFactory cursorFactory, boolean distinct, String joinTable, String[] columnsToShow, String where, Object[] whereArguments, String groupBy, String having, String orderBy, String limit )
+    public List<Revision<?>> queryForRevisions( SQLiteDatabase.CursorFactory cursorFactory, boolean distinct, String joinTable, String[] columnsToShow, String where, Object[] whereArguments, String groupBy, String having, String orderBy, String limit )
     {
         String tables = SQLiteHelper.TABLE_REVISION;
 
@@ -153,8 +153,8 @@ public class RevisionDao<T>
             tables = tables.concat( ", " + joinTable );
         }
 
-        List<Revision> revisions = new ArrayList<Revision>();
-        final Cursor cursor = database.queryWithFactory( cursorFactory, distinct, tables, columnsToShow, where, whereArguments, groupBy, having, orderBy, limit );
+        final List<Revision<?>> revisions = new ArrayList<>();
+        final Cursor cursor = this.database.queryWithFactory( cursorFactory, distinct, tables, columnsToShow, where, whereArguments, groupBy, having, orderBy, limit );
 
         cursor.moveToFirst();
 
@@ -171,7 +171,7 @@ public class RevisionDao<T>
     /**
      * @return
      */
-    public Revision findLastSyncedRevision()
+    public Revision<?> findLastSyncedRevision()
     {
         String[] columnsToShow = null;
         String where = SQLiteHelper.COLUMN_SYNCED + " = ?";
@@ -186,7 +186,7 @@ public class RevisionDao<T>
     /**
      * @return
      */
-    public List<Revision> listUnsyncedRevisions()
+    public List<Revision<?>> listUnsyncedRevisions()
     {
         String tables = null;
         String[] columnsToShow = null;
@@ -215,20 +215,23 @@ public class RevisionDao<T>
      * @param cursor
      * @return
      */
-    private Revision revisionParse( Cursor cursor )
+    private Revision<?> revisionParse( Cursor cursor )
     {
-        Revision revision = new Revision( cursor.getString( SQLiteHelper.COLUMN_ENTITY_INDEX ), RevisionType.getRevisionTypeByOrdinalValue( cursor.getInt( SQLiteHelper.COLUMN_TYPE_INDEX ) ) );
+        final Revision revision = new Revision( cursor.getString( SQLiteHelper.COLUMN_ENTITY_INDEX ), RevisionType.getRevisionTypeByOrdinalValue( cursor.getInt( SQLiteHelper.COLUMN_TYPE_INDEX ) ) );
         revision.setRevisionDate( cursor.getLong( SQLiteHelper.COLUMN_REVISION_DATE_INDEX ) );
         revision.setRevisionNumber( cursor.getLong( SQLiteHelper.COLUMN_REVISION_NUMBER_INDEX ) );
         revision.setSynced( cursor.getLong( SQLiteHelper.COLUMN_SYNCED_INDEX ) == 1 ? true : false );
         revision.setEntityClassName( cursor.getString( SQLiteHelper.COLUMN_ENTITY_CLASSNAME_INDEX ) );
 
-
-        try {
-            Class<T> entityClass = ( Class<T> ) Class.forName( revision.getEntityClassName() );
+        try
+        {
+            Class<?> entityClass = Class.forName( revision.getEntityClassName() );
             revision.setEntity( this.toEntity( cursor.getString( SQLiteHelper.COLUMN_ENTITY_INDEX ), entityClass ) );
-        } catch (ClassNotFoundException e) {
+        }
+        catch ( ClassNotFoundException e )
+        {
             e.printStackTrace();
+            throw new IllegalStateException("Could not parser the persisted json to an entity instance", e);
         }
 
         return revision;
@@ -256,7 +259,7 @@ public class RevisionDao<T>
      * @param entityClass
      * @return
      */
-    public T toEntity( String json, Class<T> entityClass )
+    public Object toEntity( String json, Class<?> entityClass )
     {
         try
         {
