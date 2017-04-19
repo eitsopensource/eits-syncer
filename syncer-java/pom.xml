@@ -34,6 +34,7 @@
 	</repositories>
 	
 	<dependencies>
+	
 		<dependency>
    	 		<groupId>javax.ws.rs</groupId>
     		<artifactId>javax.ws.rs-api</artifactId>
@@ -43,6 +44,18 @@
 		    <groupId>com.fasterxml.jackson.core</groupId>
 		    <artifactId>jackson-databind</artifactId>
 		    <version>2.6.4</version>
+		</dependency>
+		
+		<!-- Hibernate -->	
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-envers</artifactId>
+			<version>5.0.12.Final</version>
+		</dependency>
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-validator</artifactId>
+			<version>5.3.4.Final</version>
 		</dependency>
 	</dependencies>
 

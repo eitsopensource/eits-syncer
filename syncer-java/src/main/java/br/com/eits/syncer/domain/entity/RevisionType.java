@@ -16,39 +16,22 @@ public enum RevisionType
     /**
      * Indicates that the entity was deleted (removed) at that revision.
      */
-    REMOVE,
-	/**
-     * Indicates that the entity was remotely inserted but must update id.
-     */
-    UPDATE_ID;
-
+    REMOVE;
+	
     /**
      *
      * @param type
      */
     private RevisionType()
     {
+    	
     }
     
     /**
      * @param ordinal
      */
-    public static RevisionType getRevisionTypeByOrdinalValue( int ordinal )
+    public static RevisionType valueOf( int ordinal )
     {
-    	switch( ordinal )
-    	{
-    		case 0:
-    			return RevisionType.INSERT;
-    		case 1:
-    			return RevisionType.UPDATE;
-    		case 2:
-    			return RevisionType.REMOVE;
-    		case 3:
-    			return RevisionType.UPDATE_ID;
-    		default:
-    			new IllegalArgumentException( "No revision type found for ordinal" );
-    	}
-    	
-    	return null;
+    	return RevisionType.values()[ordinal];
     }
 }

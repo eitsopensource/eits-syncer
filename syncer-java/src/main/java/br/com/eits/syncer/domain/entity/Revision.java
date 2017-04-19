@@ -1,8 +1,10 @@
 package br.com.eits.syncer.domain.entity;
 
 import java.io.Serializable;
-import java.util.Calendar;
-import java.util.Objects;
+import java.lang.reflect.Field;
+import java.util.UUID;
+
+import javax.persistence.Id;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -21,30 +23,37 @@ public class Revision<T> implements Serializable
 	 *				 		     ATTRIBUTES
 	 *-------------------------------------------------------------------*/
 	/**
-	 * 
+	 * Identificação da revisão local no cliente.
+	 */
+	private Long id;
+	/**
+	 * Revisão mantida pelo servidor
 	 */
 	private Long revisionNumber;
 	/**
-	 *
-	 */
-	private Long revisionDate;
-	/**
-	 *
+	 * Se a revisão local já foi sincronizada ou não.
 	 */
 	private Boolean synced;
 	/**
-	 *
+	 * Tipo da Revisão
 	 */
 	private RevisionType type;
 	/**
-	 *
+	 * Instancia da entidade persistida
 	 */
 	private T entity;
-
 	/**
-	 *
+	 * Fullclassname da entidade persistida.
 	 */
 	private String entityClassName;
+	/**
+	 * Nome do atributo id da entidade
+	 */
+	private String entityIdName;
+	/**
+	 * Valor da id da entidade
+	 */
+	private String entityId;
 
 	/*-------------------------------------------------------------------
 	 *				 		     CONSTRUCTORS
@@ -57,64 +66,66 @@ public class Revision<T> implements Serializable
 	@JsonCreator
 	public Revision( @JsonProperty("entity") T entity, @JsonProperty("type") RevisionType type )
 	{
-		this.revisionDate = Calendar.getInstance().getTimeInMillis();
-		this.entity = entity;
-		this.entityClassName = entity.getClass().getName();
+		this.id = System.currentTimeMillis();
 		this.type = type;
 		this.synced = false;
+		this.entity = entity;
+		
+		this.extractEntity();
+	}
+
+	/**
+	 * 
+	 * @param id
+	 * @param entity
+	 * @param type
+	 */
+	@JsonCreator
+	public Revision( long id, @JsonProperty("entity") T entity, @JsonProperty("type") RevisionType type )
+	{
+		this( entity, type );
+		this.id = id;
 	}
 
 	/*-------------------------------------------------------------------
 	 *				 		     BEHAVIORS
 	 *-------------------------------------------------------------------*/
-
-	/**
-	 *
-	 * @param o
-	 * @return
-	 */
-	@Override
-	@SuppressWarnings("unchecked")
-	public boolean equals( Object o )
-	{
-		if ( this == o ) return true;
-		if ( o == null || getClass() != o.getClass() ) return false;
-
-		final Revision<T> revision = ( Revision<T> ) o;
-		return Objects.equals( revision, revision.revisionDate ) && Objects.equals( synced, revision.synced ) && type == revision.type && Objects.equals( entity, revision.entity ) && Objects.equals( entityClassName, revision.entityClassName );
-	}
-
-	/**
-	 *
-	 * @return
-	 */
-	@Override
-	public int hashCode()
-	{
-		return Objects.hash( revisionDate, revisionNumber, synced, type, entity, entityClassName );
-	}
-
-	/*-------------------------------------------------------------------
-	 *				 		   GETTERS AND SETTERS
-	 *-------------------------------------------------------------------*/
-	/**
-	 *
-	 * @return
-	 */
-	public String getEntityClassName()
-	{
-		return this.entityClassName;
-	}
-
 	/**
 	 * 
-	 * @param entityClassName
 	 */
-	public void setEntityClassName( String entityClassName )
+	private void extractEntity()
 	{
-		this.entityClassName = entityClassName;
+		this.entityClassName = this.entity.getClass().getName();
+		
+		try
+		{
+			//get the entity id name and value
+			final Field[] fields = this.entity.getClass().getFields();
+			for ( Field field : fields )
+			{
+				if ( field.getAnnotation(Id.class) != null )
+				{
+					field.setAccessible(true);
+					//if is null, we set a default for now
+					this.entityId = field.get(entity) != null ? field.get(entity).toString() : UUID.randomUUID().toString();;
+					this.entityIdName = field.getName();
+				}
+			}
+		}
+		catch ( Exception e )
+		{
+			throw new IllegalStateException( "The entity must have an @Id annotation in an attribute." );
+		}
 	}
-
+	
+	/**
+	 * @return the id
+	 */
+	public Long getId()
+	{
+		return this.id;
+	}
+	
 	/**
 	 *
 	 * @return
@@ -123,15 +134,7 @@ public class Revision<T> implements Serializable
 	{
 		return this.type;
 	}
-
-	/**
-	 * 
-	 */
-	public void setEntity( T entity )
-	{
-		this.entity = entity;
-	}
-
+	
 	/**
 	 *
 	 * @return
@@ -139,6 +142,120 @@ public class Revision<T> implements Serializable
 	public T getEntity()
 	{
 		return this.entity;
+	}
+	
+	/**
+	 *
+	 * @return
+	 */
+	public String getEntityClassName()
+	{
+		return this.entityClassName;
+	}
+	
+	/**
+	 * 
+	 * @return
+	 */
+	public String getEntityIdName()
+	{
+		return this.entityIdName;
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public String getEntityId()
+	{
+		return this.entityId;
+	}
+
+	/**
+	 * 
+	 */
+	@Override
+	public int hashCode()
+	{
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ( ( entity == null ) ? 0 : entity.hashCode() );
+		result = prime * result + ( ( entityClassName == null ) ? 0 : entityClassName.hashCode() );
+		result = prime * result + ( ( entityId == null ) ? 0 : entityId.hashCode() );
+		result = prime * result + ( ( entityIdName == null ) ? 0 : entityIdName.hashCode() );
+		result = prime * result + ( ( id == null ) ? 0 : id.hashCode() );
+		result = prime * result + ( ( revisionNumber == null ) ? 0 : revisionNumber.hashCode() );
+		result = prime * result + ( ( synced == null ) ? 0 : synced.hashCode() );
+		result = prime * result + ( ( type == null ) ? 0 : type.hashCode() );
+		return result;
+	}
+
+	/**
+	 * 
+	 */
+	@Override
+	public boolean equals( Object obj )
+	{
+		if ( this == obj ) return true;
+		if ( obj == null ) return false;
+		if ( getClass() != obj.getClass() ) return false;
+		final Revision<?> other = ( Revision<?> ) obj;
+		if ( entity == null )
+		{
+			if ( other.entity != null ) return false;
+		}
+		else if ( !entity.equals( other.entity ) ) return false;
+		if ( entityClassName == null )
+		{
+			if ( other.entityClassName != null ) return false;
+		}
+		else if ( !entityClassName.equals( other.entityClassName ) ) return false;
+		if ( entityId == null )
+		{
+			if ( other.entityId != null ) return false;
+		}
+		else if ( !entityId.equals( other.entityId ) ) return false;
+		if ( entityIdName == null )
+		{
+			if ( other.entityIdName != null ) return false;
+		}
+		else if ( !entityIdName.equals( other.entityIdName ) ) return false;
+		if ( id == null )
+		{
+			if ( other.id != null ) return false;
+		}
+		else if ( !id.equals( other.id ) ) return false;
+		if ( revisionNumber == null )
+		{
+			if ( other.revisionNumber != null ) return false;
+		}
+		else if ( !revisionNumber.equals( other.revisionNumber ) ) return false;
+		if ( synced == null )
+		{
+			if ( other.synced != null ) return false;
+		}
+		else if ( !synced.equals( other.synced ) ) return false;
+		if ( type != other.type ) return false;
+		return true;
+	}
+
+	/*-------------------------------------------------------------------
+	 *				 		   GETTERS AND SETTERS
+	 *-------------------------------------------------------------------*/
+	/**
+	 * @return
+	 */
+	public Long getRevisionNumber()
+	{
+		return revisionNumber;
+	}
+
+	/**
+	 * @param id
+	 */
+	public void setRevisionNumber( Long revisionNumber )
+	{
+		this.revisionNumber = revisionNumber;
 	}
 
 	/**
@@ -157,37 +274,5 @@ public class Revision<T> implements Serializable
 	public void setSynced( Boolean synced )
 	{
 		this.synced = synced;
-	}
-
-	/**
-	 * @param revisionDate
-	 */
-	public void setRevisionDate( Long revisionDate )
-	{
-		this.revisionDate = revisionDate;
-	}
-
-	/**
-	 * @return the id
-	 */
-	public Long getRevisionDate()
-	{
-		return this.revisionDate;
-	}
-
-	/**
-	 * @return
-	 */
-	public Long getRevisionNumber()
-	{
-		return revisionNumber;
-	}
-
-	/**
-	 * @param id
-	 */
-	public void setRevisionNumber( Long revisionNumber )
-	{
-		this.revisionNumber = revisionNumber;
 	}
 }
