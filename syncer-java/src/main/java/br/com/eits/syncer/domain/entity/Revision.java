@@ -2,7 +2,7 @@ package br.com.eits.syncer.domain.entity;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
-import java.util.UUID;
+import java.util.Calendar;
 
 import javax.persistence.Id;
 
@@ -99,18 +99,27 @@ public class Revision<T> implements Serializable
 		
 		try
 		{
-			//get the entity id name and value
-			final Field[] fields = this.entity.getClass().getFields();
-			for ( Field field : fields )
-			{
-				if ( field.getAnnotation(Id.class) != null )
-				{
-					field.setAccessible(true);
-					//if is null, we set a default for now
-					this.entityId = field.get(entity) != null ? field.get(entity).toString() : UUID.randomUUID().toString();;
-					this.entityIdName = field.getName();
+			Class<?> targetClass = Class.forName( this.entityClassName );
+			
+			do {
+				Field[] fields = targetClass.getDeclaredFields();
+				
+				for ( Field field : fields ) {
+					if ( field.getAnnotation( Id.class ) != null )
+					{
+						field.setAccessible(true);
+						
+						//if is null, we set a default for now
+						Serializable entityId = field.get(entity) != null ? field.get(entity).toString() : Calendar.getInstance().getTimeInMillis();
+						field.set( entity, new Long( entityId.toString() ) );
+						this.entityId = entityId.toString();
+						this.entityIdName = field.getName();
+					}
 				}
+				
+				targetClass = targetClass.getSuperclass();
 			}
+			while (targetClass != null && targetClass != Object.class);
 		}
 		catch ( Exception e )
 		{

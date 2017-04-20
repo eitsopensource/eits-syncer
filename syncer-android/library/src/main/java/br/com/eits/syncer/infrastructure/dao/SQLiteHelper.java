@@ -33,8 +33,6 @@ public class SQLiteHelper extends SQLiteOpenHelper
     public static final int COLUMN_TYPE_INDEX = 3;
     public static final int COLUMN_ENTITY_INDEX = 4;
     public static final int COLUMN_ENTITY_CLASSNAME_INDEX = 5;
-    public static final int COLUMN_ENTITY_ID_INDEX = 6;
-    public static final int COLUMN_ENTITY_ID_NAME_INDEX = 7;
 
     // Database creation sql statement
     private static final String DATABASE_CREATE =

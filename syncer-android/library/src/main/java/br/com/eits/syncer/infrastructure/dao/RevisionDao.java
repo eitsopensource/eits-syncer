@@ -11,6 +11,7 @@ import br.com.eits.syncer.Syncer;
 import br.com.eits.syncer.application.ApplicationHolder;
 import br.com.eits.syncer.domain.entity.Revision;
 import br.com.eits.syncer.domain.entity.RevisionType;
+import br.com.eits.syncer.domain.service.QueryRevisionService;
 import io.requery.android.database.sqlite.SQLiteDatabase;
 
 /**
@@ -128,13 +129,44 @@ public class RevisionDao<T>
         final String tables = SQLiteHelper.TABLE_REVISION+", json_each("+ SQLiteHelper.COLUMN_ENTITY +")";
 
         //NOT IN nao deixa procurar nos varios niveis do json
-        final String where = SQLiteHelper.COLUMN_ENTITY_CLASSNAME + " = ? AND json_each.type NOT IN ( 'object', 'array' ) AND json_each.value LIKE '%?%'";
-        final Object[] whereArguments = new Object[] { className.getName(), filters };
+        final String where = SQLiteHelper.COLUMN_ENTITY_CLASSNAME + " = ? AND json_each.type NOT IN ( 'object', 'array' ) AND json_each.value LIKE '%" + filters + "%'";
+        final Object[] whereArguments = new Object[] { className.getName() };
         final String groupBy = SQLiteHelper.COLUMN_ENTITY_ID;
         final String having = SQLiteHelper.TABLE_REVISION + "." + SQLiteHelper.COLUMN_TYPE + " <> " + RevisionType.REMOVE.ordinal();
         final String orderBy = SQLiteHelper.COLUMN_ID + " DESC";
 
-        final Cursor cursor = database.query( tables, null, where, whereArguments, groupBy, having, orderBy);
+        final Cursor cursor = database.query( tables, null, where, whereArguments, groupBy, having, orderBy );
+        cursor.moveToFirst();
+
+        final List<Revision<T>> revisions = new ArrayList<>();
+        while ( !cursor.isAfterLast() )
+        {
+            revisions.add( this.fromCursorToRevision( cursor ) );
+            cursor.moveToNext();
+        }
+        cursor.close();
+        HELPER.close();
+
+        return revisions;
+    }
+
+    /**
+     *
+     * @param queryRevisionService
+     * @return
+     */
+    public List<Revision<T>> listByCustomQuery( QueryRevisionService queryRevisionService )
+    {
+        final SQLiteDatabase database = HELPER.getReadableDatabase();
+
+        final String tables = queryRevisionService.getTables();
+        final String where = queryRevisionService.getWhere();
+        final Object[] whereArguments = queryRevisionService.getWhereArguments().toArray();
+        final String groupBy = queryRevisionService.getGroupBy();
+        final String having = queryRevisionService.getHaving();
+        final String orderBy = queryRevisionService.getOrderBy();
+
+        final Cursor cursor = database.query( tables, null, where, whereArguments, groupBy, having, orderBy );
         cursor.moveToFirst();
 
         final List<Revision<T>> revisions = new ArrayList<>();
@@ -160,7 +192,7 @@ public class RevisionDao<T>
         final String orderBy = SQLiteHelper.COLUMN_REVISION_NUMBER + " DESC";
         final String limit = "1";
 
-        final Cursor cursor = database.queryWithFactory( null, false, SQLiteHelper.TABLE_REVISION, null, null, null, null, null, orderBy, limit);
+        final Cursor cursor = database.queryWithFactory( null, false, SQLiteHelper.TABLE_REVISION, null, null, null, null, null, orderBy, limit );
         if ( cursor.moveToFirst() )
         {
             final Revision<?> revision = this.fromCursorToRevision(cursor);
@@ -184,7 +216,7 @@ public class RevisionDao<T>
         final String where = SQLiteHelper.COLUMN_SYNCED + " = ?";
         final Object[] whereArguments = new Object[] { Boolean.FALSE };
 
-        final Cursor cursor = database.query( SQLiteHelper.TABLE_REVISION, null, where, whereArguments, null, null, null);
+        final Cursor cursor = database.query( SQLiteHelper.TABLE_REVISION, null, where, whereArguments, null, null, null );
         cursor.moveToFirst();
 
         final List<Revision<?>> revisions = new ArrayList<>();
@@ -207,7 +239,7 @@ public class RevisionDao<T>
     {
         final SQLiteDatabase database = HELPER.getWritableDatabase();
 
-        final String where = SQLiteHelper.COLUMN_ID+" IN ("+TextUtils.join(",", ids)+")";
+        final String where = SQLiteHelper.COLUMN_ID+" IN ("+ TextUtils.join(",", ids)+")";
         database.delete( SQLiteHelper.TABLE_REVISION, where, null );
 
         HELPER.close();
