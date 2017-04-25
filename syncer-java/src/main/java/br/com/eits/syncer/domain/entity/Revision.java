@@ -99,7 +99,7 @@ public class Revision<T> implements Serializable
 
 		try
 		{
-			Field entityIdField = extractEntityIdFieldByEntityClass( this.entity.getClass() );
+			Field entityIdField = extractEntityIdField( this.entity.getClass() );
 			entityIdField.setAccessible( true );
 			Serializable entityId = entityIdField.get( this.entity ) != null ? entityIdField.get( this.entity ).toString() : Calendar.getInstance().getTimeInMillis();
 			entityIdField.set( this.entity, new Long( entityId.toString() ) );
@@ -117,7 +117,7 @@ public class Revision<T> implements Serializable
 	 * 
 	 * @return
 	 */
-	public static Field extractEntityIdFieldByEntityClass( Class<?> entityClass )
+	public static Field extractEntityIdField( Class<?> entityClass )
 	{
 		if ( entityClass == null ) throw new IllegalArgumentException( "Entity Class can not be null." );
 

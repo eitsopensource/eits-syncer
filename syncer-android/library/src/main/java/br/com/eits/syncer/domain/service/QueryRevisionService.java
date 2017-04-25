@@ -25,6 +25,7 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
     private String groupBy = "";
     private String having = "";
     private String orderBy = "";
+    private String limit = "";
 
     /**
      * @param entityClass
@@ -40,7 +41,6 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
 
         this.groupBy = this.groupBy.concat( SQLiteHelper.COLUMN_ENTITY_ID );
         this.having = this.having.concat( SQLiteHelper.TABLE_REVISION + "." + SQLiteHelper.COLUMN_TYPE + " <> " + RevisionType.REMOVE.ordinal() );
-//        this.orderBy = this.orderBy.concat( SQLiteHelper.COLUMN_ID + " DESC" );
     }
 
     /*-------------------------------------------------------------------
@@ -52,7 +52,7 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
      * @return
      */
     @Override
-    public IQueryRevisionService where( String field, String value )
+    public synchronized IQueryRevisionService where( String field, String value )
     {
         this.where = this.where.concat( field + " = ?" );
         this.whereArguments.add( value );
@@ -64,7 +64,7 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
      * @return
      */
     @Override
-    public IQueryRevisionService join( Class<?> joinEntity, long joinEntityId )
+    public synchronized IQueryRevisionService join( Class<?> joinEntity, long joinEntityId )
     {
         final String simpleClassName = joinEntity.getSimpleName().substring(0, 1).toLowerCase() + joinEntity.getSimpleName().substring(1);
         String entityIdName = Revision.extractEntityIdFieldByEntityClass( joinEntity ).getName();
@@ -81,7 +81,7 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
      * @return
      */
     @Override
-    public IQueryRevisionService filterBy( String filters )
+    public synchronized IQueryRevisionService filterBy( String filters )
     {
         filters = filters != null ? filters : "";
 
@@ -96,7 +96,7 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
      * @return
      */
     @Override
-    public IQueryRevisionService and() {
+    public synchronized IQueryRevisionService and() {
         this.where = this.where.concat(" AND ");
         return this;
     }
@@ -106,7 +106,7 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
      * @return
      */
     @Override
-    public IQueryRevisionService or() {
+    public synchronized IQueryRevisionService or() {
         this.where = this.where.concat(" OR ");
         return this;
     }
@@ -115,7 +115,7 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
      * @return
      */
     @Override
-    public List<T> list()
+    public synchronized List<T> list()
     {
         final List<Revision<T>> revisions = this.revisionDao.listByCustomQuery( this );
 
@@ -128,6 +128,19 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
         return entities;
     }
 
+    /**
+     * @return
+     */
+    @Override
+    public synchronized T singleResult()
+    {
+        this.limit = "1";
+        this.orderBy = SQLiteHelper.COLUMN_ID + " DESC";
+
+        final List<Revision<T>> revisions = this.revisionDao.listByCustomQuery( this );
+        return revisions.isEmpty() ? null : revisions.get( 0 ).getEntity();
+    }
+
     /*-------------------------------------------------------------------
     * 		 				    GETTERS
     *-------------------------------------------------------------------*/
@@ -138,6 +151,14 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
      */
     public String getGroupBy() {
         return groupBy;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getLimit() {
+        return limit;
     }
 
     /**

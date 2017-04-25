@@ -54,7 +54,6 @@ public class RevisionDao<T>
         values.put( SQLiteHelper.COLUMN_ENTITY, this.toJSON( revision.getEntity() ) );
         values.put( SQLiteHelper.COLUMN_ENTITY_CLASSNAME, revision.getEntityClassName() );
         values.put( SQLiteHelper.COLUMN_ENTITY_ID, revision.getEntityId() );
-        values.put( SQLiteHelper.COLUMN_ENTITY_ID_NAME, revision.getEntityIdName() );
 
         database.insert( SQLiteHelper.TABLE_REVISION, null, values );
 
@@ -85,7 +84,7 @@ public class RevisionDao<T>
         HELPER.close();
 
         return revision;
-    }
+}
 
     /**
      *
@@ -98,8 +97,7 @@ public class RevisionDao<T>
 
         final String where = SQLiteHelper.COLUMN_ENTITY_ID + " = ? AND " + SQLiteHelper.COLUMN_ENTITY_CLASSNAME + " = ?";
         final Object[] whereArguments = new Object[] { entityId, className.getName() };
-        final String orderBy = SQLiteHelper.COLUMN_ID + " DESC"
-;
+        final String orderBy = SQLiteHelper.COLUMN_ID + " DESC";
         final Cursor cursor = database.query( SQLiteHelper.TABLE_REVISION, null, where, whereArguments, null, null, orderBy );
 
         Revision<T> revision = null;
@@ -164,8 +162,9 @@ public class RevisionDao<T>
         final String groupBy = queryRevisionService.getGroupBy();
         final String having = queryRevisionService.getHaving();
         final String orderBy = queryRevisionService.getOrderBy();
+        final String limit = queryRevisionService.getLimit();
 
-        final Cursor cursor = database.query( tables, null, where, whereArguments, groupBy, having, orderBy );
+        final Cursor cursor = database.queryWithFactory( null, false, tables, null, where, whereArguments, groupBy, having, orderBy, limit );
         cursor.moveToFirst();
 
         final List<Revision<T>> revisions = new ArrayList<>();

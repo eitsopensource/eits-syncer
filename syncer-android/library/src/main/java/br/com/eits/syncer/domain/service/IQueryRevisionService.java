@@ -14,6 +14,11 @@ public interface IQueryRevisionService<T>
     public List<T> list();
     /**
      *
+     * @return
+     */
+    public T singleResult();
+    /**
+     *
      * @param field
      * @param value
      * @return

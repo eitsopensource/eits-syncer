@@ -25,7 +25,6 @@ public class SQLiteHelper extends SQLiteOpenHelper
     public static final String COLUMN_ENTITY = "entity";
     public static final String COLUMN_ENTITY_CLASSNAME = "entity_class_name";
     public static final String COLUMN_ENTITY_ID = "entity_id";
-    public static final String COLUMN_ENTITY_ID_NAME = "entity_id_name";
 
     public static final int COLUMN_ID_INDEX = 0;
     public static final int COLUMN_REVISION_NUMBER_INDEX = 1;
@@ -44,8 +43,7 @@ public class SQLiteHelper extends SQLiteOpenHelper
                 + COLUMN_TYPE + " TINYINT NOT NULL, "
                 + COLUMN_ENTITY + " TEXT NOT NULL, "
                 + COLUMN_ENTITY_CLASSNAME + " VARCHAR(255) NOT NULL, "
-                + COLUMN_ENTITY_ID + " VARCHAR(255) NOT NULL, "
-                + COLUMN_ENTITY_ID_NAME + " VARCHAR(100) NOT NULL "
+                + COLUMN_ENTITY_ID + " VARCHAR(255) NOT NULL "
         +");";
 
     /*-------------------------------------------------------------------

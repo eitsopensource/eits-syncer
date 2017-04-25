@@ -46,7 +46,7 @@ public class RevisionService<T> implements IRevisionService<T>
     /**
      *
      */
-    protected Revision insertRevisionAndSync( Revision revision )
+    protected synchronized Revision insertRevisionAndSync( Revision revision )
     {
         revisionDao.insertRevision( revision );
         Syncer.requestSync();
@@ -56,7 +56,7 @@ public class RevisionService<T> implements IRevisionService<T>
     /**
      *
      */
-    public T insertWithoutSync( T entity )
+    public synchronized T insertWithoutSync( T entity )
     {
         final Revision revision = new Revision( entity, RevisionType.INSERT );
         revision.setSynced(true);
@@ -67,7 +67,7 @@ public class RevisionService<T> implements IRevisionService<T>
     /**
      *
      */
-    public T insert( T entity )
+    public synchronized T insert( T entity )
     {
         final Revision revision = new Revision( entity, RevisionType.INSERT );
         this.insertRevisionAndSync( revision );
@@ -77,7 +77,7 @@ public class RevisionService<T> implements IRevisionService<T>
     /**
      *
      */
-    public T update( T entity )
+    public synchronized T update( T entity )
     {
         final Revision revision = new Revision( entity, RevisionType.UPDATE );
         this.insertRevisionAndSync( revision );
@@ -87,7 +87,7 @@ public class RevisionService<T> implements IRevisionService<T>
     /**
      *
      */
-    public void remove( T entity )
+    public synchronized void remove( T entity )
     {
         final Revision revision = new Revision( entity, RevisionType.REMOVE );
         this.insertRevisionAndSync( revision );
@@ -96,7 +96,7 @@ public class RevisionService<T> implements IRevisionService<T>
     /**
      *
      */
-    public T findByEntityId( Object entityId )
+    public synchronized T findByEntityId( Object entityId )
     {
         Objects.requireNonNull( entityId, "You must set a entity id" );
         final Revision<T> revision = revisionDao.findByEntityId( entityClass, entityId.toString() );
@@ -106,7 +106,7 @@ public class RevisionService<T> implements IRevisionService<T>
     /**
      * @return
      */
-    public List<T> listAll()
+    public synchronized List<T> listAll()
     {
         return this.listByFilters(null);
     }
@@ -114,7 +114,7 @@ public class RevisionService<T> implements IRevisionService<T>
     /**
      * @return
      */
-    public List<T> listByFilters( String filters )
+    public synchronized List<T> listByFilters( String filters )
     {
         final List<T> entities = new ArrayList<T>();
 
@@ -129,50 +129,11 @@ public class RevisionService<T> implements IRevisionService<T>
     }
 
     /**
-     * @param filters
-     * @param relatedEntityClass
-     * @param relatedEntityId
-     * @return
-
-    public List<T> listByFiltersLookingForRelatedEntity( String filters, Class<?> relatedEntityClass, Long relatedEntityId )
-    {
-        List<T> entities = new ArrayList<T>();
-
-        filters = filters == null ? "" : filters;
-
-        final String simpleClassName = relatedEntityClass.getSimpleName().substring(0, 1).toLowerCase() + relatedEntityClass.getSimpleName().substring(1);
-
-        String joinTable = "json_each(" + SQLiteHelper.COLUMN_ENTITY + ")";
-        String[] columnsToShow = null;
-        String where = SQLiteHelper.COLUMN_ENTITY_CLASSNAME + " = ? AND " +
-                "json_extract("+ SQLiteHelper.COLUMN_ENTITY + ", '$." + simpleClassName + "." + SQLiteHelper.COLUMN_ENTITY_ID + "') = ? AND " +
-                "json_each.type NOT IN ( 'object', 'array' ) AND json_each.value LIKE '%" + filters + "%'";
-
-        Object [] whereArguments = new Object[] { this.entityClass.getName(), relatedEntityId };
-
-        String groupBy = "json_extract(" + SQLiteHelper.COLUMN_ENTITY + ", '$." + SQLiteHelper.COLUMN_ENTITY_ID + "')";
-        String having = SQLiteHelper.TABLE_REVISION + "." + SQLiteHelper.COLUMN_TYPE + " <> " + RevisionType.REMOVE.ordinal();
-        String orderBy = SQLiteHelper.COLUMN_ID + " DESC";
-
-        revisionDao.open();
-        final List<Revision<?>> revisions = revisionDao.queryForRevisions( joinTable, columnsToShow, where, whereArguments, groupBy, having, orderBy );
-        revisionDao.close();
-
-        for( Revision revision : revisions )
-        {
-            entities.add( this.entityClass.cast( revision.getEntity() ) );
-        }
-
-        return entities;
-    }
-     */
-
-    /**
      *
      * @return
      */
     @Override
-    public IQueryRevisionService query()
+    public synchronized IQueryRevisionService query()
     {
         return new QueryRevisionService( this.entityClass );
     }
@@ -182,7 +143,7 @@ public class RevisionService<T> implements IRevisionService<T>
      * @return
      */
     @Override
-    public IObservableRevisionService<T> watch( Activity activity )
+    public synchronized IObservableRevisionService<T> watch( Activity activity )
     {
         return new ObservableRevisionService<>(this.entityClass, activity);
     }
