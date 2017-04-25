@@ -70,7 +70,7 @@ public class Revision<T> implements Serializable
 		this.type = type;
 		this.synced = false;
 		this.entity = entity;
-		
+
 		this.extractEntity();
 	}
 
@@ -80,8 +80,7 @@ public class Revision<T> implements Serializable
 	 * @param entity
 	 * @param type
 	 */
-	@JsonCreator
-	public Revision( long id, @JsonProperty("entity") T entity, @JsonProperty("type") RevisionType type )
+	public Revision( long id, T entity, RevisionType type )
 	{
 		this( entity, type );
 		this.id = id;
@@ -95,89 +94,60 @@ public class Revision<T> implements Serializable
 	 */
 	private void extractEntity()
 	{
+		// if is null, we set a default for now
 		this.entityClassName = this.entity.getClass().getName();
-		
+
 		try
 		{
-			Class<?> targetClass = Class.forName( this.entityClassName );
-			
-			do {
-				Field[] fields = targetClass.getDeclaredFields();
-				
-				for ( Field field : fields ) {
-					if ( field.getAnnotation( Id.class ) != null )
-					{
-						field.setAccessible(true);
-						
-						//if is null, we set a default for now
-						Serializable entityId = field.get(entity) != null ? field.get(entity).toString() : Calendar.getInstance().getTimeInMillis();
-						field.set( entity, new Long( entityId.toString() ) );
-						this.entityId = entityId.toString();
-						this.entityIdName = field.getName();
-					}
-				}
-				
-				targetClass = targetClass.getSuperclass();
-			}
-			while (targetClass != null && targetClass != Object.class);
+			Field entityIdField = extractEntityIdFieldByEntityClass( this.entity.getClass() );
+			entityIdField.setAccessible( true );
+			Serializable entityId = entityIdField.get( this.entity ) != null ? entityIdField.get( this.entity ).toString() : Calendar.getInstance().getTimeInMillis();
+			entityIdField.set( this.entity, new Long( entityId.toString() ) );
+			this.entityId = entityId.toString();
+			this.entityIdName = entityIdField.getName();
 		}
 		catch ( Exception e )
 		{
-			throw new IllegalStateException( "The entity must have an @Id annotation in an attribute." );
+			e.printStackTrace();
+			throw new IllegalStateException( "Can not extract entity." );
 		}
-	}
-	
-	/**
-	 * @return the id
-	 */
-	public Long getId()
-	{
-		return this.id;
-	}
-	
-	/**
-	 *
-	 * @return
-	 */
-	public RevisionType getType()
-	{
-		return this.type;
-	}
-	
-	/**
-	 *
-	 * @return
-	 */
-	public T getEntity()
-	{
-		return this.entity;
-	}
-	
-	/**
-	 *
-	 * @return
-	 */
-	public String getEntityClassName()
-	{
-		return this.entityClassName;
-	}
-	
-	/**
-	 * 
-	 * @return
-	 */
-	public String getEntityIdName()
-	{
-		return this.entityIdName;
 	}
 
 	/**
 	 * 
 	 * @return
 	 */
-	public String getEntityId()
+	public static Field extractEntityIdFieldByEntityClass( Class<?> entityClass )
 	{
-		return this.entityId;
+		if ( entityClass == null ) throw new IllegalArgumentException( "Entity Class can not be null." );
+
+		try
+		{
+			Class<?> targetClass = entityClass;
+
+			do
+			{
+				Field[] fields = targetClass.getDeclaredFields();
+
+				for ( Field field : fields )
+				{
+					if ( field.getAnnotation( Id.class ) != null )
+					{
+						field.setAccessible( true );
+						return field;
+					}
+				}
+
+				targetClass = targetClass.getSuperclass();
+			}
+			while ( targetClass != null && targetClass != Object.class );
+		}
+		catch ( Exception e )
+		{
+			e.printStackTrace();
+		}
+
+		throw new IllegalStateException( "The entity must have an @Id annotation in an attribute." );
 	}
 
 	/**
@@ -251,6 +221,60 @@ public class Revision<T> implements Serializable
 	/*-------------------------------------------------------------------
 	 *				 		   GETTERS AND SETTERS
 	 *-------------------------------------------------------------------*/
+
+	/**
+	 * @return the id
+	 */
+	public Long getId()
+	{
+		return this.id;
+	}
+
+	/**
+	 *
+	 * @return
+	 */
+	public RevisionType getType()
+	{
+		return this.type;
+	}
+
+	/**
+	 *
+	 * @return
+	 */
+	public T getEntity()
+	{
+		return this.entity;
+	}
+
+	/**
+	 *
+	 * @return
+	 */
+	public String getEntityClassName()
+	{
+		return this.entityClassName;
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public String getEntityIdName()
+	{
+		return this.entityIdName;
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public String getEntityId()
+	{
+		return this.entityId;
+	}
+
 	/**
 	 * @return
 	 */

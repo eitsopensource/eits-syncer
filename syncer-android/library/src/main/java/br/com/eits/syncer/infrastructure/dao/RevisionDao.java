@@ -71,21 +71,20 @@ public class RevisionDao<T>
     {
         final SQLiteDatabase database = HELPER.getReadableDatabase();
 
-        final String where = SQLiteHelper.COLUMN_ID+"=?";
+        final String where = SQLiteHelper.COLUMN_ID + " = ?";
         final Object[] whereArguments = new Object[] { id };
 
-        final Cursor cursor = database.query( SQLiteHelper.TABLE_REVISION, null, where, whereArguments, null, null, null);
+        final Cursor cursor = database.query( SQLiteHelper.TABLE_REVISION, null, where, whereArguments, null, null, null );
 
+        Revision<T> revision = null;
         if ( cursor.moveToFirst() )
         {
-            final Revision<T> revision = this.fromCursorToRevision(cursor);
-            cursor.close();
-            HELPER.close();
-
-            return revision;
+            revision = this.fromCursorToRevision( cursor );
         }
+        cursor.close();
+        HELPER.close();
 
-        return null;
+        return revision;
     }
 
     /**
@@ -97,21 +96,21 @@ public class RevisionDao<T>
     {
         final SQLiteDatabase database = HELPER.getReadableDatabase();
 
-        final String where = SQLiteHelper.COLUMN_ENTITY_ID +"=? AND "+SQLiteHelper.COLUMN_ENTITY_CLASSNAME+"=?";
+        final String where = SQLiteHelper.COLUMN_ENTITY_ID + " = ? AND " + SQLiteHelper.COLUMN_ENTITY_CLASSNAME + " = ?";
         final Object[] whereArguments = new Object[] { entityId, className.getName() };
+        final String orderBy = SQLiteHelper.COLUMN_ID + " DESC"
+;
+        final Cursor cursor = database.query( SQLiteHelper.TABLE_REVISION, null, where, whereArguments, null, null, orderBy );
 
-        final Cursor cursor = database.query( SQLiteHelper.TABLE_REVISION, null, where, whereArguments, null, null, null);
-
+        Revision<T> revision = null;
         if ( cursor.moveToFirst() )
         {
-            final Revision<T> revision = this.fromCursorToRevision(cursor);
-            cursor.close();
-            HELPER.close();
-
-            return revision;
+            revision = this.fromCursorToRevision( cursor );
         }
+        cursor.close();
+        HELPER.close();
 
-        return null;
+        return revision;
     }
 
     /**
@@ -193,16 +192,16 @@ public class RevisionDao<T>
         final String limit = "1";
 
         final Cursor cursor = database.queryWithFactory( null, false, SQLiteHelper.TABLE_REVISION, null, null, null, null, null, orderBy, limit );
+
+        Revision<?> revision = null;
         if ( cursor.moveToFirst() )
         {
-            final Revision<?> revision = this.fromCursorToRevision(cursor);
-            cursor.close();
-            HELPER.close();
-
-            return revision;
+            revision = this.fromCursorToRevision(cursor);
         }
+        cursor.close();
+        HELPER.close();
 
-        return null;
+        return revision;
     }
 
     /**
@@ -239,7 +238,7 @@ public class RevisionDao<T>
     {
         final SQLiteDatabase database = HELPER.getWritableDatabase();
 
-        final String where = SQLiteHelper.COLUMN_ID+" IN ("+ TextUtils.join(",", ids)+")";
+        final String where = SQLiteHelper.COLUMN_ID + " IN (" + TextUtils.join( ",", ids ) + ")";
         database.delete( SQLiteHelper.TABLE_REVISION, where, null );
 
         HELPER.close();

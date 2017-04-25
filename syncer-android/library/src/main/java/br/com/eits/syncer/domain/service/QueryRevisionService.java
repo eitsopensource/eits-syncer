@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import br.com.eits.syncer.domain.entity.Revision;
+import br.com.eits.syncer.domain.entity.RevisionType;
 import br.com.eits.syncer.infrastructure.dao.SQLiteHelper;
 
 /**
@@ -21,9 +22,9 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
 
     private List<Object> whereArguments = new ArrayList<Object>();
 
-    private String groupBy;
-    private String having;
-    private String orderBy;
+    private String groupBy = "";
+    private String having = "";
+    private String orderBy = "";
 
     /**
      * @param entityClass
@@ -36,6 +37,10 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
         this.joinTable = "json_each(" + SQLiteHelper.COLUMN_ENTITY + ")";
         this.where = this.where.concat( SQLiteHelper.COLUMN_ENTITY_CLASSNAME + " = ? AND " );
         this.whereArguments.add( entityClass.getName() );
+
+        this.groupBy = this.groupBy.concat( SQLiteHelper.COLUMN_ENTITY_ID );
+        this.having = this.having.concat( SQLiteHelper.TABLE_REVISION + "." + SQLiteHelper.COLUMN_TYPE + " <> " + RevisionType.REMOVE.ordinal() );
+//        this.orderBy = this.orderBy.concat( SQLiteHelper.COLUMN_ID + " DESC" );
     }
 
     /*-------------------------------------------------------------------
@@ -59,21 +64,29 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
      * @return
      */
     @Override
-    public IQueryRevisionService join( Class<?> joinEntity, String joinEntityId )
+    public IQueryRevisionService join( Class<?> joinEntity, long joinEntityId )
     {
         final String simpleClassName = joinEntity.getSimpleName().substring(0, 1).toLowerCase() + joinEntity.getSimpleName().substring(1);
+        String entityIdName = Revision.extractEntityIdFieldByEntityClass( joinEntity ).getName();
+
+        this.where = this.where.concat( "json_extract("+ SQLiteHelper.COLUMN_ENTITY + ", '$." + simpleClassName + "." + entityIdName + "') = ?" );
+        this.whereArguments.add( joinEntityId );
+
+        return this;
+    }
+
+    /**
+     *
+     * @param filters
+     * @return
+     */
+    @Override
+    public IQueryRevisionService filterBy( String filters )
+    {
+        filters = filters != null ? filters : "";
 
         this.tables = this.tables.concat( ", " + this.joinTable );
-
-        //TODO: Fazer pegar o nome do ID e usar em json_extract(entity, '$.simpleClassName.entityIdName')
-
-        //"json_each.type NOT IN ( 'object', 'array' ) AND json_each.value LIKE '%" + filters + "%'";
-        //SQLiteHelper.TABLE_REVISION + "." + SQLiteHelper.COLUMN_TYPE + " <> " + RevisionType.REMOVE.ordinal();
-
-//        String selectToGetIdName = "(SELECT "+SQLiteHelper.TABLE_REVISION+"."+SQLiteHelper.COLUMN_ENTITY_ID_NAME+" FROM "+ SQLiteHelper.TABLE_REVISION+" WHERE "+SQLiteHelper.COLUMN_ENTITY_CLASSNAME+" = "+joinEntity.getName()+" LIMIT 1";
-
-        this.where = this.where.concat( "json_extract("+ SQLiteHelper.COLUMN_ENTITY + ", '$." + simpleClassName + "." + SQLiteHelper.COLUMN_ENTITY_ID_NAME + "') = ?" );
-        this.whereArguments.add( joinEntity );
+        this.where = this.where.concat( " AND json_each.type NOT IN ( 'object', 'array' ) AND json_each.value LIKE '%" + filters + "%'" );
 
         return this;
     }

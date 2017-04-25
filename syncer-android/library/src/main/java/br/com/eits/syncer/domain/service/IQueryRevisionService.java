@@ -24,7 +24,12 @@ public interface IQueryRevisionService<T>
      * @param joinEntity
      * @return
      */
-    public IQueryRevisionService join( Class<?> joinEntity, String joinEntityId );
+    public IQueryRevisionService join( Class<?> joinEntity, long joinEntityId );
+    /**
+     *
+     * @return
+     */
+    public IQueryRevisionService filterBy( String filters );
     /**
      *
      * @return
