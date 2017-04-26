@@ -67,7 +67,7 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
     public synchronized IQueryRevisionService join( Class<?> joinEntity, long joinEntityId )
     {
         final String simpleClassName = joinEntity.getSimpleName().substring(0, 1).toLowerCase() + joinEntity.getSimpleName().substring(1);
-        String entityIdName = Revision.extractEntityIdFieldByEntityClass( joinEntity ).getName();
+        String entityIdName = Revision.extractEntityIdField( joinEntity ).getName();
 
         this.where = this.where.concat( "json_extract("+ SQLiteHelper.COLUMN_ENTITY + ", '$." + simpleClassName + "." + entityIdName + "') = ?" );
         this.whereArguments.add( joinEntityId );
