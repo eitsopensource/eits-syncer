@@ -3,9 +3,10 @@ package br.com.eits.syncer.domain.service;
 
 import android.app.Activity;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Observer;
+import java.util.concurrent.Callable;
 
 /**
  *
@@ -15,6 +16,7 @@ public class ObservableRevisionService<T> extends RevisionService<T> implements 
     /*-------------------------------------------------------------------
     * 		 					ATTRIBUTES
     *-------------------------------------------------------------------*/
+
     /**
      *
      */
@@ -29,7 +31,7 @@ public class ObservableRevisionService<T> extends RevisionService<T> implements 
     public ObservableRevisionService( Class<T> entityClass, Activity activity )
     {
         super( entityClass );
-        this.activity = activity;
+        this.activity = activity; // on finish activity remove all watchers
     }
 
     /*-------------------------------------------------------------------
@@ -42,10 +44,19 @@ public class ObservableRevisionService<T> extends RevisionService<T> implements 
      * @return
      */
     @Override
-    public T findById(long entityId, Observer handler)
+    public void findByEntityId( final long entityId, IHandler<T> handler )
     {
         Objects.requireNonNull( handler, "You must set an observer to handler" );
-        return null;
+
+        final Watcher watcher = new Watcher(new Callable() {
+            @Override
+            public T call() throws Exception {
+                return ObservableRevisionService.super.findByEntityId( entityId );
+            }
+        }, handler);
+
+        Watcher.addWatcher( watcher );
+        watcher.execute();
     }
 
     /**
@@ -54,22 +65,39 @@ public class ObservableRevisionService<T> extends RevisionService<T> implements 
      * @return
      */
     @Override
-    public List<T> listAll(Observer handler)
+    public void listAll( IHandler<List<T>> handler )
     {
         Objects.requireNonNull( handler, "You must set an observer to handler" );
-        return null;
+
+        final Watcher watcher = new Watcher(new Callable() {
+            @Override
+            public List<T> call() throws Exception {
+                return ObservableRevisionService.super.listAll();
+            }
+        }, handler);
+
+        Watcher.addWatcher( watcher );
+        watcher.execute();
     }
 
     /**
      *
-     * @param filters
      * @param handler
      * @return
      */
     @Override
-    public List<T> listByFilters(String filters, Observer handler)
+    public void query( final IQueryRevisionService<T> queryRevisionService, IHandler<List<T>> handler )
     {
         Objects.requireNonNull( handler, "You must set an observer to handler" );
-        return null;
+
+        final Watcher watcher = new Watcher(new Callable() {
+            @Override
+            public List<T> call() throws Exception {
+                return queryRevisionService.list();
+            }
+        }, handler);
+
+        Watcher.addWatcher( watcher );
+        watcher.execute();
     }
 }

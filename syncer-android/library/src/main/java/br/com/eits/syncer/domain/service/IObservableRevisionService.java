@@ -12,22 +12,18 @@ public interface IObservableRevisionService<T>
      *
      * @param entityId
      * @param handler
-     * @return
      */
-    public T findById(long entityId, Observer handler);
+    public void findByEntityId( long entityId, IHandler<T> handler );
 
     /**
      *
      * @param handler
-     * @return
      */
-    public List<T> listAll(Observer handler);
+    public void listAll( IHandler<List<T>> handler );
 
     /**
      *
-     * @param filters
-     * @param handler
-     * @return
+     * @param handle
      */
-    public List<T> listByFilters(String filters, Observer handler);
+    public void query( IQueryRevisionService<T> queryRevisionService, IHandler<List<T>> handle );
 }

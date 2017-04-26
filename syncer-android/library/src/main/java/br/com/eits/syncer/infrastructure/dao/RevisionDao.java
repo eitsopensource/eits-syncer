@@ -57,7 +57,7 @@ public class RevisionDao<T>
 
         database.insert( SQLiteHelper.TABLE_REVISION, null, values );
 
-        HELPER.close();
+//        HELPER.close();
         return revision;
     }
 
@@ -81,7 +81,7 @@ public class RevisionDao<T>
             revision = this.fromCursorToRevision( cursor );
         }
         cursor.close();
-        HELPER.close();
+//        HELPER.close();
 
         return revision;
 }
@@ -106,7 +106,7 @@ public class RevisionDao<T>
             revision = this.fromCursorToRevision( cursor );
         }
         cursor.close();
-        HELPER.close();
+//        HELPER.close();
 
         return revision;
     }
@@ -142,7 +142,7 @@ public class RevisionDao<T>
             cursor.moveToNext();
         }
         cursor.close();
-        HELPER.close();
+//        HELPER.close();
 
         return revisions;
     }
@@ -174,7 +174,7 @@ public class RevisionDao<T>
             cursor.moveToNext();
         }
         cursor.close();
-        HELPER.close();
+//        HELPER.close();
 
         return revisions;
     }
@@ -198,7 +198,7 @@ public class RevisionDao<T>
             revision = this.fromCursorToRevision(cursor);
         }
         cursor.close();
-        HELPER.close();
+//        HELPER.close();
 
         return revision;
     }
@@ -224,7 +224,7 @@ public class RevisionDao<T>
             cursor.moveToNext();
         }
         cursor.close();
-        HELPER.close();
+//        HELPER.close();
 
         return revisions;
     }
@@ -240,7 +240,7 @@ public class RevisionDao<T>
         final String where = SQLiteHelper.COLUMN_ID + " IN (" + TextUtils.join( ",", ids ) + ")";
         database.delete( SQLiteHelper.TABLE_REVISION, where, null );
 
-        HELPER.close();
+//        HELPER.close();
     }
 
     /**

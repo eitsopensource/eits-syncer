@@ -145,6 +145,6 @@ public class RevisionService<T> implements IRevisionService<T>
     @Override
     public synchronized IObservableRevisionService<T> watch( Activity activity )
     {
-        return new ObservableRevisionService<>(this.entityClass, activity);
+        return new ObservableRevisionService<>( this.entityClass, activity );
     }
 }

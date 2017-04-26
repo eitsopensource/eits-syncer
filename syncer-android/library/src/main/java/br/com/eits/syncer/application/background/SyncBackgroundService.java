@@ -11,6 +11,8 @@ import br.com.eits.syncer.Syncer;
 import br.com.eits.syncer.application.restful.ISyncResource;
 import br.com.eits.syncer.domain.entity.Revision;
 import br.com.eits.syncer.domain.entity.SyncData;
+import br.com.eits.syncer.domain.service.ObservableRevisionService;
+import br.com.eits.syncer.domain.service.Watcher;
 import br.com.eits.syncer.infrastructure.dao.RevisionDao;
 
 /**
@@ -134,10 +136,12 @@ public class SyncBackgroundService extends JobService
                 //save remote revisions as synced
                 for ( Revision<?> revision : remoteSyncData.getRevisions() )
                 {
-                    revision.setSynced(true);
-                    SyncBackgroundService.this.revisionDao.insertRevision( revision );
+                    Revision<?> newRevision = new Revision( revision.getEntity(), revision.getType() );
+                    newRevision.setSynced(true);
+                    SyncBackgroundService.this.revisionDao.insertRevision( newRevision );
                 }
 
+                Watcher.notifyObservers();
                 return params;
             }
             catch( Exception e )
