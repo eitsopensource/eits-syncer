@@ -1,5 +1,7 @@
 package br.com.eits.syncer.domain.service;
 
+import android.app.Activity;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -66,20 +68,61 @@ public class Watcher<T>{
      *
      * @param watcher
      */
-    public static void addWatcher( Watcher watcher )
+    public synchronized static void addWatcher( Watcher watcher )
     {
         if( !watchers.contains( watcher ) ) watchers.add( watcher );
     }
 
     /**
      *
+     * @param watcher
      */
-    public static void notifyObservers()
+    public synchronized  static void removeWatcher( Watcher watcher )
     {
-        for( Watcher watcher : watchers )
+        if( !watchers.contains( watcher ) ) watchers.remove( watcher );
+    }
+
+    /**
+     *
+     */
+    public synchronized static void notifyObservers()
+    {
+        //Concurrent exception if remove a watcher inside for each
+        Object[] watchersArray = watchers.toArray();
+
+        for( int i = 0; i < watchersArray.length; i++ )
         {
+            Watcher watcher = (Watcher) watchersArray[ i ];
             watcher.execute();
         }
+    }
+
+    /**
+     *
+     * @param o
+     * @return
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Watcher<T> watcher = (Watcher<T>) o;
+
+        if (!function.equals( watcher.function )) return false;
+        return handler.equals( watcher.handler );
+
+    }
+
+    /**
+     *
+     * @return
+     */
+    @Override
+    public int hashCode() {
+        int result = function.hashCode();
+        result = 31 * result + handler.hashCode();
+        return result;
     }
 
     /*-------------------------------------------------------------------

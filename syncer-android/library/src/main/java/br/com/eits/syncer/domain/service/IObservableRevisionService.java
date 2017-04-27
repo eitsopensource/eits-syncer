@@ -10,6 +10,12 @@ public interface IObservableRevisionService<T>
 {
     /**
      *
+     * @param handler
+     */
+    public void onSyncronizeFinished( IHandler<Boolean> handler );
+
+    /**
+     *
      * @param entityId
      * @param handler
      */

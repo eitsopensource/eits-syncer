@@ -46,10 +46,7 @@ public class Revision<T> implements Serializable
 	 * Fullclassname da entidade persistida.
 	 */
 	private String entityClassName;
-	/**
-	 * Nome do atributo id da entidade
-	 */
-	private String entityIdName;
+
 	/**
 	 * Valor da id da entidade
 	 */
@@ -104,7 +101,6 @@ public class Revision<T> implements Serializable
 			Serializable entityId = entityIdField.get( this.entity ) != null ? entityIdField.get( this.entity ).toString() : Calendar.getInstance().getTimeInMillis();
 			entityIdField.set( this.entity, new Long( entityId.toString() ) );
 			this.entityId = entityId.toString();
-			this.entityIdName = entityIdField.getName();
 		}
 		catch ( Exception e )
 		{
@@ -161,7 +157,6 @@ public class Revision<T> implements Serializable
 		result = prime * result + ( ( entity == null ) ? 0 : entity.hashCode() );
 		result = prime * result + ( ( entityClassName == null ) ? 0 : entityClassName.hashCode() );
 		result = prime * result + ( ( entityId == null ) ? 0 : entityId.hashCode() );
-		result = prime * result + ( ( entityIdName == null ) ? 0 : entityIdName.hashCode() );
 		result = prime * result + ( ( id == null ) ? 0 : id.hashCode() );
 		result = prime * result + ( ( revisionNumber == null ) ? 0 : revisionNumber.hashCode() );
 		result = prime * result + ( ( synced == null ) ? 0 : synced.hashCode() );
@@ -194,11 +189,6 @@ public class Revision<T> implements Serializable
 			if ( other.entityId != null ) return false;
 		}
 		else if ( !entityId.equals( other.entityId ) ) return false;
-		if ( entityIdName == null )
-		{
-			if ( other.entityIdName != null ) return false;
-		}
-		else if ( !entityIdName.equals( other.entityIdName ) ) return false;
 		if ( id == null )
 		{
 			if ( other.id != null ) return false;
@@ -255,15 +245,6 @@ public class Revision<T> implements Serializable
 	public String getEntityClassName()
 	{
 		return this.entityClassName;
-	}
-
-	/**
-	 * 
-	 * @return
-	 */
-	public String getEntityIdName()
-	{
-		return this.entityIdName;
 	}
 
 	/**

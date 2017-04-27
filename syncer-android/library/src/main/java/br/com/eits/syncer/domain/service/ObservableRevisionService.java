@@ -37,6 +37,27 @@ public class ObservableRevisionService<T> extends RevisionService<T> implements 
     /*-------------------------------------------------------------------
 	 * 		 					BEHAVIORS
 	 *-------------------------------------------------------------------*/
+
+    /**
+     *
+     * @param handler
+     */
+    @Override
+    public void onSyncronizeFinished( IHandler<Boolean> handler )
+    {
+        Objects.requireNonNull( handler, "You must set an observer to handler" );
+
+        final Watcher watcher = new Watcher( new Callable() {
+            @Override
+            public Boolean call() throws Exception {
+                return true;
+            }
+        }, handler );
+
+        Watcher.addWatcher( watcher );
+        watcher.execute();
+    }
+
     /**
      *
      * @param entityId
@@ -53,7 +74,7 @@ public class ObservableRevisionService<T> extends RevisionService<T> implements 
             public T call() throws Exception {
                 return ObservableRevisionService.super.findByEntityId( entityId );
             }
-        }, handler);
+        }, handler );
 
         Watcher.addWatcher( watcher );
         watcher.execute();

@@ -56,10 +56,20 @@ public class RevisionService<T> implements IRevisionService<T>
     /**
      *
      */
+    public synchronized T insertAsSynced( T entity )
+    {
+        final Revision revision = new Revision( entity, RevisionType.INSERT );
+        revision.setSynced( true );
+        revisionDao.insertRevision( revision );
+        return entity;
+    }
+
+    /**
+     *
+     */
     public synchronized T insertWithoutSync( T entity )
     {
         final Revision revision = new Revision( entity, RevisionType.INSERT );
-        revision.setSynced(true);
         revisionDao.insertRevision( revision );
         return entity;
     }

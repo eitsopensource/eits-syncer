@@ -21,6 +21,13 @@ public interface IRevisionService<T>
      * @param entity
      * @return
      */
+    public T insertAsSynced( T entity );
+
+    /**
+     *
+     * @param entity
+     * @return
+     */
     public T insertWithoutSync( T entity );
 
     /**

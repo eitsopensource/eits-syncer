@@ -81,10 +81,6 @@ public class SyncBackgroundService extends JobService
     public boolean onStopJob(JobParameters params)
     {
         Log.wtf( SyncBackgroundService.class.getSimpleName(), "onStopJob -> "+ params );
-
-        //boolean shouldReschedule = updateTask.cancel(true);
-        //return shouldReschedule;
-
         return false;
     }
 
@@ -137,6 +133,7 @@ public class SyncBackgroundService extends JobService
                 for ( Revision<?> revision : remoteSyncData.getRevisions() )
                 {
                     Revision<?> newRevision = new Revision( revision.getEntity(), revision.getType() );
+                    newRevision.setRevisionNumber( revision.getRevisionNumber() );
                     newRevision.setSynced(true);
                     SyncBackgroundService.this.revisionDao.insertRevision( newRevision );
                 }
