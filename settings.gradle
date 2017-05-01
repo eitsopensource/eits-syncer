@@ -1,0 +1,4 @@
+rootProject.name = 'syncer'
+
+include 'syncer-java'
+include 'syncer-android'

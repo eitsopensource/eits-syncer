@@ -17,7 +17,7 @@ public interface ISyncResource
 {
 	/**
 	 * 
-	 * @param entity
+	 * @param remoteSyncData
 	 * @return local server sync data
 	 */
 	@POST
