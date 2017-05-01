@@ -1,6 +1,6 @@
 package br.com.eits.syncer.domain.entity;
 
-import java.util.LinkedHashMap;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -14,47 +14,49 @@ public class SyncData
 	/*-------------------------------------------------------------------
 	 *				 		     ATTRIBUTES
 	 *-------------------------------------------------------------------*/
+	
 	/**
 	 * 
 	 */
-	private Long revision;
+	private Long fromRevisionNumber;
+
 	/**
-	 * An ordered map of revision types and entities.
-	 * The order is important to sync logic.
+	 * An ordered revision list to sync logic.
 	 */
-	private LinkedHashMap<RevisionType, Object> entitiesByRevision;
+	private List<Revision<?>> revisions;
 
 	/*-------------------------------------------------------------------
 	 *				 		     CONSTRUCTOR
 	 *-------------------------------------------------------------------*/
 	/**
-	 * 
-	 * @param revision
-	 * @param entities
+	 * @param fromRevisionNumber
+	 * @param revisions
 	 */
 	@JsonCreator
-	public SyncData( @JsonProperty("revision") Long revision, @JsonProperty("entitiesByRevision") LinkedHashMap<RevisionType, Object> entitiesByRevision )
+	public SyncData( @JsonProperty("fromRevisionNumber") long fromRevisionNumber, @JsonProperty("revisions") List<Revision<?>> revisions )
 	{
-		this.revision = revision;
-		this.entitiesByRevision = entitiesByRevision;
+		this.fromRevisionNumber = fromRevisionNumber;
+		this.revisions = revisions;
 	}
-
 
 	/*-------------------------------------------------------------------
 	 *				 		     GETTERS AND SETTERS
 	 *-------------------------------------------------------------------*/
+	
 	/**
-	 * @return the entities
+	 * @return
 	 */
-	public LinkedHashMap<RevisionType, Object> getEntitiesByRevision()
+	public Long getFromRevisionNumber()
 	{
-		return entitiesByRevision;
+		return this.fromRevisionNumber;
 	}
+
 	/**
-	 * @return the revision
+	 * 
+	 * @return
 	 */
-	public Long getRevision()
+	public List<Revision<?>> getRevisions()
 	{
-		return revision;
+		return this.revisions;
 	}
 }

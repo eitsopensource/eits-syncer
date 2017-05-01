@@ -16,17 +16,22 @@ public enum RevisionType
     /**
      * Indicates that the entity was deleted (removed) at that revision.
      */
-    REMOVE,
-	/**
-     * Indicates that the entity was remotely inserted but must update id.
-     */
-    UPDATE_ID;
-
+    REMOVE;
+	
     /**
      *
      * @param type
      */
     private RevisionType()
     {
+    	
+    }
+    
+    /**
+     * @param ordinal
+     */
+    public static RevisionType valueOf( int ordinal )
+    {
+    	return RevisionType.values()[ordinal];
     }
 }
