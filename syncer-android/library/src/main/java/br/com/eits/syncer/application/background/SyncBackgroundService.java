@@ -11,7 +11,6 @@ import br.com.eits.syncer.Syncer;
 import br.com.eits.syncer.application.restful.ISyncResource;
 import br.com.eits.syncer.domain.entity.Revision;
 import br.com.eits.syncer.domain.entity.SyncData;
-import br.com.eits.syncer.domain.service.ObservableRevisionService;
 import br.com.eits.syncer.domain.service.Watcher;
 import br.com.eits.syncer.infrastructure.dao.RevisionDao;
 

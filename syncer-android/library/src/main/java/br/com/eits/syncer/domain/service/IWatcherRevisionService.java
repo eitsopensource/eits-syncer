@@ -6,7 +6,7 @@ import java.util.Observer;
 /**
  * Created by rodrigo.p.fraga on 19/04/17.
  */
-public interface IObservableRevisionService<T>
+public interface IWatcherRevisionService<T>
 {
     /**
      *

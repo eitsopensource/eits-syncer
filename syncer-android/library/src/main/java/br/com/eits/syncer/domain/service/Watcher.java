@@ -1,7 +1,5 @@
 package br.com.eits.syncer.domain.service;
 
-import android.app.Activity;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -10,12 +8,12 @@ import java.util.concurrent.Callable;
  * Created by eits on 26/04/17.
  */
 
-public class Watcher<T>{
-
+public class Watcher<T>
+{
     /**
      *
      */
-    public static final List<Watcher> watchers = new ArrayList<Watcher>();
+    public static final List<Watcher> watchers = new ArrayList<>();
 
     /*-------------------------------------------------------------------
 	 * 		 					ATTRIBUTES
@@ -55,7 +53,8 @@ public class Watcher<T>{
      */
     public void execute()
     {
-        try{
+        try
+        {
             this.handler.handle( this.function.call() );
         }
         catch( Exception e )
@@ -88,11 +87,11 @@ public class Watcher<T>{
     public synchronized static void notifyObservers()
     {
         //Concurrent exception if remove a watcher inside for each
-        Object[] watchersArray = watchers.toArray();
+        final Object[] watchersArray = watchers.toArray();
 
         for( int i = 0; i < watchersArray.length; i++ )
         {
-            Watcher watcher = (Watcher) watchersArray[ i ];
+            final Watcher watcher = (Watcher) watchersArray[i];
             watcher.execute();
         }
     }
@@ -103,7 +102,8 @@ public class Watcher<T>{
      * @return
      */
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(Object o)
+    {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
@@ -119,7 +119,8 @@ public class Watcher<T>{
      * @return
      */
     @Override
-    public int hashCode() {
+    public int hashCode()
+    {
         int result = function.hashCode();
         result = 31 * result + handler.hashCode();
         return result;
@@ -133,7 +134,8 @@ public class Watcher<T>{
      *
      * @return
      */
-    public Callable<T> getFunction() {
+    public Callable<T> getFunction()
+    {
         return function;
     }
 
@@ -141,7 +143,8 @@ public class Watcher<T>{
      *
      * @param function
      */
-    public void setFunction( Callable<T> function ) {
+    public void setFunction( Callable<T> function )
+    {
         this.function = function;
     }
 
@@ -149,7 +152,8 @@ public class Watcher<T>{
      *
      * @return
      */
-    public IHandler getHandler() {
+    public IHandler getHandler()
+    {
         return this.handler;
     }
 
@@ -157,7 +161,8 @@ public class Watcher<T>{
      *
      * @param handler
      */
-    public void setHandler( IHandler handler ) {
+    public void setHandler( IHandler handler )
+    {
         this.handler = handler;
     }
 }

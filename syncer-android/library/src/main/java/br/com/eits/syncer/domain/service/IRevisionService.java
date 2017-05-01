@@ -74,5 +74,5 @@ public interface IRevisionService<T>
      * @param activity
      * @return
      */
-    public IObservableRevisionService<T> watch( Activity activity );
+    public IWatcherRevisionService<T> watch(Activity activity );
 }

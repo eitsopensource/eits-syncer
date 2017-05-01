@@ -3,7 +3,6 @@ package br.com.eits.syncer.domain.service;
 
 import android.app.Activity;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Callable;
@@ -11,7 +10,7 @@ import java.util.concurrent.Callable;
 /**
  *
  */
-public class ObservableRevisionService<T> extends RevisionService<T> implements IObservableRevisionService<T>
+public class WatcherRevisionService<T> extends RevisionService<T> implements IWatcherRevisionService<T>
 {
     /*-------------------------------------------------------------------
     * 		 					ATTRIBUTES
@@ -28,7 +27,7 @@ public class ObservableRevisionService<T> extends RevisionService<T> implements 
     /**
      *
      */
-    public ObservableRevisionService( Class<T> entityClass, Activity activity )
+    public WatcherRevisionService(Class<T> entityClass, Activity activity )
     {
         super( entityClass );
         this.activity = activity; // on finish activity remove all watchers
@@ -69,10 +68,12 @@ public class ObservableRevisionService<T> extends RevisionService<T> implements 
     {
         Objects.requireNonNull( handler, "You must set an observer to handler" );
 
-        final Watcher watcher = new Watcher(new Callable() {
+        final Watcher watcher = new Watcher(new Callable()
+        {
             @Override
-            public T call() throws Exception {
-                return ObservableRevisionService.super.findByEntityId( entityId );
+            public T call() throws Exception
+            {
+                return WatcherRevisionService.super.findByEntityId( entityId );
             }
         }, handler );
 
@@ -90,10 +91,12 @@ public class ObservableRevisionService<T> extends RevisionService<T> implements 
     {
         Objects.requireNonNull( handler, "You must set an observer to handler" );
 
-        final Watcher watcher = new Watcher(new Callable() {
+        final Watcher watcher = new Watcher(new Callable()
+        {
             @Override
-            public List<T> call() throws Exception {
-                return ObservableRevisionService.super.listAll();
+            public List<T> call() throws Exception
+            {
+                return WatcherRevisionService.super.listAll();
             }
         }, handler);
 

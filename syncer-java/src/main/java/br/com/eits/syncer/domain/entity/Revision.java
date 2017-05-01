@@ -91,14 +91,13 @@ public class Revision<T> implements Serializable
 	 */
 	private void extractEntity()
 	{
-		// if is null, we set a default for now
 		this.entityClassName = this.entity.getClass().getName();
 
 		try
 		{
-			Field entityIdField = extractEntityIdField( this.entity.getClass() );
+			final Field entityIdField = extractEntityIdField( this.entity.getClass() );
 			entityIdField.setAccessible( true );
-			Serializable entityId = entityIdField.get( this.entity ) != null ? entityIdField.get( this.entity ).toString() : Calendar.getInstance().getTimeInMillis();
+			final Serializable entityId = entityIdField.get( this.entity ) != null ? entityIdField.get( this.entity ).toString() : Calendar.getInstance().getTimeInMillis();
 			entityIdField.set( this.entity, new Long( entityId.toString() ) );
 			this.entityId = entityId.toString();
 		}
@@ -123,7 +122,7 @@ public class Revision<T> implements Serializable
 
 			do
 			{
-				Field[] fields = targetClass.getDeclaredFields();
+				final Field[] fields = targetClass.getDeclaredFields();
 
 				for ( Field field : fields )
 				{
