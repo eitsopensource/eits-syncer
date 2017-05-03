@@ -51,7 +51,7 @@ public class WatcherRevisionService<T> extends RevisionService<T> implements IWa
             public Boolean call() throws Exception {
                 return true;
             }
-        }, handler );
+        }, handler, this.activity );
 
         Watcher.addWatcher( watcher );
         watcher.execute();
@@ -75,7 +75,7 @@ public class WatcherRevisionService<T> extends RevisionService<T> implements IWa
             {
                 return WatcherRevisionService.super.findByEntityId( entityId );
             }
-        }, handler );
+        }, handler, this.activity );
 
         Watcher.addWatcher( watcher );
         watcher.execute();
@@ -98,7 +98,7 @@ public class WatcherRevisionService<T> extends RevisionService<T> implements IWa
             {
                 return WatcherRevisionService.super.listAll();
             }
-        }, handler);
+        }, handler, this.activity );
 
         Watcher.addWatcher( watcher );
         watcher.execute();
@@ -119,7 +119,7 @@ public class WatcherRevisionService<T> extends RevisionService<T> implements IWa
             public List<T> call() throws Exception {
                 return queryRevisionService.list();
             }
-        }, handler);
+        }, handler, this.activity );
 
         Watcher.addWatcher( watcher );
         watcher.execute();

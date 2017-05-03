@@ -1,8 +1,14 @@
 package br.com.eits.syncer.domain.service;
 
+import android.app.Activity;
+import android.app.ActivityManager;
+import android.content.Context;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+
+import br.com.eits.syncer.application.ApplicationHolder;
 
 /**
  * Created by eits on 26/04/17.
@@ -15,9 +21,24 @@ public class Watcher<T>
      */
     public static final List<Watcher> watchers = new ArrayList<>();
 
+    /**
+     *
+     */
+    private static ActivityManager activityManager;
+
+    /**
+     *
+     */
+    static
+    {
+        activityManager = ( ActivityManager ) ApplicationHolder.CONTEXT.getSystemService( Context.ACTIVITY_SERVICE );
+    }
+
     /*-------------------------------------------------------------------
 	 * 		 					ATTRIBUTES
 	 *-------------------------------------------------------------------*/
+
+    private Long id;
 
     /**
      *
@@ -29,19 +50,26 @@ public class Watcher<T>
      */
     private IHandler<T> handler;
 
+    /**
+     *
+     */
+    private Activity activity;
+
     /*-------------------------------------------------------------------
 	 * 		 					CONSTRUCTORS
 	 *-------------------------------------------------------------------*/
 
     /**
-     *
      * @param function
      * @param handler
+     * @param activity
      */
-    public Watcher( Callable<T> function, IHandler<T> handler )
+    public Watcher( Callable<T> function, IHandler<T> handler, Activity activity )
     {
+        this.id = System.currentTimeMillis();
         this.function = function;
         this.handler = handler;
+        this.activity = activity;
     }
 
     /*-------------------------------------------------------------------
@@ -53,6 +81,13 @@ public class Watcher<T>
      */
     public void execute()
     {
+        //If activity is not shown, there is no need for watch this activity
+        if( !this.activity.getWindow().getDecorView().getRootView().isShown() )
+        {
+            Watcher.removeWatcher( this.id );
+            return;
+        }
+
         try
         {
             this.handler.handle( this.function.call() );
@@ -74,11 +109,21 @@ public class Watcher<T>
 
     /**
      *
-     * @param watcher
+     * @param watcherId
      */
-    public synchronized  static void removeWatcher( Watcher watcher )
+    public synchronized static void removeWatcher( Long watcherId )
     {
-        if( !watchers.contains( watcher ) ) watchers.remove( watcher );
+        Watcher watcherToRemove = null;
+        for( Watcher watcher : watchers )
+        {
+            if( watcher.getId().equals( watcherId ) )
+            {
+                watcherToRemove = watcher;
+                break;
+            }
+        }
+
+        if( watcherToRemove != null ) watchers.remove( watcherToRemove );
     }
 
     /**
@@ -102,15 +147,13 @@ public class Watcher<T>
      * @return
      */
     @Override
-    public boolean equals(Object o)
-    {
+    public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
         Watcher<T> watcher = (Watcher<T>) o;
 
-        if (!function.equals( watcher.function )) return false;
-        return handler.equals( watcher.handler );
+        return id.equals( watcher.id );
 
     }
 
@@ -119,16 +162,45 @@ public class Watcher<T>
      * @return
      */
     @Override
-    public int hashCode()
-    {
-        int result = function.hashCode();
-        result = 31 * result + handler.hashCode();
-        return result;
+    public int hashCode() {
+        return id.hashCode();
     }
 
     /*-------------------------------------------------------------------
 	 * 		 				GETTERS AND SETTERS
 	 *-------------------------------------------------------------------*/
+
+    /**
+     *
+     * @param id
+     */
+    public void setId( Long id ) {
+        this.id = id;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public Long getId() {
+        return id;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public Activity getActivity() {
+        return activity;
+    }
+
+    /**
+     *
+     * @param activity
+     */
+    public void setActivity( Activity activity ) {
+        this.activity = activity;
+    }
 
     /**
      *
