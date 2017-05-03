@@ -38,6 +38,9 @@ public class Watcher<T>
 	 * 		 					ATTRIBUTES
 	 *-------------------------------------------------------------------*/
 
+    /**
+     *
+     */
     private Long id;
 
     /**
@@ -81,20 +84,24 @@ public class Watcher<T>
      */
     public void execute()
     {
-        //If activity is not shown, there is no need for watch this activity
-        if( !this.activity.getWindow().getDecorView().getRootView().isShown() )
+        //if activity is destroyed, there is no need for watcher to exists
+        if( this.activity.isDestroyed() )
         {
-            Watcher.removeWatcher( this.id );
+            removeWatcher( this.id );
             return;
         }
 
-        try
+        //If activity is not shown, there is no need for watch this activity
+        if( this.activity.getWindow().getDecorView().getRootView().isShown() )
         {
-            this.handler.handle( this.function.call() );
-        }
-        catch( Exception e )
-        {
-            e.printStackTrace();
+            try
+            {
+                this.handler.handle( this.function.call() );
+            }
+            catch( Exception e )
+            {
+                e.printStackTrace();
+            }
         }
     }
 
