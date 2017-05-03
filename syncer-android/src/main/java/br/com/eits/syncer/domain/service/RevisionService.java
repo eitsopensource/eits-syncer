@@ -10,6 +10,7 @@ import java.util.Objects;
 import br.com.eits.syncer.Syncer;
 import br.com.eits.syncer.domain.entity.Revision;
 import br.com.eits.syncer.domain.entity.RevisionType;
+import br.com.eits.syncer.domain.entity.Service;
 import br.com.eits.syncer.infrastructure.dao.RevisionDao;
 
 /**
@@ -153,8 +154,18 @@ public class RevisionService<T> implements IRevisionService<T>
      * @return
      */
     @Override
-    public synchronized IWatcherRevisionService<T> watch(Activity activity )
+    public synchronized IWatcherRevisionService<T> watch( Activity activity )
     {
         return new WatcherRevisionService<>( this.entityClass, activity );
+    }
+
+    /**
+     * @param serviceName
+     * @return
+     */
+    @Override
+    public synchronized IDistributedRevisionService<T> distributed( String serviceName )
+    {
+        return new DistributedRevisionService<T>( this.entityClass, Service.of(serviceName) );
     }
 }

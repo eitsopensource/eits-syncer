@@ -6,10 +6,17 @@
     <service android:process=":sync"
              android:permission="android.permission.BIND_JOB_SERVICE"
              android:name="br.com.eits.syncer.application.background.SyncBackgroundService">
-        <meta-data android:name="sync-url"
-                   android:value="http://192.168.20.245:8080"/>
+
+        //sync service with basic credentials
         <meta-data android:name="sync-basic-credentials"
                    android:value="admin:pass"/>
+
+        /sync service url
+        <meta-data android:name="sync-url"
+                   android:value="http://192.168.20.245:8080"/>
+        ou
+        <meta-data android:name="sync-url"
+                   android:value="{'service1':'http://host1.com', 'service2':'http://host2.com'}"/>
     </service>
     -->
 

@@ -75,4 +75,11 @@ public interface IRevisionService<T>
      * @return
      */
     public IWatcherRevisionService<T> watch(Activity activity );
+
+    /**
+     *
+     * @param serviceName
+     * @return
+     */
+    public IDistributedRevisionService<T> distributed( String serviceName );
 }
