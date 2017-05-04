@@ -91,17 +91,13 @@ public class Watcher<T>
             return;
         }
 
-        //If activity is not shown, there is no need for watch this activity
-        if( this.activity.getWindow().getDecorView().getRootView().isShown() )
+        try
         {
-            try
-            {
-                this.handler.handle( this.function.call() );
-            }
-            catch( Exception e )
-            {
-                e.printStackTrace();
-            }
+            this.handler.handle( this.function.call() );
+        }
+        catch( Exception e )
+        {
+            e.printStackTrace();
         }
     }
 
