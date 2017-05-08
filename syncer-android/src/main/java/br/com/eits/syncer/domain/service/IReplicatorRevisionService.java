@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * Created by rodrigo.p.fraga on 19/04/17.
  */
-public interface IRevisionService<T>
+public interface IReplicatorRevisionService<T>
 {
     /**
      *
@@ -15,21 +15,6 @@ public interface IRevisionService<T>
      * @return
      */
     public T insert( T entity );
-
-    /**
-     *
-     * @param entity
-     * @return
-     */
-    public T insertAsSynced( T entity );
-
-    /**
-     *
-     * @param entity
-     * @return
-     */
-    public T insertWithoutSync( T entity );
-
     /**
      *
      * @param entity
@@ -76,10 +61,4 @@ public interface IRevisionService<T>
      */
     public IWatcherRevisionService<T> watch(Activity activity );
 
-    /**
-     *
-     * @param serviceName
-     * @return
-     */
-    public IReplicatorRevisionService<T> replicate(String serviceName );
 }

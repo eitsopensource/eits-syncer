@@ -4,18 +4,18 @@ import android.app.job.JobParameters;
 import android.app.job.JobService;
 import android.os.AsyncTask;
 import android.util.Log;
-
-import java.util.List;
-
 import br.com.eits.syncer.Syncer;
 import br.com.eits.syncer.application.restful.ISyncResource;
 import br.com.eits.syncer.domain.entity.Revision;
 import br.com.eits.syncer.domain.entity.SyncData;
+import br.com.eits.syncer.domain.entity.SyncResourceConfiguration;
 import br.com.eits.syncer.domain.service.Watcher;
 import br.com.eits.syncer.infrastructure.dao.RevisionDao;
 
+import java.util.List;
+
 /**
- * Define a Service that returns an IBinder for the sync adapter class,
+ * Define a ServiceHost that returns an IBinder for the sync adapter class,
  * allowing the sync adapter framework to call onPerformSync().
  */
 public class SyncBackgroundService extends JobService
@@ -24,10 +24,6 @@ public class SyncBackgroundService extends JobService
      *
      */
     private final RevisionDao revisionDao;
-    /**
-     *
-     */
-    private final ISyncResource syncResource;
 
     /**
      *
@@ -35,7 +31,6 @@ public class SyncBackgroundService extends JobService
     public SyncBackgroundService()
     {
         this.revisionDao = new RevisionDao();
-        this.syncResource = Syncer.getSyncResource();
     }
 
     /**
@@ -45,11 +40,11 @@ public class SyncBackgroundService extends JobService
      *
      * @param params Parameters specifying info about this job, including the extras bundle you
      *               optionally provided at job-creation time.
-     * @return True if your service needs to process the work (on a separate thread). False if
+     * @return True if your serviceHost needs to process the work (on a separate thread). False if
      * there's no more work to be done for this job.
      */
     @Override
-    public boolean onStartJob(JobParameters params)
+    public boolean onStartJob( JobParameters params )
     {
         Log.wtf( SyncBackgroundService.class.getSimpleName(), "onStartJob -> "+ params );
 
@@ -86,7 +81,7 @@ public class SyncBackgroundService extends JobService
     /**
      *
      */
-    private class UpdateAppsAsyncTask extends AsyncTask<JobParameters, Void, JobParameters[]>
+    private class UpdateAppsAsyncTask extends AsyncTask<JobParameters, Void, Void>
     {
         /**
          * Override this method to perform a computation on a background thread. The
@@ -105,9 +100,22 @@ public class SyncBackgroundService extends JobService
          * @see #publishProgress
          */
         @Override
-        protected JobParameters[] doInBackground( JobParameters... params )
+        protected Void doInBackground( JobParameters... params )
         {
             Log.wtf( UpdateAppsAsyncTask.class.getSimpleName(), "doInBackground -> "+ params );
+
+            ISyncResource syncResource = Syncer.syncResourceConfiguration().getSyncResource();
+
+            //maybe this is a request for a specific service name
+            if ( params != null && params.length > 0 )
+            {
+                final JobParameters jobParameters = params[0];
+                if ( jobParameters.getExtras().containsKey( SyncResourceConfiguration.SERVICE_NAME_KEY ) )
+                {
+                    final String serviceName = jobParameters.getExtras().getString( SyncResourceConfiguration.SERVICE_NAME_KEY );
+                    syncResource = Syncer.syncResourceConfiguration().getSyncResource( serviceName );
+                }
+            }
 
             try
             {
@@ -117,7 +125,8 @@ public class SyncBackgroundService extends JobService
                 final Revision lastSyncedRevision = SyncBackgroundService.this.revisionDao.findByLastRevisionNumber();
                 final long lastRevisionNumber = lastSyncedRevision != null ? (lastSyncedRevision.getRevisionNumber() + 1L) : 1L;
                 final SyncData localSyncData = new SyncData( lastRevisionNumber, revisions );
-                final SyncData remoteSyncData = SyncBackgroundService.this.syncResource.syncronize( localSyncData );
+
+                final SyncData remoteSyncData = syncResource.syncronize( localSyncData );
 
                 //remove the local unsynced revisions
                 final String[] revisionIds = new String[localSyncData.getRevisions().size()];
@@ -138,7 +147,7 @@ public class SyncBackgroundService extends JobService
                 }
 
                 Watcher.notifyObservers();
-                return params;
+                return null;
             }
             catch( Exception e )
             {
@@ -160,14 +169,11 @@ public class SyncBackgroundService extends JobService
          * @see #onCancelled(Object)
          */
         @Override
-        protected void onPostExecute( JobParameters[] result )
+        protected void onPostExecute( Void result )
         {
             Log.wtf( UpdateAppsAsyncTask.class.getSimpleName(), "onPostExecute -> "+ result );
 
-            for ( JobParameters params : result )
-            {
-                SyncBackgroundService.this.jobFinished(params, false);
-            }
+            SyncBackgroundService.this.jobFinished( null, false);
         }
     }
 }
