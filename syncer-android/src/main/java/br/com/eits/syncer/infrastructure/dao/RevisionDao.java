@@ -44,10 +44,8 @@ public class RevisionDao<T>
     public Revision<T> insertRevision( Revision<T> revision )
     {
         final SQLiteDatabase database = HELPER.getWritableDatabase();
-
         final ContentValues values = new ContentValues();
 
-        values.put( SQLiteHelper.COLUMN_ID, revision.getId());
         values.put( SQLiteHelper.COLUMN_REVISION_NUMBER, revision.getRevisionNumber() );
         values.put( SQLiteHelper.COLUMN_SYNCED, revision.getSynced() );
         values.put( SQLiteHelper.COLUMN_TYPE, revision.getType().ordinal() );

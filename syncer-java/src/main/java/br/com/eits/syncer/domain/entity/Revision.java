@@ -63,7 +63,6 @@ public class Revision<T> implements Serializable
 	@JsonCreator
 	public Revision( @JsonProperty("entity") T entity, @JsonProperty("type") RevisionType type )
 	{
-		this.id = System.currentTimeMillis();
 		this.type = type;
 		this.synced = false;
 		this.entity = entity;
