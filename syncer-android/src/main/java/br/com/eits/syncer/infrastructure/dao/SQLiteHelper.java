@@ -37,7 +37,7 @@ public class SQLiteHelper extends SQLiteOpenHelper
     private static final String DATABASE_CREATE =
         "CREATE TABLE "
             + TABLE_REVISION + "( "
-                + COLUMN_ID + " INTEGER PRIMARY KEY, "
+                + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
                 + COLUMN_REVISION_NUMBER + " INTEGER, "
                 + COLUMN_SYNCED + " BOOLEAN NOT NULL, "
                 + COLUMN_TYPE + " TINYINT NOT NULL, "
