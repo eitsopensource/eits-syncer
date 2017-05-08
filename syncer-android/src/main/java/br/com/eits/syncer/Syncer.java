@@ -61,6 +61,10 @@ public class Syncer
 	/**
 	 *
 	 */
+	private static JobInfo SYNC_JOB_INFO;
+	/**
+	 *
+	 */
 	private static ComponentName SYNC_BACKGROUND_SERVICE_COMPONENT;
 
 	/**
@@ -90,6 +94,13 @@ public class Syncer
 
 			//get the job scheduler
 			Syncer.JOB_SCHEDULER = ( JobScheduler ) ApplicationHolder.CONTEXT.getSystemService( Context.JOB_SCHEDULER_SERVICE );
+
+			SYNC_JOB_INFO = new JobInfo.Builder( SYNC_JOB_ID, SYNC_BACKGROUND_SERVICE_COMPONENT )
+					.setRequiredNetworkType( JobInfo.NETWORK_TYPE_ANY )
+					.setRequiresDeviceIdle( false )
+					.setRequiresCharging( false )
+					.setPersisted( true )
+					.build();
 		}
 		catch (PackageManager.NameNotFoundException e)
 		{
@@ -169,14 +180,8 @@ public class Syncer
 	 */
 	public static void requestSync()
 	{
-		final JobInfo jobInfo = new JobInfo.Builder( SYNC_JOB_ID, SYNC_BACKGROUND_SERVICE_COMPONENT )
-				.setRequiredNetworkType( JobInfo.NETWORK_TYPE_ANY )
-				.setRequiresDeviceIdle( false )
-				.setRequiresCharging( false )
-				.setPersisted( true )
-				.build();
-
-		final Integer result = JOB_SCHEDULER.schedule( jobInfo );
+		if( JOB_SCHEDULER.getAllPendingJobs().size() > 0 ) return;
+		final Integer result = JOB_SCHEDULER.schedule( SYNC_JOB_INFO );
 
 		if ( result != JobScheduler.RESULT_SUCCESS )
 		{
