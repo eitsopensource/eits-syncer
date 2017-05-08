@@ -32,16 +32,15 @@ public class Syncer
 	/**
 	 *
 	 */
-	private static final SyncResourceConfiguration RESOURCE_CONFIGURATION = new SyncResourceConfiguration();
-
-	/**
-	 *
-	 */
 	private static JobScheduler JOB_SCHEDULER;
 	/**
 	 *
 	 */
 	private static ComponentName SYNC_BACKGROUND_SERVICE_COMPONENT;
+	/**
+	 *
+	 */
+	private static final SyncResourceConfiguration RESOURCE_CONFIGURATION = new SyncResourceConfiguration();
 
 	/**
 	 *
@@ -137,6 +136,7 @@ public class Syncer
 	public static void requestSyncNow()
 	{
 		Log.w(Syncer.class.getName(), "The request sync now is not ready. Scheduling...");
+		//TODO make the request sync now
 		Syncer.requestSync();
 	}
 
@@ -145,7 +145,9 @@ public class Syncer
 	 */
 	public static void requestSync( PersistableBundle extras )
 	{
-		final JobInfo jobInfo = new JobInfo.Builder( SYNC_JOB_ID, SYNC_BACKGROUND_SERVICE_COMPONENT )
+		//if( Syncer.JOB_SCHEDULER.getAllPendingJobs().size() > 0 ) return;
+
+		final JobInfo jobInfo = new JobInfo.Builder( Syncer.SYNC_JOB_ID, Syncer.SYNC_BACKGROUND_SERVICE_COMPONENT )
 				.setRequiredNetworkType( JobInfo.NETWORK_TYPE_ANY )
 				.setRequiresDeviceIdle( false )
 				.setRequiresCharging( false )
@@ -153,7 +155,7 @@ public class Syncer
 				.setPersisted( true )
 				.build();
 
-		final Integer result = JOB_SCHEDULER.schedule( jobInfo );
+		final Integer result = Syncer.JOB_SCHEDULER.schedule( jobInfo );
 
 		if ( result != JobScheduler.RESULT_SUCCESS )
 		{
@@ -178,7 +180,7 @@ public class Syncer
 	 */
 	public static void cancelSync()
 	{
-		Syncer.JOB_SCHEDULER.cancel( SYNC_JOB_ID );
+		Syncer.JOB_SCHEDULER.cancel( Syncer.SYNC_JOB_ID );
 	}
 
 	/*-------------------------------------------------------------------
