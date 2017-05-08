@@ -94,8 +94,7 @@ public class Syncer
 
 			//get the job scheduler
 			Syncer.JOB_SCHEDULER = ( JobScheduler ) ApplicationHolder.CONTEXT.getSystemService( Context.JOB_SCHEDULER_SERVICE );
-
-			SYNC_JOB_INFO = new JobInfo.Builder( SYNC_JOB_ID, SYNC_BACKGROUND_SERVICE_COMPONENT )
+			Syncer.SYNC_JOB_INFO = new JobInfo.Builder( SYNC_JOB_ID, SYNC_BACKGROUND_SERVICE_COMPONENT )
 					.setRequiredNetworkType( JobInfo.NETWORK_TYPE_ANY )
 					.setRequiresDeviceIdle( false )
 					.setRequiresCharging( false )
