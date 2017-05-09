@@ -145,8 +145,6 @@ public class Syncer
 	 */
 	public static void requestSync( PersistableBundle extras )
 	{
-		//if( Syncer.JOB_SCHEDULER.getAllPendingJobs().size() > 0 ) return;
-
 		if ( extras == null ) extras = PersistableBundle.EMPTY;
 
 		final int jobId = Syncer.SYNC_JOB_ID + extras.keySet().hashCode();
