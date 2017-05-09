@@ -66,7 +66,7 @@ public class Syncer
 			//get the job scheduler
 			Syncer.JOB_SCHEDULER = ( JobScheduler ) ApplicationHolder.CONTEXT.getSystemService( Context.JOB_SCHEDULER_SERVICE );
 		}
-		catch (PackageManager.NameNotFoundException e)
+		catch (Exception e)
 		{
 			throw new IllegalStateException("To use Syncer, you must setup the SyncBackgroudService at least as follow: " +
 					"    <service android:process=\":sync\"\n" +
