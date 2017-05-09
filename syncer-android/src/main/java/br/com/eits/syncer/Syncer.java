@@ -132,14 +132,6 @@ public class Syncer
 	}
 
 	/**
-	 *
-	 */
-	public static void requestSyncNow()
-	{
-		Syncer.requestSync();
-	}
-
-	/**
 	 * Schedule a sync for each service configurated.
 	 */
 	public static void requestSync()
