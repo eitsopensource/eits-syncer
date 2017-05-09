@@ -90,8 +90,7 @@ public class SyncResourceConfiguration
     public ISyncResource getSyncResource()
     {
         //get the first service name
-        final String defaultServiceName = (String) this.getServiceNames().toArray()[0];
-        return this.getSyncResource( defaultServiceName );
+        return this.getSyncResource( this.getDefaultServiceName() );
     }
 
 
@@ -133,8 +132,17 @@ public class SyncResourceConfiguration
             e.printStackTrace();
             throw new IllegalArgumentException("The sync-urls meta-data must be set like: " +
                     "<meta-data android:name=\"sync-urls\"\n" +
-                    "                   android:value=\"{'default':'http://host1.com', 'service2':'http://host2.com'}\"/>", e);
+                    "            android:value='{\"default\":\"http://host1.com\", \"service2\":\"http://host2.com\"}'/>");
         }
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getDefaultServiceName()
+    {
+        return (String) this.getServiceNames().toArray()[0];
     }
 
     /**

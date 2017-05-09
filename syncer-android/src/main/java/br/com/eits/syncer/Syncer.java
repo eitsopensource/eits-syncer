@@ -145,9 +145,14 @@ public class Syncer
 	 */
 	public static void requestSync( PersistableBundle extras )
 	{
-		if ( extras == null ) extras = PersistableBundle.EMPTY;
+		if ( extras == null || extras.isEmpty() || !extras.containsKey(SyncResourceConfiguration.SERVICE_NAME_KEY) )
+		{
+			throw new IllegalArgumentException("The extras param must at least have the serviceName param.");
+		}
 
-		final int jobId = Syncer.SYNC_JOB_ID + extras.keySet().hashCode();
+		//we create an unique job Id using the service name value
+		final int jobId = Syncer.SYNC_JOB_ID + extras.getString(SyncResourceConfiguration.SERVICE_NAME_KEY).hashCode();
+
 		final JobInfo jobInfo = new JobInfo.Builder( jobId, Syncer.SYNC_BACKGROUND_SERVICE_COMPONENT )
 				.setRequiredNetworkType( JobInfo.NETWORK_TYPE_ANY )
 				.setRequiresDeviceIdle( false )
@@ -173,7 +178,11 @@ public class Syncer
 	 */
 	public static void requestSync()
 	{
-		Syncer.requestSync( PersistableBundle.EMPTY );
+		final String serviceName = Syncer.syncResourceConfiguration().getDefaultServiceName();
+		final PersistableBundle extras = new PersistableBundle();
+		extras.putString(SyncResourceConfiguration.SERVICE_NAME_KEY, serviceName);
+
+		Syncer.requestSync( extras );
 	}
 
 	/**

@@ -24,6 +24,14 @@ public class SyncBackgroundService extends JobService
      *
      */
     private final RevisionDao revisionDao;
+    /**
+     *
+     */
+    private ISyncResource syncResource;
+    /**
+     *
+     */
+    private String serviceName;
 
     /**
      *
@@ -47,6 +55,10 @@ public class SyncBackgroundService extends JobService
     public boolean onStartJob( JobParameters params )
     {
         Log.wtf( SyncBackgroundService.class.getSimpleName(), "onStartJob -> "+ params );
+
+        //create the syncResource
+        this.serviceName = params.getExtras().getString( SyncResourceConfiguration.SERVICE_NAME_KEY );
+        this.syncResource = Syncer.syncResourceConfiguration().getSyncResource( this.serviceName );
 
         //Note: this is preformed on the main thread.
         new UpdateAppsAsyncTask().execute(params);
@@ -104,26 +116,13 @@ public class SyncBackgroundService extends JobService
         {
             Log.wtf( UpdateAppsAsyncTask.class.getSimpleName(), "doInBackground -> "+ params );
 
-            //get the default sync resource, but...
-            ISyncResource syncResource = Syncer.syncResourceConfiguration().getSyncResource();
-
-            //maybe this is a request for a specific service name
-            if ( params != null && params.length > 0 )
-            {
-                final JobParameters jobParameters = params[0];
-                if ( jobParameters.getExtras().containsKey( SyncResourceConfiguration.SERVICE_NAME_KEY ) )
-                {
-                    final String serviceName = jobParameters.getExtras().getString( SyncResourceConfiguration.SERVICE_NAME_KEY );
-                    syncResource = Syncer.syncResourceConfiguration().getSyncResource( serviceName );
-                }
-            }
-
             try
             {
-                final List<Revision<?>> revisions = SyncBackgroundService.this.revisionDao.listByUnsynced();
+                //FIXME MUST SYNC ONLY FROM THE SAME serviceName, not all anymore
+                final List<Revision<?>> revisions = revisionDao.listByUnsynced();
 
                 //sync these remotely
-                final Revision lastSyncedRevision = SyncBackgroundService.this.revisionDao.findByLastRevisionNumber();
+                final Revision lastSyncedRevision = revisionDao.findByLastRevisionNumber();
                 final long lastRevisionNumber = lastSyncedRevision != null ? (lastSyncedRevision.getRevisionNumber() + 1L) : 1L;
                 final SyncData localSyncData = new SyncData( lastRevisionNumber, revisions );
 
@@ -136,7 +135,7 @@ public class SyncBackgroundService extends JobService
                     final Revision<?> revision = localSyncData.getRevisions().get(i);
                     revisionIds[i] = String.valueOf( revision.getId() );
                 }
-                SyncBackgroundService.this.revisionDao.remove( revisionIds );
+                revisionDao.remove( revisionIds );
 
                 //save remote revisions as synced
                 for ( Revision<?> revision : remoteSyncData.getRevisions() )
@@ -144,7 +143,7 @@ public class SyncBackgroundService extends JobService
                     Revision<?> newRevision = new Revision( revision.getEntity(), revision.getType() );
                     newRevision.setRevisionNumber( revision.getRevisionNumber() );
                     newRevision.setSynced(true);
-                    SyncBackgroundService.this.revisionDao.insertRevision( newRevision );
+                    revisionDao.insertRevision( newRevision );
                 }
 
                 Watcher.notifyObservers();

@@ -81,5 +81,5 @@ public interface IRevisionService<T>
      * @param serviceName
      * @return
      */
-    public IReplicatorRevisionService<T> replicate(String serviceName );
+    public IRevisionService<T> to(String serviceName );
 }
