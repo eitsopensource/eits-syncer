@@ -126,6 +126,7 @@ public class SyncBackgroundService extends JobService
                 final long lastRevisionNumber = lastSyncedRevision != null ? (lastSyncedRevision.getRevisionNumber() + 1L) : 1L;
                 final SyncData localSyncData = new SyncData( lastRevisionNumber, revisions );
 
+                //FIXME must validate if the returned data is ok
                 final SyncData remoteSyncData = syncResource.syncronize( localSyncData );
 
                 //remove the local unsynced revisions
