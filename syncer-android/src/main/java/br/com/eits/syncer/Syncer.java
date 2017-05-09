@@ -149,7 +149,8 @@ public class Syncer
 
 		if ( extras == null ) extras = PersistableBundle.EMPTY;
 
-		final JobInfo jobInfo = new JobInfo.Builder( Syncer.SYNC_JOB_ID+extras.hashCode(), Syncer.SYNC_BACKGROUND_SERVICE_COMPONENT )
+		final int jobId = Syncer.SYNC_JOB_ID + extras.keySet().hashCode();
+		final JobInfo jobInfo = new JobInfo.Builder( jobId, Syncer.SYNC_BACKGROUND_SERVICE_COMPONENT )
 				.setRequiredNetworkType( JobInfo.NETWORK_TYPE_ANY )
 				.setRequiresDeviceIdle( false )
 				.setRequiresCharging( false )
