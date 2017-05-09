@@ -79,7 +79,7 @@ public class Syncer
 					"\n" +
 					"        //mandatory: sync service urls\n" +
 					"        <meta-data android:name=\"sync-urls\"\n" +
-					"                   android:value=\"{'default':'http://host1.com', 'service2':'http://host2.com'}\"/>\n" +
+					"                   android:value='{\"default\":\"http://host1.com\", \"service2\":\"http://host2.com\"}'/>\n" +
 					"    </service>");
 		}
 	}
@@ -147,7 +147,9 @@ public class Syncer
 	{
 		//if( Syncer.JOB_SCHEDULER.getAllPendingJobs().size() > 0 ) return;
 
-		final JobInfo jobInfo = new JobInfo.Builder( Syncer.SYNC_JOB_ID, Syncer.SYNC_BACKGROUND_SERVICE_COMPONENT )
+		if ( extras == null ) extras = PersistableBundle.EMPTY;
+
+		final JobInfo jobInfo = new JobInfo.Builder( Syncer.SYNC_JOB_ID+extras.hashCode(), Syncer.SYNC_BACKGROUND_SERVICE_COMPONENT )
 				.setRequiredNetworkType( JobInfo.NETWORK_TYPE_ANY )
 				.setRequiresDeviceIdle( false )
 				.setRequiresCharging( false )
