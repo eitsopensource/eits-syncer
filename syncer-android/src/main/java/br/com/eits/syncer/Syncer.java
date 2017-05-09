@@ -18,6 +18,7 @@ import feign.Contract;
 import feign.RequestInterceptor;
 
 import java.util.Objects;
+import java.util.Set;
 
 /**
  *
@@ -135,9 +136,22 @@ public class Syncer
 	 */
 	public static void requestSyncNow()
 	{
-		Log.w(Syncer.class.getName(), "The request sync now is not ready. Scheduling...");
-		//TODO make the request sync now
 		Syncer.requestSync();
+	}
+
+	/**
+	 * Schedule a sync for each service configurated.
+	 */
+	public static void requestSync()
+	{
+		final Set<String> serviceNames = Syncer.syncResourceConfiguration().getServiceNames();
+
+		for ( String serviceName : serviceNames )
+		{
+			final PersistableBundle extras = new PersistableBundle();
+			extras.putString(SyncResourceConfiguration.SERVICE_NAME_KEY, serviceName);
+			Syncer.requestSync( extras );
+		}
 	}
 
 	/**
@@ -171,18 +185,6 @@ public class Syncer
 		{
 			Log.d( Syncer.class.getSimpleName(), "Job scheduled successfully for revision" );
 		}
-	}
-
-	/**
-	 *
-	 */
-	public static void requestSync()
-	{
-		final String serviceName = Syncer.syncResourceConfiguration().getDefaultServiceName();
-		final PersistableBundle extras = new PersistableBundle();
-		extras.putString(SyncResourceConfiguration.SERVICE_NAME_KEY, serviceName);
-
-		Syncer.requestSync( extras );
 	}
 
 	/**

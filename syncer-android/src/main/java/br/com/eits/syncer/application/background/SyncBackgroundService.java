@@ -20,6 +20,9 @@ import java.util.List;
  */
 public class SyncBackgroundService extends JobService
 {
+    /*-------------------------------------------------------------------
+	 * 		 					ATTRIBUTES
+	 *-------------------------------------------------------------------*/
     /**
      *
      */
@@ -33,6 +36,9 @@ public class SyncBackgroundService extends JobService
      */
     private String serviceName;
 
+    /*-------------------------------------------------------------------
+	 * 		 					CONSTRUCTORS
+	 *-------------------------------------------------------------------*/
     /**
      *
      */
@@ -41,6 +47,11 @@ public class SyncBackgroundService extends JobService
         this.revisionDao = new RevisionDao();
     }
 
+
+
+    /*-------------------------------------------------------------------
+	 * 		 					BEHAVIORS
+	 *-------------------------------------------------------------------*/
     /**
      * Override this method with the callback logic for your job. Any such logic needs to be
      * performed on a separate thread, as this function is executed on your application's main
@@ -48,7 +59,7 @@ public class SyncBackgroundService extends JobService
      *
      * @param params Parameters specifying info about this job, including the extras bundle you
      *               optionally provided at job-creation time.
-     * @return True if your serviceHost needs to process the work (on a separate thread). False if
+     * @return True if your service needs to process the work (on a separate thread). False if
      * there's no more work to be done for this job.
      */
     @Override
@@ -61,7 +72,8 @@ public class SyncBackgroundService extends JobService
         this.syncResource = Syncer.syncResourceConfiguration().getSyncResource( this.serviceName );
 
         //Note: this is preformed on the main thread.
-        new UpdateAppsAsyncTask().execute(params);
+        new UpdateAppsAsyncTask(this).execute(params);
+
         return true;
     }
 
@@ -87,14 +99,64 @@ public class SyncBackgroundService extends JobService
     public boolean onStopJob(JobParameters params)
     {
         Log.wtf( SyncBackgroundService.class.getSimpleName(), "onStopJob -> "+ params );
-        return false;
+        return true;
     }
 
+    /**
+     *
+     * @param jobParameters
+     */
+    public void onPreFinishJob( JobParameters jobParameters )
+    {
+        final boolean needsReschedule = jobParameters.getExtras().getBoolean(UpdateAppsAsyncTask.NEEDS_RESCHEDULE);
+
+        //if the job exected sucessfully
+        if ( !needsReschedule )
+        {
+            Watcher.notifyObservers();
+        }
+
+        this.jobFinished( jobParameters, needsReschedule );
+
+    }
+
+    /*-------------------------------------------------------------------
+	 * 		 					INNER CLASSES
+	 *-------------------------------------------------------------------*/
     /**
      *
      */
     private class UpdateAppsAsyncTask extends AsyncTask<JobParameters, Void, JobParameters>
     {
+        /**
+         *
+         */
+        public static final String NEEDS_RESCHEDULE = "reschedule";
+
+        /*-------------------------------------------------------------------
+         * 		 					CONSTRUCTORS
+         *-------------------------------------------------------------------*/
+        /**
+         *
+         */
+        private SyncBackgroundService syncBackgroundService;
+
+        /*-------------------------------------------------------------------
+         * 		 					CONSTRUCTORS
+         *-------------------------------------------------------------------*/
+        /**
+         *
+         * @param syncBackgroundService
+         */
+        public UpdateAppsAsyncTask( SyncBackgroundService syncBackgroundService )
+        {
+            this.syncBackgroundService = syncBackgroundService;
+        }
+
+
+        /*-------------------------------------------------------------------
+         * 		 					BEHAVIORS
+         *-------------------------------------------------------------------*/
         /**
          * Override this method to perform a computation on a background thread. The
          * specified parameters are the parameters passed to {@link #execute}
@@ -116,10 +178,11 @@ public class SyncBackgroundService extends JobService
         {
             Log.wtf( UpdateAppsAsyncTask.class.getSimpleName(), "doInBackground -> "+ params );
 
+            final JobParameters jobParameters = params[0];
+
             try
             {
-                //FIXME MUST SYNC ONLY FROM THE SAME serviceName, not all anymore
-                final List<Revision<?>> revisions = revisionDao.listByUnsynced();
+                final List<Revision<?>> revisions = revisionDao.listByUnsyncedByService( serviceName );
 
                 //sync these remotely
                 final Revision lastSyncedRevision = revisionDao.findByLastRevisionNumber();
@@ -141,20 +204,24 @@ public class SyncBackgroundService extends JobService
                 //save remote revisions as synced
                 for ( Revision<?> revision : remoteSyncData.getRevisions() )
                 {
-                    Revision<?> newRevision = new Revision( revision.getEntity(), revision.getType() );
+                    final Revision<?> newRevision = new Revision( revision.getEntity(), revision.getType(), revision.getServiceName() );
                     newRevision.setRevisionNumber( revision.getRevisionNumber() );
                     newRevision.setSynced(true);
                     revisionDao.insertRevision( newRevision );
                 }
 
-                Watcher.notifyObservers();
-                return params[0];
+                jobParameters.getExtras().putBoolean(NEEDS_RESCHEDULE, false);
             }
+            //for now, any exception we return as false and reschedule.
+            //TODO verify this block and separate in others catchs deciding if must really reschedule
             catch( Exception e )
             {
                 e.printStackTrace();
-                throw new RuntimeException(e);
+
+                jobParameters.getExtras().putBoolean(NEEDS_RESCHEDULE, true);
             }
+
+            return jobParameters;
         }
 
         /**
@@ -163,18 +230,16 @@ public class SyncBackgroundService extends JobService
          *
          * <p>This method won't be invoked if the task was cancelled.</p>
          *
-         * @param params The result of the operation computed by {@link #doInBackground}.
+         * @param jobParameters The result of the operation computed by {@link #doInBackground}.
          *
          * @see #onPreExecute
          * @see #doInBackground
          * @see #onCancelled(Object)
          */
         @Override
-        protected void onPostExecute( JobParameters params )
+        protected void onPostExecute( JobParameters jobParameters )
         {
-            Log.wtf( UpdateAppsAsyncTask.class.getSimpleName(), "onPostExecute -> "+ params );
-
-            SyncBackgroundService.this.jobFinished( params, false);
+            this.syncBackgroundService.onPreFinishJob( jobParameters );
         }
     }
 }

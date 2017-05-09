@@ -27,6 +27,9 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
     private String orderBy = "";
     private String limit = "";
 
+    /*-------------------------------------------------------------------
+	 * 		 					CONSTRUCTORS
+	 *-------------------------------------------------------------------*/
     /**
      * @param entityClass
      */
@@ -44,7 +47,7 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
     }
 
     /*-------------------------------------------------------------------
-	 * 		 					CONSTRUCTORS
+	 * 		 					BEHAVIORS
 	 *-------------------------------------------------------------------*/
     /**
      * @param field
@@ -52,7 +55,7 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
      * @return
      */
     @Override
-    public synchronized IQueryRevisionService where( String field, String value )
+    public IQueryRevisionService where( String field, String value )
     {
         this.where = this.where.concat( field + " = ?" );
         this.whereArguments.add( value );
@@ -64,7 +67,7 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
      * @return
      */
     @Override
-    public synchronized IQueryRevisionService join( Class<?> joinEntity, long joinEntityId )
+    public IQueryRevisionService join( Class<?> joinEntity, long joinEntityId )
     {
         final String simpleClassName = joinEntity.getSimpleName().substring(0, 1).toLowerCase() + joinEntity.getSimpleName().substring(1);
         String entityIdName = Revision.extractEntityIdField( joinEntity ).getName();
@@ -81,7 +84,7 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
      * @return
      */
     @Override
-    public synchronized IQueryRevisionService filterBy( String filters )
+    public IQueryRevisionService filterBy( String filters )
     {
         filters = filters != null ? filters : "";
 
@@ -96,7 +99,8 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
      * @return
      */
     @Override
-    public synchronized IQueryRevisionService and() {
+    public IQueryRevisionService and()
+    {
         this.where = this.where.concat(" AND ");
         return this;
     }
@@ -106,7 +110,8 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
      * @return
      */
     @Override
-    public synchronized IQueryRevisionService or() {
+    public IQueryRevisionService or()
+    {
         this.where = this.where.concat(" OR ");
         return this;
     }
@@ -115,7 +120,7 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
      * @return
      */
     @Override
-    public synchronized List<T> list()
+    public List<T> list()
     {
         final List<Revision<T>> revisions = this.revisionDao.listByCustomQuery( this );
 
@@ -132,7 +137,7 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
      * @return
      */
     @Override
-    public synchronized T singleResult()
+    public T singleResult()
     {
         this.limit = "1";
         this.orderBy = SQLiteHelper.COLUMN_ID + " DESC";
@@ -149,7 +154,8 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
      *
      * @return
      */
-    public String getGroupBy() {
+    public String getGroupBy()
+    {
         return groupBy;
     }
 
@@ -157,7 +163,8 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
      *
      * @return
      */
-    public String getLimit() {
+    public String getLimit()
+    {
         return limit;
     }
 
@@ -165,7 +172,8 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
      *
      * @return
      */
-    public String getOrderBy() {
+    public String getOrderBy()
+    {
         return orderBy;
     }
 
@@ -173,7 +181,8 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
      *
      * @return
      */
-    public String getTables() {
+    public String getTables()
+    {
         return tables;
     }
 
@@ -181,7 +190,8 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
      *
      * @return
      */
-    public String getHaving() {
+    public String getHaving()
+    {
         return having;
     }
 
@@ -189,7 +199,8 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
      *
      * @return
      */
-    public List<Object> getWhereArguments() {
+    public List<Object> getWhereArguments()
+    {
         return whereArguments;
     }
 
@@ -197,7 +208,8 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
      *
      * @return
      */
-    public String getWhere() {
+    public String getWhere()
+    {
         return where;
     }
 }

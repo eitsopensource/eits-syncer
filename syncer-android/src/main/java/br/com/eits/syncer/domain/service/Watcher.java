@@ -105,7 +105,7 @@ public class Watcher<T>
      *
      * @param watcher
      */
-    public synchronized static void addWatcher( Watcher watcher )
+    public static void addWatcher( Watcher watcher )
     {
         if( !watchers.contains( watcher ) ) watchers.add( watcher );
     }
@@ -114,7 +114,7 @@ public class Watcher<T>
      *
      * @param watcherId
      */
-    public synchronized static void removeWatcher( Long watcherId )
+    public static void removeWatcher( Long watcherId )
     {
         Watcher watcherToRemove = null;
         for( Watcher watcher : watchers )
@@ -132,7 +132,7 @@ public class Watcher<T>
     /**
      *
      */
-    public synchronized static void notifyObservers()
+    public static void notifyObservers()
     {
         //Concurrent exception if remove a watcher inside for each
         final Object[] watchersArray = watchers.toArray();
@@ -150,14 +150,14 @@ public class Watcher<T>
      * @return
      */
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(Object o)
+    {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
         Watcher<T> watcher = (Watcher<T>) o;
 
         return id.equals( watcher.id );
-
     }
 
     /**
@@ -165,7 +165,8 @@ public class Watcher<T>
      * @return
      */
     @Override
-    public int hashCode() {
+    public int hashCode()
+    {
         return id.hashCode();
     }
 

@@ -53,7 +53,7 @@ public class RevisionService<T> implements IRevisionService<T>
     /**
      *
      */
-    protected synchronized Revision insertRevisionAndSync( Revision revision )
+    protected Revision insertRevisionAndSync( Revision revision )
     {
         this.revisionDao.insertRevision( revision );
 
@@ -67,9 +67,9 @@ public class RevisionService<T> implements IRevisionService<T>
     /**
      *
      */
-    public synchronized T insertAsSynced( T entity )
+    public T insertAsSynced( T entity )
     {
-        final Revision revision = new Revision( entity, RevisionType.INSERT );
+        final Revision revision = new Revision( entity, RevisionType.INSERT, this.serviceName );
         revision.setSynced( true );
         this.revisionDao.insertRevision( revision );
         return entity;
@@ -78,9 +78,9 @@ public class RevisionService<T> implements IRevisionService<T>
     /**
      *
      */
-    public synchronized T insertWithoutSync( T entity )
+    public T insertWithoutSync( T entity )
     {
-        final Revision revision = new Revision( entity, RevisionType.INSERT );
+        final Revision revision = new Revision( entity, RevisionType.INSERT, this.serviceName );
         this.revisionDao.insertRevision( revision );
         return entity;
     }
@@ -88,9 +88,9 @@ public class RevisionService<T> implements IRevisionService<T>
     /**
      *
      */
-    public synchronized T insert( T entity )
+    public T insert( T entity )
     {
-        final Revision revision = new Revision( entity, RevisionType.INSERT );
+        final Revision revision = new Revision( entity, RevisionType.INSERT, this.serviceName );
         this.insertRevisionAndSync( revision );
         return entity;
     }
@@ -98,9 +98,9 @@ public class RevisionService<T> implements IRevisionService<T>
     /**
      *
      */
-    public synchronized T update( T entity )
+    public T update( T entity )
     {
-        final Revision revision = new Revision( entity, RevisionType.UPDATE );
+        final Revision revision = new Revision( entity, RevisionType.UPDATE, this.serviceName );
         this.insertRevisionAndSync( revision );
         return entity;
     }
@@ -108,16 +108,16 @@ public class RevisionService<T> implements IRevisionService<T>
     /**
      *
      */
-    public synchronized void remove( T entity )
+    public void remove( T entity )
     {
-        final Revision revision = new Revision( entity, RevisionType.REMOVE );
+        final Revision revision = new Revision( entity, RevisionType.REMOVE, this.serviceName );
         this.insertRevisionAndSync( revision );
     }
 
     /**
      *
      */
-    public synchronized T findByEntityId( Object entityId )
+    public T findByEntityId( Object entityId )
     {
         Objects.requireNonNull( entityId, "You must set a entity id" );
         final Revision<T> revision = this.revisionDao.findByEntityId( entityClass, entityId.toString() );
@@ -127,7 +127,7 @@ public class RevisionService<T> implements IRevisionService<T>
     /**
      * @return
      */
-    public synchronized List<T> listAll()
+    public List<T> listAll()
     {
         return this.listByFilters(null);
     }
@@ -135,7 +135,7 @@ public class RevisionService<T> implements IRevisionService<T>
     /**
      * @return
      */
-    public synchronized List<T> listByFilters( String filters )
+    public List<T> listByFilters( String filters )
     {
         final List<T> entities = new ArrayList<T>();
 

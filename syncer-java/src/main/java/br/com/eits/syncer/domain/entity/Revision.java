@@ -3,6 +3,7 @@ package br.com.eits.syncer.domain.entity;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.Calendar;
+import java.util.Objects;
 
 import javax.persistence.Id;
 
@@ -46,11 +47,14 @@ public class Revision<T> implements Serializable
 	 * Fullclassname da entidade persistida.
 	 */
 	private String entityClassName;
-
 	/**
 	 * Valor da id da entidade
 	 */
 	private String entityId;
+	/**
+	 * Identificador do serviço que a revisão é mantida
+	 */
+	private String serviceName;
 
 	/*-------------------------------------------------------------------
 	 *				 		     CONSTRUCTORS
@@ -61,24 +65,25 @@ public class Revision<T> implements Serializable
 	 * @param type
 	 */
 	@JsonCreator
-	public Revision( @JsonProperty("entity") T entity, @JsonProperty("type") RevisionType type )
+	public Revision( @JsonProperty("entity") T entity, @JsonProperty("type") RevisionType type, @JsonProperty("serviceName") String serviceName )
 	{
 		this.type = type;
 		this.synced = false;
 		this.entity = entity;
-
+		this.serviceName = serviceName;
 		this.extractEntity();
 	}
 
 	/**
-	 * 
+	 *
 	 * @param id
 	 * @param entity
 	 * @param type
+	 * @param serviceName
 	 */
-	public Revision( long id, T entity, RevisionType type )
+	public Revision( long id, T entity, RevisionType type, String serviceName )
 	{
-		this( entity, type );
+		this( entity, type, serviceName );
 		this.id = id;
 	}
 
@@ -145,65 +150,30 @@ public class Revision<T> implements Serializable
 	}
 
 	/**
-	 * 
+	 *
+	 * @param o
+	 * @return
 	 */
+	@Override
+	public boolean equals(Object o)
+	{
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		Revision<?> revision = (Revision<?>) o;
+		return Objects.equals(id, revision.id) &&
+				Objects.equals(revisionNumber, revision.revisionNumber) &&
+				Objects.equals(synced, revision.synced) &&
+				type == revision.type &&
+				Objects.equals(entity, revision.entity) &&
+				Objects.equals(entityClassName, revision.entityClassName) &&
+				Objects.equals(entityId, revision.entityId) &&
+				Objects.equals(serviceName, revision.serviceName);
+	}
+
 	@Override
 	public int hashCode()
 	{
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ( ( entity == null ) ? 0 : entity.hashCode() );
-		result = prime * result + ( ( entityClassName == null ) ? 0 : entityClassName.hashCode() );
-		result = prime * result + ( ( entityId == null ) ? 0 : entityId.hashCode() );
-		result = prime * result + ( ( id == null ) ? 0 : id.hashCode() );
-		result = prime * result + ( ( revisionNumber == null ) ? 0 : revisionNumber.hashCode() );
-		result = prime * result + ( ( synced == null ) ? 0 : synced.hashCode() );
-		result = prime * result + ( ( type == null ) ? 0 : type.hashCode() );
-		return result;
-	}
-
-	/**
-	 * 
-	 */
-	@Override
-	public boolean equals( Object obj )
-	{
-		if ( this == obj ) return true;
-		if ( obj == null ) return false;
-		if ( getClass() != obj.getClass() ) return false;
-		final Revision<?> other = ( Revision<?> ) obj;
-		if ( entity == null )
-		{
-			if ( other.entity != null ) return false;
-		}
-		else if ( !entity.equals( other.entity ) ) return false;
-		if ( entityClassName == null )
-		{
-			if ( other.entityClassName != null ) return false;
-		}
-		else if ( !entityClassName.equals( other.entityClassName ) ) return false;
-		if ( entityId == null )
-		{
-			if ( other.entityId != null ) return false;
-		}
-		else if ( !entityId.equals( other.entityId ) ) return false;
-		if ( id == null )
-		{
-			if ( other.id != null ) return false;
-		}
-		else if ( !id.equals( other.id ) ) return false;
-		if ( revisionNumber == null )
-		{
-			if ( other.revisionNumber != null ) return false;
-		}
-		else if ( !revisionNumber.equals( other.revisionNumber ) ) return false;
-		if ( synced == null )
-		{
-			if ( other.synced != null ) return false;
-		}
-		else if ( !synced.equals( other.synced ) ) return false;
-		if ( type != other.type ) return false;
-		return true;
+		return Objects.hash(id, revisionNumber, synced, type, entity, entityClassName, entityId, serviceName);
 	}
 
 	/*-------------------------------------------------------------------
@@ -246,6 +216,15 @@ public class Revision<T> implements Serializable
 	}
 
 	/**
+	 *
+	 * @return
+	 */
+	public String getServiceName()
+	{
+		return this.serviceName;
+	}
+
+	/**
 	 * 
 	 * @return
 	 */
@@ -263,7 +242,7 @@ public class Revision<T> implements Serializable
 	}
 
 	/**
-	 * @param id
+	 * @param revisionNumber
 	 */
 	public void setRevisionNumber( Long revisionNumber )
 	{

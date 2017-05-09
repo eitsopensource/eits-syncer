@@ -28,6 +28,9 @@ public class SyncResourceConfiguration
      */
     public static final String SERVICE_NAME_KEY = "serviceName";
 
+    /*-------------------------------------------------------------------
+	 * 		 					ATTRIBUTES
+	 *-------------------------------------------------------------------*/
     /**
      *
      */
@@ -47,6 +50,9 @@ public class SyncResourceConfiguration
      */
     private Contract contract = new JAXRSContract();
 
+    /*-------------------------------------------------------------------
+	 * 		 					CONSTRUCTORS
+	 *-------------------------------------------------------------------*/
     /**
      *
      */
@@ -58,6 +64,9 @@ public class SyncResourceConfiguration
         this.objectMapper.enableDefaultTypingAsProperty( ObjectMapper.DefaultTyping.JAVA_LANG_OBJECT, "@type" );
     }
 
+    /*-------------------------------------------------------------------
+	 * 		 					BEHAVIORS
+	 *-------------------------------------------------------------------*/
     /**
      *
      * @param serviceName
@@ -155,6 +164,9 @@ public class SyncResourceConfiguration
         return this.syncURLs.keySet();
     }
 
+    /*-------------------------------------------------------------------
+	 * 		 					BEHAVIORS
+	 *-------------------------------------------------------------------*/
     /**
      *
      * @param requestInterceptor
@@ -170,9 +182,9 @@ public class SyncResourceConfiguration
      */
     public void setObjectMapper(ObjectMapper objectMapper)
     {
+        Objects.requireNonNull( objectMapper, "The objectMapper must be not null." );
         this.objectMapper = objectMapper;
     }
-
     /**
      *
      * @return

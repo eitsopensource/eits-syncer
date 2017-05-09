@@ -15,7 +15,6 @@ public class WatcherRevisionService<T> extends RevisionService<T> implements IWa
     /*-------------------------------------------------------------------
     * 		 					ATTRIBUTES
     *-------------------------------------------------------------------*/
-
     /**
      *
      */

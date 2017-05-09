@@ -44,14 +44,15 @@ public class RevisionDao<T>
     public Revision<T> insertRevision( Revision<T> revision )
     {
         final SQLiteDatabase database = HELPER.getWritableDatabase();
-        final ContentValues values = new ContentValues();
 
+        final ContentValues values = new ContentValues();
         values.put( SQLiteHelper.COLUMN_REVISION_NUMBER, revision.getRevisionNumber() );
         values.put( SQLiteHelper.COLUMN_SYNCED, revision.getSynced() );
         values.put( SQLiteHelper.COLUMN_TYPE, revision.getType().ordinal() );
         values.put( SQLiteHelper.COLUMN_ENTITY, this.toJSON( revision.getEntity() ) );
         values.put( SQLiteHelper.COLUMN_ENTITY_CLASSNAME, revision.getEntityClassName() );
         values.put( SQLiteHelper.COLUMN_ENTITY_ID, revision.getEntityId() );
+        values.put( SQLiteHelper.COLUMN_SERVICE_NAME, revision.getServiceName() );
 
         database.insert( SQLiteHelper.TABLE_REVISION, null, values );
         return revision;
@@ -193,12 +194,12 @@ public class RevisionDao<T>
      *
      * @return
      */
-    public List<Revision<?>> listByUnsynced()
+    public List<Revision<?>> listByUnsyncedByService( String serviceName )
     {
         final SQLiteDatabase database = HELPER.getReadableDatabase();
 
-        final String where = SQLiteHelper.COLUMN_SYNCED + " = ?";
-        final Object[] whereArguments = new Object[] { Boolean.FALSE };
+        final String where = SQLiteHelper.COLUMN_SYNCED + " = ? AND "+SQLiteHelper.COLUMN_SERVICE_NAME + " = ?";
+        final Object[] whereArguments = new Object[] { Boolean.FALSE, serviceName };
 
         final Cursor cursor = database.query( SQLiteHelper.TABLE_REVISION, null, where, whereArguments, null, null, null );
         cursor.moveToFirst();
@@ -241,7 +242,8 @@ public class RevisionDao<T>
             final Revision revision = new Revision(
                     cursor.getLong(SQLiteHelper.COLUMN_ID_INDEX),
                     entity,
-                    RevisionType.valueOf(cursor.getInt(SQLiteHelper.COLUMN_TYPE_INDEX))
+                    RevisionType.valueOf(cursor.getInt(SQLiteHelper.COLUMN_TYPE_INDEX)),
+                    cursor.getString(SQLiteHelper.COLUMN_SERVICE_NAME_INDEX)
             );
 
             revision.setRevisionNumber( cursor.getLong( SQLiteHelper.COLUMN_REVISION_NUMBER_INDEX ) );
