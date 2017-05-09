@@ -242,6 +242,7 @@ public class RevisionDao<T>
             final Revision revision = new Revision(
                     cursor.getLong(SQLiteHelper.COLUMN_ID_INDEX),
                     entity,
+                    cursor.getString(SQLiteHelper.COLUMN_ENTITY_ID_INDEX),
                     RevisionType.valueOf(cursor.getInt(SQLiteHelper.COLUMN_TYPE_INDEX)),
                     cursor.getString(SQLiteHelper.COLUMN_SERVICE_NAME_INDEX)
             );

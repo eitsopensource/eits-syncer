@@ -20,7 +20,6 @@ public enum RevisionType
 	
     /**
      *
-     * @param type
      */
     private RevisionType()
     {

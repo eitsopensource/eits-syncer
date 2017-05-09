@@ -14,8 +14,6 @@ apply plugin: 'com.android.library'
 apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'maven-publish'
 
-//project.archivesBaseName = 'eits-syncer-android'
-
 android {
     compileSdkVersion 24
     buildToolsVersion "24.0.0"
@@ -36,7 +34,7 @@ android {
     }
 }
 
-def feignVersion = '9.3.1'
+def feignVersion = '9.5.0'
 
 dependencies {
     compile project(':syncer-java')

@@ -59,10 +59,12 @@ public class Revision<T> implements Serializable
 	/*-------------------------------------------------------------------
 	 *				 		     CONSTRUCTORS
 	 *-------------------------------------------------------------------*/
+
 	/**
-	 * 
+	 *
 	 * @param entity
 	 * @param type
+	 * @param serviceName
 	 */
 	@JsonCreator
 	public Revision( @JsonProperty("entity") T entity, @JsonProperty("type") RevisionType type, @JsonProperty("serviceName") String serviceName )
@@ -78,13 +80,18 @@ public class Revision<T> implements Serializable
 	 *
 	 * @param id
 	 * @param entity
+	 * @param entityId
 	 * @param type
 	 * @param serviceName
 	 */
-	public Revision( long id, T entity, RevisionType type, String serviceName )
+	public Revision( long id, T entity, String entityId, RevisionType type, String serviceName )
 	{
-		this( entity, type, serviceName );
 		this.id = id;
+		this.type = type;
+		this.synced = false;
+		this.entity = entity;
+		this.serviceName = serviceName;
+		this.entityId = entityId;
 	}
 
 	/*-------------------------------------------------------------------

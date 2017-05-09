@@ -184,7 +184,7 @@ public class Syncer
 	 */
 	public static void cancelSync()
 	{
-		Syncer.JOB_SCHEDULER.cancel( Syncer.SYNC_JOB_ID );
+		Syncer.JOB_SCHEDULER.cancelAll();
 	}
 
 	/*-------------------------------------------------------------------
