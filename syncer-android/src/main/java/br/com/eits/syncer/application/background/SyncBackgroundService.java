@@ -81,7 +81,7 @@ public class SyncBackgroundService extends JobService
     /**
      *
      */
-    private class UpdateAppsAsyncTask extends AsyncTask<JobParameters, Void, Void>
+    private class UpdateAppsAsyncTask extends AsyncTask<JobParameters, Void, JobParameters>
     {
         /**
          * Override this method to perform a computation on a background thread. The
@@ -100,10 +100,11 @@ public class SyncBackgroundService extends JobService
          * @see #publishProgress
          */
         @Override
-        protected Void doInBackground( JobParameters... params )
+        protected JobParameters doInBackground( JobParameters... params )
         {
             Log.wtf( UpdateAppsAsyncTask.class.getSimpleName(), "doInBackground -> "+ params );
 
+            //get the default sync resource, but...
             ISyncResource syncResource = Syncer.syncResourceConfiguration().getSyncResource();
 
             //maybe this is a request for a specific service name
@@ -147,7 +148,7 @@ public class SyncBackgroundService extends JobService
                 }
 
                 Watcher.notifyObservers();
-                return null;
+                return params[0];
             }
             catch( Exception e )
             {
@@ -162,18 +163,18 @@ public class SyncBackgroundService extends JobService
          *
          * <p>This method won't be invoked if the task was cancelled.</p>
          *
-         * @param result The result of the operation computed by {@link #doInBackground}.
+         * @param params The result of the operation computed by {@link #doInBackground}.
          *
          * @see #onPreExecute
          * @see #doInBackground
          * @see #onCancelled(Object)
          */
         @Override
-        protected void onPostExecute( Void result )
+        protected void onPostExecute( JobParameters params )
         {
-            Log.wtf( UpdateAppsAsyncTask.class.getSimpleName(), "onPostExecute -> "+ result );
+            Log.wtf( UpdateAppsAsyncTask.class.getSimpleName(), "onPostExecute -> "+ params );
 
-            SyncBackgroundService.this.jobFinished( null, false);
+            SyncBackgroundService.this.jobFinished( params, false);
         }
     }
 }
