@@ -185,7 +185,7 @@ public class SyncBackgroundService extends JobService
                 final List<Revision<?>> revisions = revisionDao.listByUnsyncedByService( serviceName );
 
                 //sync these remotely
-                final Revision lastSyncedRevision = revisionDao.findByLastRevisionNumber();
+                final Revision lastSyncedRevision = revisionDao.findByLastRevisionNumber( serviceName );
                 final long lastRevisionNumber = lastSyncedRevision != null ? (lastSyncedRevision.getRevisionNumber() + 1L) : 1L;
                 final SyncData localSyncData = new SyncData( lastRevisionNumber, revisions );
 

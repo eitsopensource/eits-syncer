@@ -172,14 +172,16 @@ public class RevisionDao<T>
      *
      * @return
      */
-    public Revision findByLastRevisionNumber()
+    public Revision findByLastRevisionNumber( String serviceName )
     {
         final SQLiteDatabase database = HELPER.getReadableDatabase();
 
         final String orderBy = SQLiteHelper.COLUMN_REVISION_NUMBER + " DESC";
+        final String where = SQLiteHelper.COLUMN_SERVICE_NAME + " = ?";
+        final Object[] whereArguments = new Object[] { serviceName };
         final String limit = "1";
 
-        final Cursor cursor = database.queryWithFactory( null, false, SQLiteHelper.TABLE_REVISION, null, null, null, null, null, orderBy, limit );
+        final Cursor cursor = database.queryWithFactory( null, false, SQLiteHelper.TABLE_REVISION, null, where, whereArguments, null, null, orderBy, limit );
 
         Revision<?> revision = null;
         if ( cursor.moveToFirst() )
