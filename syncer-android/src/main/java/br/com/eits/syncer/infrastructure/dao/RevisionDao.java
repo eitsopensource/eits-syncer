@@ -92,8 +92,12 @@ public class RevisionDao<T>
 
         final String where = SQLiteHelper.COLUMN_ENTITY_ID + " = ? AND " + SQLiteHelper.COLUMN_ENTITY_CLASSNAME + " = ?";
         final Object[] whereArguments = new Object[] { entityId, className.getName() };
+
+        final String groupBy = SQLiteHelper.COLUMN_ENTITY_ID;
+        final String having = SQLiteHelper.TABLE_REVISION + "." + SQLiteHelper.COLUMN_TYPE + " <> " + RevisionType.REMOVE.ordinal();
         final String orderBy = SQLiteHelper.COLUMN_ID + " DESC";
-        final Cursor cursor = database.query( SQLiteHelper.TABLE_REVISION, null, where, whereArguments, null, null, orderBy );
+
+        final Cursor cursor = database.query( SQLiteHelper.TABLE_REVISION, null, where, whereArguments, groupBy, having, orderBy );
 
         Revision<T> revision = null;
         if ( cursor.moveToFirst() )
@@ -215,6 +219,18 @@ public class RevisionDao<T>
 
         cursor.close();
         return revisions;
+    }
+
+    /**
+     *
+     */
+    public void shrinkDatabase()
+    {
+        final SQLiteDatabase database = HELPER.getWritableDatabase();
+        final String where = SQLiteHelper.COLUMN_ID + " NOT IN " +
+                                "( SELECT " + SQLiteHelper.COLUMN_ID + " FROM " + SQLiteHelper.TABLE_REVISION +
+                                    " GROUP BY " + SQLiteHelper.COLUMN_ENTITY_CLASSNAME +", " + SQLiteHelper.COLUMN_ENTITY_ID + " ORDER BY " + SQLiteHelper.COLUMN_ID + " DESC )";
+        database.delete( SQLiteHelper.TABLE_REVISION, where, null );
     }
 
     /**
