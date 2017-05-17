@@ -211,7 +211,7 @@ public class SyncBackgroundService extends JobService
                 }
 
                 //remove unused revisions
-                revisionDao.shrinkDatabase();
+//                revisionDao.shrinkDatabase();
 
                 jobParameters.getExtras().putBoolean(NEEDS_RESCHEDULE, false);
             }
