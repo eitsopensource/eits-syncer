@@ -158,7 +158,6 @@ public class Syncer
 
 		//we create an unique job Id using the service name value
 		final int jobId = Syncer.SYNC_JOB_ID + extras.getString(SyncResourceConfiguration.SERVICE_NAME_KEY).hashCode();
-
 		for( JobInfo jobInfo : JOB_SCHEDULER.getAllPendingJobs() )
 		{
 			if( jobInfo.getId() == jobId ) return;
@@ -176,7 +175,7 @@ public class Syncer
 
 		if ( result != JobScheduler.RESULT_SUCCESS )
 		{
-			throw new IllegalArgumentException( "Error doing the local operation. Was not possible to schedule for sync." );
+			Log.w( Syncer.class.getSimpleName(), "Error doing the local operation. Was not possible to schedule for sync." );
 		}
 		else
 		{

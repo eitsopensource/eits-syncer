@@ -58,7 +58,7 @@ public class RevisionService<T> implements IRevisionService<T>
         this.revisionDao.insertRevision( revision );
 
         final PersistableBundle extras = new PersistableBundle();
-        extras.putString(SyncResourceConfiguration.SERVICE_NAME_KEY, this.serviceName);
+        extras.putString( SyncResourceConfiguration.SERVICE_NAME_KEY, this.serviceName );
 
         Syncer.requestSync( extras );
         return revision;
@@ -78,21 +78,31 @@ public class RevisionService<T> implements IRevisionService<T>
     /**
      *
      */
-    public T insertWithoutSync( T entity )
+    public T insert( T entity )
     {
         final Revision revision = new Revision( entity, RevisionType.INSERT, this.serviceName );
-        this.revisionDao.insertRevision( revision );
+        this.insertRevisionAndSync( revision );
         return entity;
     }
 
     /**
      *
      */
-    public T insert( T entity )
+    public List<T> insertInBatch( List<T> entities )
     {
-        final Revision revision = new Revision( entity, RevisionType.INSERT, this.serviceName );
-        this.insertRevisionAndSync( revision );
-        return entity;
+        final List<Revision<T>> revisions = new ArrayList<>();
+        for( T entity : entities )
+        {
+            final Revision revision = new Revision( entity, RevisionType.INSERT, this.serviceName );
+            revisions.add( revision );
+        }
+        this.revisionDao.insertRevisions( revisions );
+
+        final PersistableBundle extras = new PersistableBundle();
+        extras.putString( SyncResourceConfiguration.SERVICE_NAME_KEY, this.serviceName );
+
+        Syncer.requestSync( extras );
+        return entities;
     }
 
     /**
