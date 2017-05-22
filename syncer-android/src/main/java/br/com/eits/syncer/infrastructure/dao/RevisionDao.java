@@ -60,6 +60,31 @@ public class RevisionDao<T>
 
     /**
      *
+     * @param revisions
+     * @return
+     */
+    public List<Revision<T>> insertRevisions( List< Revision<T>> revisions )
+    {
+        final SQLiteDatabase database = HELPER.getWritableDatabase();
+        for( Revision<T> revision : revisions )
+        {
+            final ContentValues values = new ContentValues();
+            values.put( SQLiteHelper.COLUMN_REVISION_NUMBER, revision.getRevisionNumber() );
+            values.put( SQLiteHelper.COLUMN_SYNCED, revision.getSynced() );
+            values.put( SQLiteHelper.COLUMN_TYPE, revision.getType().ordinal() );
+            values.put( SQLiteHelper.COLUMN_ENTITY, this.toJSON( revision.getEntity() ) );
+            values.put( SQLiteHelper.COLUMN_ENTITY_CLASSNAME, revision.getEntityClassName() );
+            values.put( SQLiteHelper.COLUMN_ENTITY_ID, revision.getEntityId() );
+            values.put( SQLiteHelper.COLUMN_SERVICE_NAME, revision.getServiceName() );
+
+            database.insert( SQLiteHelper.TABLE_REVISION, null, values );
+        }
+
+        return revisions;
+    }
+
+    /**
+     *
      * @param id
      * @return
      */
@@ -227,7 +252,7 @@ public class RevisionDao<T>
     public void shrinkDatabase()
     {
         final SQLiteDatabase database = HELPER.getWritableDatabase();
-        final String where = SQLiteHelper.COLUMN_ID + " NOT IN " +
+        final String where = SQLiteHelper.COLUMN_TYPE + " = 1 AND " + SQLiteHelper.COLUMN_ID + " NOT IN " +
                                 "( SELECT " + SQLiteHelper.COLUMN_ID + " FROM " + SQLiteHelper.TABLE_REVISION +
                                     " GROUP BY " + SQLiteHelper.COLUMN_ENTITY_CLASSNAME +", " + SQLiteHelper.COLUMN_ENTITY_ID + " ORDER BY " + SQLiteHelper.COLUMN_ID + " DESC )";
         database.delete( SQLiteHelper.TABLE_REVISION, where, null );

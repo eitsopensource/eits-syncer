@@ -199,6 +199,7 @@ public class SyncBackgroundService extends JobService
                     final Revision<?> revision = localSyncData.getRevisions().get(i);
                     revisionIds[i] = String.valueOf( revision.getId() );
                 }
+                //remove unused revisions
                 revisionDao.remove( revisionIds );
 
                 //save remote revisions as synced
@@ -209,9 +210,6 @@ public class SyncBackgroundService extends JobService
                     newRevision.setSynced( true );
                     revisionDao.insertRevision( newRevision );
                 }
-
-                //remove unused revisions
-                revisionDao.shrinkDatabase();
 
                 jobParameters.getExtras().putBoolean(NEEDS_RESCHEDULE, false);
             }

@@ -25,10 +25,10 @@ public interface IRevisionService<T>
 
     /**
      *
-     * @param entity
+     * @param entities
      * @return
      */
-    public T insertWithoutSync( T entity );
+    public List<T> insertInBatch( List<T> entities );
 
     /**
      *
