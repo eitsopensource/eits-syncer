@@ -249,12 +249,11 @@ public class RevisionDao<T>
     /**
      *
      */
-    public void shrinkDatabase()
+    public void removeOldRevisionsByEntityId( String entityId, Long currentRevisionId )
     {
         final SQLiteDatabase database = HELPER.getWritableDatabase();
-        final String where = SQLiteHelper.COLUMN_TYPE + " = 1 AND " + SQLiteHelper.COLUMN_ID + " NOT IN " +
-                                "( SELECT " + SQLiteHelper.COLUMN_ID + " FROM " + SQLiteHelper.TABLE_REVISION +
-                                    " GROUP BY " + SQLiteHelper.COLUMN_ENTITY_CLASSNAME +", " + SQLiteHelper.COLUMN_ENTITY_ID + " ORDER BY " + SQLiteHelper.COLUMN_ID + " DESC )";
+
+        final String where = SQLiteHelper.COLUMN_ENTITY_ID + " = " + entityId + " AND " + SQLiteHelper.COLUMN_ID + " < " + currentRevisionId;
         database.delete( SQLiteHelper.TABLE_REVISION, where, null );
     }
 
