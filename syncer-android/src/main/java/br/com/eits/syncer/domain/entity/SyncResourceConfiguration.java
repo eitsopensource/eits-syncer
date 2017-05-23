@@ -4,9 +4,7 @@ import br.com.eits.syncer.application.restful.ISyncResource;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import feign.Contract;
-import feign.Feign;
-import feign.RequestInterceptor;
+import feign.*;
 import feign.auth.BasicAuthRequestInterceptor;
 import feign.jackson.JacksonDecoder;
 import feign.jackson.JacksonEncoder;
@@ -80,6 +78,8 @@ public class SyncResourceConfiguration
         Objects.requireNonNull( serviceUrl, "An URL was not found to the service name: "+serviceName );
 
         final Feign.Builder builder = Feign.builder()
+                .logger(new Logger.ErrorLogger())
+                .logLevel( Logger.Level.FULL )
                 .contract( this.contract )
                 .encoder( new JacksonEncoder( this.objectMapper ) )
                 .decoder( new JacksonDecoder( this.objectMapper ) );
@@ -88,6 +88,17 @@ public class SyncResourceConfiguration
         {
             builder.requestInterceptor( this.requestInterceptor );
         }
+
+        //with gzip
+        builder.requestInterceptor(new RequestInterceptor()
+        {
+            @Override
+            public void apply(RequestTemplate template)
+            {
+                template.header("Accept-Encoding", "gzip", "deflate");
+                template.header("Content-Encoding", "gzip", "deflate");
+            }
+        });
 
         return builder.target( ISyncResource.class, serviceUrl );
     }
