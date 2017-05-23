@@ -80,8 +80,8 @@ public class SyncResourceConfiguration
         Objects.requireNonNull( serviceUrl, "An URL was not found to the service name: "+serviceName );
 
         final Feign.Builder builder = Feign.builder()
-                .logger(new Logger.ErrorLogger())
-                .logLevel( Logger.Level.FULL )
+                //.logger(new Logger.ErrorLogger())
+                //.logLevel( Logger.Level.FULL )
                 .contract( this.contract )
                 .encoder( new JacksonEncoder( this.objectMapper ) )
                 .decoder( new JacksonDecoder( this.objectMapper ) );
@@ -99,7 +99,7 @@ public class SyncResourceConfiguration
                 @Override
                 public void apply(RequestTemplate template)
                 {
-                    template.header("Accept-Encoding", encoding.split(",") );
+                    //template.header("Accept-Encoding", encoding.split(",") );
                     template.header("Content-Encoding", encoding.split(",") );
                 }
             });

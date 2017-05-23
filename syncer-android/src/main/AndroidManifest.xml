@@ -16,7 +16,7 @@
 
         //optional encondig
         <meta-data android:name="encoding"
-            android:value="gzip, deflate"/>
+            android:value="gzip,deflate"/>
     </service>
     -->
 
