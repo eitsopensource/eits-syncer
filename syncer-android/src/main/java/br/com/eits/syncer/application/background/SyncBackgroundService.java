@@ -196,7 +196,7 @@ public class SyncBackgroundService extends JobService
                     newRevision.setRevisionNumber( revision.getRevisionNumber() );
                     newRevision.setSynced( true );
                     revisionDao.insertRevision( newRevision );
-                    revisionDao.removeOldRevisionsByEntityId( newRevision.getEntityId(), newRevision.getId() );
+                    revisionDao.removeOldRevisions( newRevision );
                 }
 
                 jobParameters.getExtras().putBoolean(NEEDS_RESCHEDULE, false);

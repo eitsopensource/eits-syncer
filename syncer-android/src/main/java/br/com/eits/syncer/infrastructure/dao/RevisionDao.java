@@ -3,16 +3,15 @@ package br.com.eits.syncer.infrastructure.dao;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.text.TextUtils;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import br.com.eits.syncer.Syncer;
 import br.com.eits.syncer.application.ApplicationHolder;
 import br.com.eits.syncer.domain.entity.Revision;
 import br.com.eits.syncer.domain.entity.RevisionType;
 import br.com.eits.syncer.domain.service.QueryRevisionService;
 import io.requery.android.database.sqlite.SQLiteDatabase;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by rodrigo.p.fraga on 03/11/16.
@@ -65,19 +64,9 @@ public class RevisionDao<T>
      */
     public List<Revision<T>> insertRevisions( List< Revision<T>> revisions )
     {
-        final SQLiteDatabase database = HELPER.getWritableDatabase();
         for( Revision<T> revision : revisions )
         {
-            final ContentValues values = new ContentValues();
-            values.put( SQLiteHelper.COLUMN_REVISION_NUMBER, revision.getRevisionNumber() );
-            values.put( SQLiteHelper.COLUMN_SYNCED, revision.getSynced() );
-            values.put( SQLiteHelper.COLUMN_TYPE, revision.getType().ordinal() );
-            values.put( SQLiteHelper.COLUMN_ENTITY, this.toJSON( revision.getEntity() ) );
-            values.put( SQLiteHelper.COLUMN_ENTITY_CLASSNAME, revision.getEntityClassName() );
-            values.put( SQLiteHelper.COLUMN_ENTITY_ID, revision.getEntityId() );
-            values.put( SQLiteHelper.COLUMN_SERVICE_NAME, revision.getServiceName() );
-
-            database.insert( SQLiteHelper.TABLE_REVISION, null, values );
+            this.insertRevision( revision );
         }
 
         return revisions;
@@ -249,11 +238,13 @@ public class RevisionDao<T>
     /**
      *
      */
-    public void removeOldRevisionsByEntityId( String entityId, Long currentRevisionId )
+    public void removeOldRevisions( Revision<T> revision )
     {
         final SQLiteDatabase database = HELPER.getWritableDatabase();
 
-        final String where = SQLiteHelper.COLUMN_ENTITY_ID + " = " + entityId + " AND " + SQLiteHelper.COLUMN_ID + " < " + currentRevisionId;
+        final String where = SQLiteHelper.COLUMN_ENTITY_ID + " = " + revision.getEntityId()
+                                                + " AND " + SQLiteHelper.COLUMN_ENTITY_CLASSNAME + " = " + revision.getEntityClassName()
+                                                + " AND " + SQLiteHelper.COLUMN_ID + " < " + revision.getId();
         database.delete( SQLiteHelper.TABLE_REVISION, where, null );
     }
 
