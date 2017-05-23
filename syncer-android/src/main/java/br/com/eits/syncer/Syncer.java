@@ -158,10 +158,6 @@ public class Syncer
 
 		//we create an unique job Id using the service name value
 		final int jobId = Syncer.SYNC_JOB_ID + extras.getString(SyncResourceConfiguration.SERVICE_NAME_KEY).hashCode();
-		for( JobInfo jobInfo : JOB_SCHEDULER.getAllPendingJobs() )
-		{
-			if( jobInfo.getId() == jobId ) return;
-		}
 
 		final JobInfo jobInfo = new JobInfo.Builder( jobId, Syncer.SYNC_BACKGROUND_SERVICE_COMPONENT )
 				.setRequiredNetworkType( JobInfo.NETWORK_TYPE_ANY )
@@ -176,10 +172,6 @@ public class Syncer
 		if ( result != JobScheduler.RESULT_SUCCESS )
 		{
 			Log.w( Syncer.class.getSimpleName(), "Error doing the local operation. Was not possible to schedule for sync." );
-		}
-		else
-		{
-			Log.d( Syncer.class.getSimpleName(), "Job scheduled successfully for revision" );
 		}
 	}
 
