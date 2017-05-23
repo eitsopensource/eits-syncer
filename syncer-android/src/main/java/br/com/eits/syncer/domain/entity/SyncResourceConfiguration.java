@@ -33,12 +33,14 @@ public class SyncResourceConfiguration
      *
      */
     private Map<String, String> syncURLs = new HashMap<>();
-
     /**
      *
      */
     private RequestInterceptor requestInterceptor;
-
+    /**
+     *
+     */
+    private String encoding;
     /**
      *
      */
@@ -89,16 +91,19 @@ public class SyncResourceConfiguration
             builder.requestInterceptor( this.requestInterceptor );
         }
 
-        //with gzip
-        builder.requestInterceptor(new RequestInterceptor()
+        if ( this.encoding != null )
         {
-            @Override
-            public void apply(RequestTemplate template)
+            //configure encondig
+            builder.requestInterceptor(new RequestInterceptor()
             {
-                template.header("Accept-Encoding", "gzip", "deflate");
-                template.header("Content-Encoding", "gzip", "deflate");
-            }
-        });
+                @Override
+                public void apply(RequestTemplate template)
+                {
+                    template.header("Accept-Encoding", encoding.split(",") );
+                    template.header("Content-Encoding", encoding.split(",") );
+                }
+            });
+        }
 
         return builder.target( ISyncResource.class, serviceUrl );
     }
@@ -113,11 +118,10 @@ public class SyncResourceConfiguration
         return this.getSyncResource( this.getDefaultServiceName() );
     }
 
-
-        /**
-         *
-         * @param credentials
-         */
+    /**
+     *
+     * @param credentials
+     */
     public void setBasicCredentials( String credentials )
     {
         if ( credentials != null && !credentials.isEmpty() && credentials.contains(":") )
@@ -133,6 +137,20 @@ public class SyncResourceConfiguration
                     "        <meta-data android:name=\"sync-basic-credentials\"\n" +
                     "                   android:value=\"username:password\"/>");
         }
+    }
+
+    /**
+     *
+     * @param encoding
+     */
+    public void setEncondig( String encoding )
+    {
+        if ( encoding == null || !encoding.isEmpty() )
+        {
+            throw new IllegalArgumentException("The enconding must be a value of gzip or/with deflate.");
+        }
+
+        this.encoding = encoding;
     }
 
     /**

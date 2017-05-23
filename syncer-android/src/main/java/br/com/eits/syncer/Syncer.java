@@ -64,6 +64,13 @@ public class Syncer
 				Syncer.RESOURCE_CONFIGURATION.setBasicCredentials( credentials );
 			}
 
+			//Get the optional encoding
+			final String encoding = serviceInfo.metaData.getString("encoding");
+			if ( encoding != null )
+			{
+				Syncer.RESOURCE_CONFIGURATION.setEncondig( encoding );
+			}
+
 			//get the job scheduler
 			Syncer.JOB_SCHEDULER = ( JobScheduler ) ApplicationHolder.CONTEXT.getSystemService( Context.JOB_SCHEDULER_SERVICE );
 		}

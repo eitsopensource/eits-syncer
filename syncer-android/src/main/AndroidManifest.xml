@@ -13,6 +13,10 @@
         //mandatory: sync service urls
         <meta-data android:name="sync-urls"
             android:value='{"default":"http://host1.com", "service2":"http://host2.com"}'/>
+
+        //optional encondig
+        <meta-data android:name="encoding"
+            android:value="gzip, deflate"/>
     </service>
     -->
 
