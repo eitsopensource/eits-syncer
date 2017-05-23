@@ -145,7 +145,7 @@ public class SyncResourceConfiguration
      */
     public void setEncondig( String encoding )
     {
-        if ( encoding == null || !encoding.isEmpty() )
+        if ( encoding == null || encoding.isEmpty() )
         {
             throw new IllegalArgumentException("The enconding must be a value of gzip or/with deflate.");
         }
