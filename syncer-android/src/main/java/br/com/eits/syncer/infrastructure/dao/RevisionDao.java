@@ -53,7 +53,8 @@ public class RevisionDao<T>
         values.put( SQLiteHelper.COLUMN_ENTITY_ID, revision.getEntityId() );
         values.put( SQLiteHelper.COLUMN_SERVICE_NAME, revision.getServiceName() );
 
-        database.insert( SQLiteHelper.TABLE_REVISION, null, values );
+        final long revisionId = database.insert( SQLiteHelper.TABLE_REVISION, null, values );
+        revision.setId( revisionId );
         return revision;
     }
 
@@ -241,11 +242,10 @@ public class RevisionDao<T>
     public void removeOldRevisions( Revision<T> revision )
     {
         final SQLiteDatabase database = HELPER.getWritableDatabase();
+        final String[] whereArguments = new String[] { revision.getEntityId(), revision.getEntityClassName(), revision.getId().toString() };
 
-        final String where = SQLiteHelper.COLUMN_ENTITY_ID + " = " + revision.getEntityId()
-                                                + " AND " + SQLiteHelper.COLUMN_ENTITY_CLASSNAME + " = " + revision.getEntityClassName()
-                                                + " AND " + SQLiteHelper.COLUMN_ID + " < " + revision.getId();
-        database.delete( SQLiteHelper.TABLE_REVISION, where, null );
+        final String where = SQLiteHelper.COLUMN_ENTITY_ID + " = ? AND " + SQLiteHelper.COLUMN_ENTITY_CLASSNAME + " = ? AND " + SQLiteHelper.COLUMN_ID + " < ? ";
+        database.delete( SQLiteHelper.TABLE_REVISION, where, whereArguments );
     }
 
     /**

@@ -197,6 +197,15 @@ public class Revision<T> implements Serializable
 
 	/**
 	 *
+	 * @param id
+	 */
+	public void setId( Long id )
+	{
+		this.id = id;
+	}
+
+	/**
+	 *
 	 * @return
 	 */
 	public RevisionType getType()
