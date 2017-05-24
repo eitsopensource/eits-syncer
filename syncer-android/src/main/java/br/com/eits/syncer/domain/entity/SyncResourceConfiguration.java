@@ -1,6 +1,7 @@
 package br.com.eits.syncer.domain.entity;
 
 import br.com.eits.syncer.application.restful.ISyncResource;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -61,6 +62,7 @@ public class SyncResourceConfiguration
         //configure the default objectMapper
         this.objectMapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
         this.objectMapper.configure( SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false );
+        this.objectMapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );//nao serializa o json com null
         this.objectMapper.enableDefaultTypingAsProperty( ObjectMapper.DefaultTyping.JAVA_LANG_OBJECT, "@type" );
     }
 
