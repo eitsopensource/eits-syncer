@@ -88,7 +88,7 @@ public class RevisionService<T> implements IRevisionService<T>
     /**
      *
      */
-    public List<T> insertInBatch( List<T> entities )
+    public List<T> insert( List<T> entities )
     {
         final List<Revision<T>> revisions = new ArrayList<>();
         for( T entity : entities )
@@ -118,10 +118,49 @@ public class RevisionService<T> implements IRevisionService<T>
     /**
      *
      */
+    public List<T> update( List<T> entities )
+    {
+        final List<Revision<T>> revisions = new ArrayList<>();
+        for( T entity : entities )
+        {
+            final Revision revision = new Revision( entity, RevisionType.UPDATE, this.serviceName );
+            revisions.add( revision );
+        }
+        this.revisionDao.insertRevisions( revisions );
+
+        final PersistableBundle extras = new PersistableBundle();
+        extras.putString( SyncResourceConfiguration.SERVICE_NAME_KEY, this.serviceName );
+
+        Syncer.requestSync( extras );
+        return entities;
+    }
+
+    /**
+     *
+     */
     public void remove( T entity )
     {
         final Revision revision = new Revision( entity, RevisionType.REMOVE, this.serviceName );
         this.insertRevisionAndSync( revision );
+    }
+
+    /**
+     *
+     */
+    public void remove( List<T> entities )
+    {
+        final List<Revision<T>> revisions = new ArrayList<>();
+        for( T entity : entities )
+        {
+            final Revision revision = new Revision( entity, RevisionType.REMOVE, this.serviceName );
+            revisions.add( revision );
+        }
+        this.revisionDao.insertRevisions( revisions );
+
+        final PersistableBundle extras = new PersistableBundle();
+        extras.putString( SyncResourceConfiguration.SERVICE_NAME_KEY, this.serviceName );
+
+        Syncer.requestSync( extras );
     }
 
     /**

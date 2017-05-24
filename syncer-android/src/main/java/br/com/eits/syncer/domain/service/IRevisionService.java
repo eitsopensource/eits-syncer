@@ -15,6 +15,12 @@ public interface IRevisionService<T>
      * @return
      */
     public T insert( T entity );
+    /**
+     *
+     * @param entities
+     * @return
+     */
+    public List<T> insert( List<T> entities );
 
     /**
      *
@@ -25,13 +31,6 @@ public interface IRevisionService<T>
 
     /**
      *
-     * @param entities
-     * @return
-     */
-    public List<T> insertInBatch( List<T> entities );
-
-    /**
-     *
      * @param entity
      * @return
      */
@@ -39,9 +38,22 @@ public interface IRevisionService<T>
 
     /**
      *
+     * @param entities
+     * @return
+     */
+    public List<T> update( List<T> entities );
+
+    /**
+     *
      * @param entity
      */
     public void remove( T entity );
+
+    /**
+     *
+     * @param entities
+     */
+    public void remove( List<T> entities );
 
     /**
      *
