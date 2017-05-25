@@ -73,9 +73,12 @@ public class SyncBackgroundService extends JobService
         this.serviceName = params.getExtras().getString( SyncResourceConfiguration.SERVICE_NAME_KEY );
         this.syncResource = Syncer.syncResourceConfiguration().getSyncResource( this.serviceName );
 
-        //Note: this is preformed on the main thread.
-        this.syncTask = new SyncTask(this);
-        this.syncTask.execute(params);
+        //first fime
+        if ( syncTask == null || this.syncTask.getStatus() == AsyncTask.Status.FINISHED )
+        {
+            this.syncTask = new SyncTask(this);
+            this.syncTask.execute(params);
+        }
 
         return true;
     }
@@ -103,7 +106,6 @@ public class SyncBackgroundService extends JobService
     {
         Log.wtf( SyncBackgroundService.class.getSimpleName(), "onStopJob -> "+ params );
 
-        this.syncTask.cancel( false );
         return false;//we always ignore this job
     }
 
@@ -235,7 +237,6 @@ public class SyncBackgroundService extends JobService
             {
                 Watcher.notifyObservers();
             }
-
             jobFinished( jobParameters, needsReschedule );
         }
     }
