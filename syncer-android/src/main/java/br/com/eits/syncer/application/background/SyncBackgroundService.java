@@ -38,7 +38,7 @@ public class SyncBackgroundService extends JobService
     /**
      *
      */
-    private SyncTask syncTask;
+    private static SyncTask SYNC_TASK;
 
     /*-------------------------------------------------------------------
 	 * 		 					CONSTRUCTORS
@@ -74,10 +74,10 @@ public class SyncBackgroundService extends JobService
         this.syncResource = Syncer.syncResourceConfiguration().getSyncResource( this.serviceName );
 
         //first fime
-        if ( syncTask == null || this.syncTask.getStatus() == AsyncTask.Status.FINISHED )
+        if ( SYNC_TASK == null || SYNC_TASK.getStatus() == AsyncTask.Status.FINISHED )
         {
-            this.syncTask = new SyncTask(this);
-            this.syncTask.execute(params);
+            SYNC_TASK = new SyncTask(this);
+            SYNC_TASK.execute(params);
         }
 
         return true;
