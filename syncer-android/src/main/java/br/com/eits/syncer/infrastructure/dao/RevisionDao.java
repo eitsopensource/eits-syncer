@@ -65,9 +65,21 @@ public class RevisionDao<T>
      */
     public List<Revision<T>> insertRevisions( List< Revision<T>> revisions )
     {
+        final SQLiteDatabase database = HELPER.getWritableDatabase();
+
         for( Revision<T> revision : revisions )
         {
-            this.insertRevision( revision );
+            final ContentValues values = new ContentValues();
+            values.put( SQLiteHelper.COLUMN_REVISION_NUMBER, revision.getRevisionNumber() );
+            values.put( SQLiteHelper.COLUMN_SYNCED, revision.getSynced() );
+            values.put( SQLiteHelper.COLUMN_TYPE, revision.getType().ordinal() );
+            values.put( SQLiteHelper.COLUMN_ENTITY, this.toJSON( revision.getEntity() ) );
+            values.put( SQLiteHelper.COLUMN_ENTITY_CLASSNAME, revision.getEntityClassName() );
+            values.put( SQLiteHelper.COLUMN_ENTITY_ID, revision.getEntityId() );
+            values.put( SQLiteHelper.COLUMN_SERVICE_NAME, revision.getServiceName() );
+
+            final long revisionId = database.insert( SQLiteHelper.TABLE_REVISION, null, values );
+            revision.setId( revisionId );
         }
 
         return revisions;
