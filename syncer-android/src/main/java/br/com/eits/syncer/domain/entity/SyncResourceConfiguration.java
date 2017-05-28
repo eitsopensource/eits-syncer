@@ -26,6 +26,10 @@ public class SyncResourceConfiguration
      *
      */
     public static final String SERVICE_NAME_KEY = "serviceName";
+    /**
+     *
+     */
+    private static final Map<String, ISyncResource> SYNC_RESOURCE_CACHE = new HashMap<>();
 
     /*-------------------------------------------------------------------
 	 * 		 					ATTRIBUTES
@@ -50,6 +54,10 @@ public class SyncResourceConfiguration
      *
      */
     private Contract contract = new JAXRSContract();
+    /**
+     *
+     */
+    private Logger.Level logLevel = Logger.Level.NONE;
 
     /*-------------------------------------------------------------------
 	 * 		 					CONSTRUCTORS
@@ -76,38 +84,45 @@ public class SyncResourceConfiguration
      */
     public ISyncResource getSyncResource( String serviceName )
     {
-        //TODO Should we make a cache of syncResource instance?
-
         final String serviceUrl = this.syncURLs.get(serviceName);
         Objects.requireNonNull( serviceUrl, "An URL was not found to the service name: "+serviceName );
 
-        final Feign.Builder builder = Feign.builder()
-                //.logger(new Logger.ErrorLogger())
-                //.logLevel( Logger.Level.FULL )
-                .contract( this.contract )
-                .encoder( new JacksonEncoder( this.objectMapper ) )
-                .decoder( new JacksonDecoder( this.objectMapper ) );
+        ISyncResource syncResource = SYNC_RESOURCE_CACHE.get( serviceUrl );
 
-        if ( this.requestInterceptor != null )
+        //if is not cached
+        if ( syncResource == null )
         {
-            builder.requestInterceptor( this.requestInterceptor );
-        }
+            final Feign.Builder builder = Feign.builder()
+                    .logger( new Logger.ErrorLogger() )
+                    .logLevel( this.logLevel )
+                    .contract( this.contract )
+                    .encoder( new JacksonEncoder( this.objectMapper ) )
+                    .decoder( new JacksonDecoder( this.objectMapper ) );
 
-        if ( this.encoding != null )
-        {
-            //configure encondig
-            builder.requestInterceptor(new RequestInterceptor()
+            if ( this.requestInterceptor != null )
             {
-                @Override
-                public void apply(RequestTemplate template)
+                builder.requestInterceptor( this.requestInterceptor );
+            }
+
+            if ( this.encoding != null )
+            {
+                //configure encondig
+                builder.requestInterceptor(new RequestInterceptor()
                 {
-                    //template.header("Accept-Encoding", encoding.split(",") );
-                    template.header("Content-Encoding", encoding.split(",") );
-                }
-            });
+                    @Override
+                    public void apply(RequestTemplate template)
+                    {
+                        //template.header("Accept-Encoding", encoding.split(",") );
+                        template.header("Content-Encoding", encoding.split(",") );
+                    }
+                });
+            }
+
+            syncResource = builder.target( ISyncResource.class, serviceUrl );
+            SYNC_RESOURCE_CACHE.put( serviceUrl, syncResource );
         }
 
-        return builder.target( ISyncResource.class, serviceUrl );
+        return syncResource;
     }
 
     /**
@@ -233,5 +248,15 @@ public class SyncResourceConfiguration
     {
         Objects.requireNonNull( contract, "The feign contract must be not null." );
         this.contract = contract;
+    }
+
+    /**
+     *
+     * @param logLevel
+     */
+    public void setLogLevel(Logger.Level logLevel)
+    {
+        if ( logLevel == null ) logLevel = Logger.Level.NONE;
+        this.logLevel = logLevel;
     }
 }

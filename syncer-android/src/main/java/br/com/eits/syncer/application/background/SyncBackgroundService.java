@@ -67,15 +67,16 @@ public class SyncBackgroundService extends JobService
     @Override
     public boolean onStartJob( JobParameters params )
     {
-        Log.wtf( SyncBackgroundService.class.getSimpleName(), "onStartJob -> "+ params );
+        Log.d( SyncTask.class.getSimpleName(), "Request to START sync." );
 
         //create the syncResource
         this.serviceName = params.getExtras().getString( SyncResourceConfiguration.SERVICE_NAME_KEY );
         this.syncResource = Syncer.syncResourceConfiguration().getSyncResource( this.serviceName );
 
-        //first fime
+        //if is the first time or the running task has been finished
         if ( SYNC_TASK == null || SYNC_TASK.getStatus() == AsyncTask.Status.FINISHED )
         {
+            Log.d( SyncTask.class.getSimpleName(), "Starting task to sync..." );
             SYNC_TASK = new SyncTask(this);
             SYNC_TASK.execute(params);
         }
@@ -104,8 +105,7 @@ public class SyncBackgroundService extends JobService
     @Override
     public boolean onStopJob( JobParameters params )
     {
-        Log.wtf( SyncBackgroundService.class.getSimpleName(), "onStopJob -> "+ params );
-
+        Log.d( SyncTask.class.getSimpleName(), "Request to STOP sync." );
         return false;//we always ignore this job
     }
 
@@ -165,7 +165,7 @@ public class SyncBackgroundService extends JobService
         @Override
         protected JobParameters doInBackground( JobParameters... params )
         {
-            Log.wtf( SyncTask.class.getSimpleName(), "doInBackground -> "+ params );
+            Log.d( SyncTask.class.getSimpleName(), "Running doInBackground" );
 
             final JobParameters jobParameters = params[0];
 
@@ -173,13 +173,18 @@ public class SyncBackgroundService extends JobService
             {
                 final List<Revision<?>> revisions = revisionDao.listByUnsyncedByService( serviceName );
 
+                Log.i( SyncTask.class.getSimpleName(), revisions.size()+" revisions to sync." );
+
                 //sync these remotely
                 final Revision lastSyncedRevision = revisionDao.findByLastRevisionNumber( serviceName );
                 final long lastRevisionNumber = lastSyncedRevision != null ? (lastSyncedRevision.getRevisionNumber() + 1L) : 1L;
                 final SyncData localSyncData = new SyncData( lastRevisionNumber, revisions );
 
-                //FIXME must validate if the returned data is ok
+                Log.d( SyncTask.class.getSimpleName(), "Requesting to server to sync..." );
+
                 final SyncData remoteSyncData = syncResource.syncronize( localSyncData );
+
+                Log.i( SyncTask.class.getSimpleName(), "Server returned "+remoteSyncData.getRevisions().size()+" revisions to sync." );
 
                 //remove the local unsynced revisions
                 final String[] revisionIds = new String[localSyncData.getRevisions().size()];
@@ -201,15 +206,15 @@ public class SyncBackgroundService extends JobService
                     revisionDao.removeOldRevisions( newRevision );
                 }
 
+                Log.i( SyncTask.class.getSimpleName(), "Sync finished." );
+
                 jobParameters.getExtras().putBoolean(NEEDS_RESCHEDULE, false);
             }
-            //for now, any exception we return as false and reschedule.
-            //TODO verify this block and separate in others catchs deciding if must really reschedule
             catch( Exception e )
             {
-                e.printStackTrace();
-
-                jobParameters.getExtras().putBoolean(NEEDS_RESCHEDULE, true);
+                Log.e( SyncTask.class.getSimpleName(), "Error syncing.", e );
+                //ignore the reschedule and delegate to the next sync request
+                jobParameters.getExtras().putBoolean(NEEDS_RESCHEDULE, false);
             }
 
             return jobParameters;

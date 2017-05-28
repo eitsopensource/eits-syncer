@@ -15,6 +15,7 @@ import br.com.eits.syncer.domain.service.IRevisionService;
 import br.com.eits.syncer.domain.service.RevisionService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.Contract;
+import feign.Logger;
 import feign.RequestInterceptor;
 
 import java.util.Objects;
@@ -123,6 +124,16 @@ public class Syncer
 	{
 		Objects.requireNonNull( objectMapper, "The mapper must be not null." );
 		Syncer.RESOURCE_CONFIGURATION.setObjectMapper( objectMapper );
+	}
+
+	/**
+	 *
+	 * @param logLevel
+	 * @return
+	 */
+	public static void withLogLevel( Logger.Level logLevel )
+	{
+		Syncer.RESOURCE_CONFIGURATION.setLogLevel( logLevel );
 	}
 
     /*-------------------------------------------------------------------
