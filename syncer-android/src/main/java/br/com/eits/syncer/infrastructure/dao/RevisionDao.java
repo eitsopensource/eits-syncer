@@ -99,14 +99,24 @@ public class RevisionDao<T>
 
         final Cursor cursor = database.query( SQLiteHelper.TABLE_REVISION, null, where, whereArguments, null, null, null );
 
-        Revision<T> revision = null;
-        if ( cursor.moveToFirst() )
+        try
         {
-            revision = this.fromCursorToRevision( cursor );
+            Revision<T> revision = null;
+            if ( cursor.moveToFirst() )
+            {
+                revision = this.fromCursorToRevision( cursor );
+            }
+            return revision;
         }
-        cursor.close();
-        return revision;
-}
+        catch ( Exception e )
+        {
+            throw e;
+        }
+        finally
+        {
+            cursor.close();
+        }
+    }
 
     /**
      *
@@ -126,13 +136,23 @@ public class RevisionDao<T>
 
         final Cursor cursor = database.query( SQLiteHelper.TABLE_REVISION, null, where, whereArguments, groupBy, having, orderBy );
 
-        Revision<T> revision = null;
-        if ( cursor.moveToFirst() )
+        try
         {
-            revision = this.fromCursorToRevision( cursor );
+            Revision<T> revision = null;
+            if ( cursor.moveToFirst() )
+            {
+                revision = this.fromCursorToRevision( cursor );
+            }
+            return revision;
         }
-        cursor.close();
-        return revision;
+        catch ( Exception e )
+        {
+            throw e;
+        }
+        finally
+        {
+            cursor.close();
+        }
     }
 
     /**
@@ -157,16 +177,27 @@ public class RevisionDao<T>
         final String orderBy = SQLiteHelper.COLUMN_ID + " DESC";
 
         final Cursor cursor = database.query( tables, null, where, whereArguments, groupBy, having, orderBy );
-        cursor.moveToFirst();
 
-        final List<Revision<T>> revisions = new ArrayList<>();
-        while ( !cursor.isAfterLast() )
+        try
         {
-            revisions.add( this.fromCursorToRevision( cursor ) );
-            cursor.moveToNext();
+            cursor.moveToFirst();
+
+            final List<Revision<T>> revisions = new ArrayList<>();
+            while ( !cursor.isAfterLast() )
+            {
+                revisions.add( this.fromCursorToRevision( cursor ) );
+                cursor.moveToNext();
+            }
+            return revisions;
         }
-        cursor.close();
-        return revisions;
+        catch ( Exception e )
+        {
+            throw e;
+        }
+        finally
+        {
+            cursor.close();
+        }
     }
 
     /**
@@ -187,16 +218,27 @@ public class RevisionDao<T>
         final String limit = queryRevisionService.getLimit();
 
         final Cursor cursor = database.queryWithFactory( null, false, tables, null, where, whereArguments, groupBy, having, orderBy, limit );
-        cursor.moveToFirst();
 
-        final List<Revision<T>> revisions = new ArrayList<>();
-        while ( !cursor.isAfterLast() )
+        try
         {
-            revisions.add( this.fromCursorToRevision( cursor ) );
-            cursor.moveToNext();
+            cursor.moveToFirst();
+
+            final List<Revision<T>> revisions = new ArrayList<>();
+            while ( !cursor.isAfterLast() )
+            {
+                revisions.add( this.fromCursorToRevision( cursor ) );
+                cursor.moveToNext();
+            }
+            return revisions;
         }
-        cursor.close();
-        return revisions;
+        catch ( Exception e )
+        {
+            throw e;
+        }
+        finally
+        {
+            cursor.close();
+        }
     }
 
     /**
@@ -207,45 +249,67 @@ public class RevisionDao<T>
     {
         final SQLiteDatabase database = HELPER.getReadableDatabase();
 
-        final String orderBy = SQLiteHelper.COLUMN_REVISION_NUMBER + " DESC";
         final String where = SQLiteHelper.COLUMN_SERVICE_NAME + " = ?";
         final Object[] whereArguments = new Object[] { serviceName };
+        final String orderBy = SQLiteHelper.COLUMN_REVISION_NUMBER + " DESC";
         final String limit = "1";
 
         final Cursor cursor = database.queryWithFactory( null, false, SQLiteHelper.TABLE_REVISION, null, where, whereArguments, null, null, orderBy, limit );
 
-        Revision<?> revision = null;
-        if ( cursor.moveToFirst() )
+        try
         {
-            revision = this.fromCursorToRevision(cursor);
+            Revision<?> revision = null;
+            if ( cursor.moveToFirst() )
+            {
+                revision = this.fromCursorToRevision(cursor);
+            }
+            return revision;
         }
-        cursor.close();
-        return revision;
+        catch ( Exception e )
+        {
+            throw e;
+        }
+        finally
+        {
+            cursor.close();
+        }
     }
 
     /**
      *
      * @return
      */
-    public List<Revision<?>> listByUnsyncedByService( String serviceName )
+    public List<Revision<?>> listByUnsyncedByService( String serviceName, int count )
     {
         final SQLiteDatabase database = HELPER.getReadableDatabase();
 
         final String where = SQLiteHelper.COLUMN_SYNCED + " = ? AND "+SQLiteHelper.COLUMN_SERVICE_NAME + " = ?";
         final Object[] whereArguments = new Object[] { Boolean.FALSE, serviceName };
+        final String orderBy = SQLiteHelper.COLUMN_REVISION_NUMBER + " ASC";
+        final String limit = String.valueOf(count);
 
-        final Cursor cursor = database.query( SQLiteHelper.TABLE_REVISION, null, where, whereArguments, null, null, null );
-        cursor.moveToFirst();
+        final Cursor cursor = database.query( SQLiteHelper.TABLE_REVISION, null, where, whereArguments, null, null, orderBy, limit );
 
-        final List<Revision<?>> revisions = new ArrayList<>();
-        while ( !cursor.isAfterLast() )
+        try
         {
-            revisions.add( this.fromCursorToRevision( cursor ) );
-            cursor.moveToNext();
-        }
+            cursor.moveToFirst();
 
-        cursor.close();
-        return revisions;
+            final List<Revision<?>> revisions = new ArrayList<>();
+            while ( !cursor.isAfterLast() )
+            {
+                revisions.add( this.fromCursorToRevision( cursor ) );
+                cursor.moveToNext();
+            }
+            return revisions;
+        }
+        catch ( Exception e )
+        {
+            throw e;
+        }
+        finally
+        {
+            cursor.close();
+        }
     }
 
     /**

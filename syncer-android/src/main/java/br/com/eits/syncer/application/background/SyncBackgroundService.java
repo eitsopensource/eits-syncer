@@ -171,7 +171,7 @@ public class SyncBackgroundService extends JobService
 
             try
             {
-                final List<Revision<?>> revisions = revisionDao.listByUnsyncedByService( serviceName );
+                final List<Revision<?>> revisions = revisionDao.listByUnsyncedByService( serviceName, 10000 );
 
                 Log.i( SyncTask.class.getSimpleName(), revisions.size()+" revisions to sync." );
 
