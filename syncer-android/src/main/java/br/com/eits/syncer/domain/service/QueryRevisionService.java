@@ -57,8 +57,27 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
     @Override
     public IQueryRevisionService where( String field, String value )
     {
-        this.where = this.where.concat( field + " = ?" );
-        this.whereArguments.add( value );
+        this.where = this.where.concat( field.charAt( 0 ) == '$'
+                ? "json_extract(" + SQLiteHelper.COLUMN_ENTITY + ", '" + field + "') = " + value
+                : field + " = " + value );
+
+        return this;
+    }
+    /**
+     * @param field
+     * @param value
+     * @return
+     */
+    @Override
+    public IQueryRevisionService whereLike( String field, String value )
+    {
+        value = value == null ? "" : value;
+        this.where = this.where.concat(
+                field.charAt( 0 ) == '$'
+                        ? "json_extract(" + SQLiteHelper.COLUMN_ENTITY + ", '" + field + "') LIKE '%" + value + "%'"
+                        : field + " LIKE '%" + value + "%'"
+        );
+
         return this;
     }
 

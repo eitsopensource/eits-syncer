@@ -26,6 +26,13 @@ public interface IQueryRevisionService<T>
     public IQueryRevisionService where( String field, String value );
     /**
      *
+     * @param field
+     * @param value
+     * @return
+     */
+    public IQueryRevisionService whereLike( String field, String value );
+    /**
+     *
      * @param joinEntity
      * @return
      */
