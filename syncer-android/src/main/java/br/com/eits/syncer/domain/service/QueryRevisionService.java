@@ -136,6 +136,28 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
     }
 
     /**
+     *
+     * @return
+     */
+    @Override
+    public IQueryRevisionService begin()
+    {
+        this.where = this.where.concat(" ( ");
+        return this;
+    }
+
+    /**
+     *
+     * @return
+     */
+    @Override
+    public IQueryRevisionService end()
+    {
+        this.where = this.where.concat(" ) ");
+        return this;
+    }
+
+    /**
      * @return
      */
     @Override

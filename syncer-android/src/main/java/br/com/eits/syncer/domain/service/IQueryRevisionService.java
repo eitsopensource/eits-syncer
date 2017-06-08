@@ -46,6 +46,16 @@ public interface IQueryRevisionService<T>
      *
      * @return
      */
+    public IQueryRevisionService begin();
+    /**
+     *
+     * @return
+     */
+    public IQueryRevisionService end();
+    /**
+     *
+     * @return
+     */
     public IQueryRevisionService and();
     /**
      *
