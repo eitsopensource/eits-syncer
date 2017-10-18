@@ -50,6 +50,8 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
 	 * 		 					BEHAVIORS
 	 *-------------------------------------------------------------------*/
     /**
+     * Must have an . after the '$'
+     * eg. $.entity.id
      * @param field
      * @param value
      * @return
