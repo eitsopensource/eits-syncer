@@ -13,6 +13,7 @@ import br.com.eits.syncer.domain.service.Watcher;
 import br.com.eits.syncer.infrastructure.dao.RevisionDao;
 
 import java.util.List;
+import java.util.Observable;
 
 /**
  * Define a ServiceHost that returns an IBinder for the sync adapter class,
@@ -39,6 +40,8 @@ public class SyncBackgroundService extends JobService
      *
      */
     private static SyncTask SYNC_TASK;
+
+    private static Observable observable;
 
     /*-------------------------------------------------------------------
 	 * 		 					CONSTRUCTORS
@@ -107,6 +110,11 @@ public class SyncBackgroundService extends JobService
     {
         Log.d( SyncTask.class.getSimpleName(), "Request to STOP sync." );
         return false;//we always ignore this job
+    }
+
+    public void setObservable( Observable observable )
+    {
+        this.observable = observable;
     }
 
     /*-------------------------------------------------------------------
@@ -184,31 +192,33 @@ public class SyncBackgroundService extends JobService
 
                 final SyncData remoteSyncData = syncResource.syncronize( localSyncData );
 
-                Log.i( SyncTask.class.getSimpleName(), "Server returned "+remoteSyncData.getRevisions().size()+" revisions to sync." );
-
-                //remove the local unsynced revisions
-                final String[] revisionIds = new String[localSyncData.getRevisions().size()];
-                for ( int i = 0; i <localSyncData.getRevisions().size(); i++ )
+                if(remoteSyncData != null && remoteSyncData.getRevisions() != null)
                 {
-                    final Revision<?> revision = localSyncData.getRevisions().get(i);
-                    revisionIds[i] = String.valueOf( revision.getId() );
+                    Log.i( SyncTask.class.getSimpleName(), "Server returned "+remoteSyncData.getRevisions().size()+" revisions to sync." );
+                    //remove the local unsynced revisions
+                    final String[] revisionIds = new String[localSyncData.getRevisions().size()];
+                    for ( int i = 0; i <localSyncData.getRevisions().size(); i++ )
+                    {
+                        final Revision<?> revision = localSyncData.getRevisions().get(i);
+                        revisionIds[i] = String.valueOf( revision.getId() );
+                    }
+                    //remove unused revisions
+                    revisionDao.remove( revisionIds );
+
+                    //save remote revisions as synced
+                    for ( Revision<?> revision : remoteSyncData.getRevisions() )
+                    {
+                        final Revision<?> newRevision = new Revision( revision.getEntity(), revision.getType(), revision.getServiceName() );
+                        newRevision.setRevisionNumber( revision.getRevisionNumber() );
+                        newRevision.setSynced( true );
+                        revisionDao.insertRevision( newRevision );
+                        revisionDao.removeOldRevisions( newRevision );
+                    }
+
+                    Log.i( SyncTask.class.getSimpleName(), "Sync finished." );
+
+                    jobParameters.getExtras().putBoolean(NEEDS_RESCHEDULE, false);
                 }
-                //remove unused revisions
-                revisionDao.remove( revisionIds );
-
-                //save remote revisions as synced
-                for ( Revision<?> revision : remoteSyncData.getRevisions() )
-                {
-                    final Revision<?> newRevision = new Revision( revision.getEntity(), revision.getType(), revision.getServiceName() );
-                    newRevision.setRevisionNumber( revision.getRevisionNumber() );
-                    newRevision.setSynced( true );
-                    revisionDao.insertRevision( newRevision );
-                    revisionDao.removeOldRevisions( newRevision );
-                }
-
-                Log.i( SyncTask.class.getSimpleName(), "Sync finished." );
-
-                jobParameters.getExtras().putBoolean(NEEDS_RESCHEDULE, false);
             }
             catch( Exception e )
             {

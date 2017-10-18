@@ -6,6 +6,7 @@ import android.content.Context;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Observer;
 import java.util.concurrent.Callable;
 
 import br.com.eits.syncer.application.ApplicationHolder;
@@ -58,6 +59,11 @@ public class Watcher<T>
      */
     private Activity activity;
 
+    /**
+     *
+     */
+    private Observer observer;
+
     /*-------------------------------------------------------------------
 	 * 		 					CONSTRUCTORS
 	 *-------------------------------------------------------------------*/
@@ -75,6 +81,16 @@ public class Watcher<T>
         this.activity = activity;
     }
 
+    /**
+     *
+     * @param observer
+     */
+    public Watcher(Observer observer, Activity activity)
+    {
+        this.id = System.currentTimeMillis();
+        this.observer = observer;
+        this.activity = activity;
+    }
     /*-------------------------------------------------------------------
 	 * 		 					BEHAVIORS
 	 *-------------------------------------------------------------------*/
@@ -93,7 +109,14 @@ public class Watcher<T>
 
         try
         {
-            this.handler.handle( this.function.call() );
+            if(this.observer != null)
+            {
+                this.observer.update(null, this.id);
+            }
+            else
+            {
+                this.handler.handle( this.function.call() );
+            }
         }
         catch( Exception e )
         {

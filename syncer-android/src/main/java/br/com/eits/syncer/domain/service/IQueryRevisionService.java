@@ -23,7 +23,21 @@ public interface IQueryRevisionService<T>
      * @param value
      * @return
      */
-    public IQueryRevisionService where( String field, String value );
+    public IQueryRevisionService where( String field, Object value );
+    /**
+     *
+     * @param field
+     * @param value
+     * @param operator
+     * @return
+     */
+    public IQueryRevisionService where( String field, Object value, String operator );
+    /**
+     *
+     * @param value
+     * @return
+     */
+    public Object processValue( Object value );
     /**
      *
      * @param field

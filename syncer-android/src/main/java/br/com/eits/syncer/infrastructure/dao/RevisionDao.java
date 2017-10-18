@@ -205,7 +205,7 @@ public class RevisionDao<T>
      * @param queryRevisionService
      * @return
      */
-    public List<Revision<T>> listByCustomQuery( QueryRevisionService queryRevisionService )
+    public List<Revision<T>> listByQueryBuilder( QueryRevisionService queryRevisionService )
     {
         final SQLiteDatabase database = HELPER.getReadableDatabase();
 
@@ -402,4 +402,5 @@ public class RevisionDao<T>
             throw new IllegalArgumentException("Error serializing the entity", e);
         }
     }
+
 }

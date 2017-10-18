@@ -80,8 +80,7 @@ public class RevisionService<T> implements IRevisionService<T>
      */
     public T insert( T entity )
     {
-        final Revision revision = new Revision( entity, RevisionType.INSERT, this.serviceName );
-        this.insertRevisionAndSync( revision );
+        this.revisionDao.insertRevision( new Revision( entity, RevisionType.INSERT, this.serviceName ) );
         return entity;
     }
 

@@ -55,15 +55,63 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
      * @return
      */
     @Override
-    public IQueryRevisionService where( String field, String value )
+    public IQueryRevisionService where( String field, Object value )
     {
+        value = this.processValue(value);
+
         this.where = this.where.concat( field.charAt( 0 ) == '$'
                 ? "json_extract(" + SQLiteHelper.COLUMN_ENTITY + ", '" + field + "') = " + value
                 : field + " = " + value );
 
         return this;
     }
+
     /**
+     * Must have an . after the '$'
+     * eg. $.entity.id
+     * @param field
+     * @param value
+     * @param operator
+     * @return
+     */
+    @Override
+    public IQueryRevisionService where( String field, Object value, String operator )
+    {
+        value = this.processValue(value);
+
+        this.where = this.where.concat( field.charAt( 0 ) == '$'
+                ? "json_extract(" + SQLiteHelper.COLUMN_ENTITY + ", '" + field + "') " + operator + " " + value
+                : field + " " + operator + " " + value );
+
+        return this;
+    }
+
+    /**
+     *
+     * @param value
+     * @return
+     */
+    public Object processValue( Object value )
+    {
+        if( value instanceof String)
+        {
+            value = "'"+value+"'";
+        }
+        else if( value != null )
+        {
+            value = value.toString();
+        }
+        else
+        {
+            value = " IS NULL ";
+        }
+
+        return value;
+    }
+
+    /**
+     * Must have an . after the '$'
+     * eg. $.entity.id
      * @param field
      * @param value
      * @return
@@ -163,7 +211,7 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
     @Override
     public List<T> list()
     {
-        final List<Revision<T>> revisions = this.revisionDao.listByCustomQuery( this );
+        List<Revision<T>> revisions = this.revisionDao.listByQueryBuilder( this );
 
         final List<T> entities = new ArrayList<T>();
         for ( Revision<T> revision : revisions )
@@ -183,7 +231,7 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
         this.limit = "1";
         this.orderBy = SQLiteHelper.COLUMN_ID + " DESC";
 
-        final List<Revision<T>> revisions = this.revisionDao.listByCustomQuery( this );
+        final List<Revision<T>> revisions = this.revisionDao.listByQueryBuilder( this );
         return revisions.isEmpty() ? null : revisions.get( 0 ).getEntity();
     }
 
@@ -253,4 +301,5 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
     {
         return where;
     }
+
 }

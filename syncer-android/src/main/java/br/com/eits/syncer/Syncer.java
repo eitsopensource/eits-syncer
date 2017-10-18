@@ -19,6 +19,7 @@ import feign.Logger;
 import feign.RequestInterceptor;
 
 import java.util.Objects;
+import java.util.Observable;
 import java.util.Set;
 
 /**
@@ -43,7 +44,6 @@ public class Syncer
 	 *
 	 */
 	private static final SyncResourceConfiguration RESOURCE_CONFIGURATION = new SyncResourceConfiguration();
-
 	/**
 	 *
 	 */
@@ -183,6 +183,8 @@ public class Syncer
 				.setRequiresCharging( false )
 				.setExtras(extras)
 				.setPersisted( true )
+				.setMinimumLatency(10)
+				.setOverrideDeadline(24 * 3600 * 1000)
 				.build();
 
 		final Integer result = Syncer.JOB_SCHEDULER.schedule( jobInfo );

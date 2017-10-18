@@ -1,5 +1,6 @@
 package br.com.eits.syncer.domain.entity;
 
+import br.com.eits.syncer.Syncer;
 import br.com.eits.syncer.application.restful.ISyncResource;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -15,6 +16,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.Set;
 
 /**
@@ -112,7 +115,6 @@ public class SyncResourceConfiguration
                     @Override
                     public void apply(RequestTemplate template)
                     {
-                        //template.header("Accept-Encoding", encoding.split(",") );
                         template.header("Content-Encoding", encoding.split(",") );
                     }
                 });

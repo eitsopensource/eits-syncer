@@ -15,6 +15,7 @@ public interface IRevisionService<T>
      * @return
      */
     public T insert( T entity );
+
     /**
      *
      * @param entities

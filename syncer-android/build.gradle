@@ -19,8 +19,8 @@ android {
     buildToolsVersion "24.0.0"
 
     defaultConfig {
-        minSdkVersion 21
-        targetSdkVersion 21
+        minSdkVersion 22
+        targetSdkVersion 22
         consumerProguardFiles 'proguard-rules.pro'
     }
 
