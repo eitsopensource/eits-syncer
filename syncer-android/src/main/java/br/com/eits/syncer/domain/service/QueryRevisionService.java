@@ -59,6 +59,11 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
     @Override
     public IQueryRevisionService where( String field, Object value )
     {
+        if( value == null )
+        {
+            throw new IllegalArgumentException("Value cannot be null without the blank operator");
+        }
+
         value = this.processValue(value);
 
         this.where = this.where.concat( field.charAt( 0 ) == '$'
@@ -79,6 +84,11 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
     @Override
     public IQueryRevisionService where( String field, Object value, String operator )
     {
+        if( value == null && !operator.equals("") )
+        {
+            throw new IllegalArgumentException("Value null only accepts blank operators");
+        }
+        
         value = this.processValue(value);
 
         this.where = this.where.concat( field.charAt( 0 ) == '$'
