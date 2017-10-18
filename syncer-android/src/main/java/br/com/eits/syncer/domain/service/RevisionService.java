@@ -86,6 +86,17 @@ public class RevisionService<T> implements IRevisionService<T>
 
     /**
      *
+     * @param entity
+     * @return
+     */
+    public T insertAndSync( T entity )
+    {
+        this.insertRevisionAndSync(new Revision( entity, RevisionType.INSERT, this.serviceName) );
+        return entity;
+    }
+
+    /**
+     *
      */
     public List<T> insert( List<T> entities )
     {

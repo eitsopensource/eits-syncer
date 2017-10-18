@@ -88,7 +88,7 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
         {
             throw new IllegalArgumentException("Value null only accepts blank operators");
         }
-        
+
         value = this.processValue(value);
 
         this.where = this.where.concat( field.charAt( 0 ) == '$'
