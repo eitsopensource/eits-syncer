@@ -105,17 +105,21 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
      */
     public Object processValue( Object value )
     {
-        if( value instanceof String)
+        if( value == null )
+        {
+            value = " IS NULL ";
+        }
+        else if( value instanceof String )
         {
             value = "'"+value+"'";
         }
-        else if( value != null )
+        else if( value.getClass().isEnum() )
         {
-            value = value.toString();
+            value = "'"+value.toString()+"'";
         }
         else
         {
-            value = " IS NULL ";
+            value = value.toString();
         }
 
         return value;

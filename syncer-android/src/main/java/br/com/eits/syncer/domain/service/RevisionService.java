@@ -120,8 +120,7 @@ public class RevisionService<T> implements IRevisionService<T>
      */
     public T update( T entity )
     {
-        final Revision revision = new Revision( entity, RevisionType.UPDATE, this.serviceName );
-        this.insertRevisionAndSync( revision );
+        this.revisionDao.insertRevision( new Revision( entity, RevisionType.UPDATE, this.serviceName ) );
         return entity;
     }
 
