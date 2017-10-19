@@ -137,10 +137,6 @@ public class RevisionService<T> implements IRevisionService<T>
         }
         this.revisionDao.insertRevisions( revisions );
 
-        final PersistableBundle extras = new PersistableBundle();
-        extras.putString( SyncResourceConfiguration.SERVICE_NAME_KEY, this.serviceName );
-
-        Syncer.requestSync( extras );
         return entities;
     }
 
@@ -149,8 +145,7 @@ public class RevisionService<T> implements IRevisionService<T>
      */
     public void remove( T entity )
     {
-        final Revision revision = new Revision( entity, RevisionType.REMOVE, this.serviceName );
-        this.insertRevisionAndSync( revision );
+        this.revisionDao.insertRevision(new Revision( entity, RevisionType.REMOVE, this.serviceName ));
     }
 
     /**
@@ -165,11 +160,6 @@ public class RevisionService<T> implements IRevisionService<T>
             revisions.add( revision );
         }
         this.revisionDao.insertRevisions( revisions );
-
-        final PersistableBundle extras = new PersistableBundle();
-        extras.putString( SyncResourceConfiguration.SERVICE_NAME_KEY, this.serviceName );
-
-        Syncer.requestSync( extras );
     }
 
     /**
