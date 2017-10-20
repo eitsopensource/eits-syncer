@@ -1,6 +1,8 @@
 package br.com.eits.syncer.domain.service;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import br.com.eits.syncer.domain.entity.Revision;
@@ -100,10 +102,99 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
 
     /**
      *
+     * @param field
+     * @return
+     */
+    public IQueryRevisionService where( String field )
+    {
+        this.where = this.where.concat(
+                field.charAt(0) == '$'
+                        ? "json_extract(" + SQLiteHelper.COLUMN_ENTITY + ", '" + field + "') "
+                        : field);
+
+        return this;
+    }
+
+    /**
+     * Equals
      * @param value
      * @return
      */
-    public Object processValue( Object value )
+    public IQueryRevisionService eq( Object value )
+    {
+        this.where = this.where.concat(" = " + this.processValue(value));
+
+        return this;
+    }
+
+    /**
+     * Greater Than
+     * @param value
+     * @return
+     */
+    public IQueryRevisionService gt( Object value )
+    {
+        this.where = this.where.concat(" > " + this.processValue(value));
+
+        return this;
+    }
+
+    /**
+     * Lower Than
+     * @param value
+     * @return
+     */
+    public IQueryRevisionService lt( Object value )
+    {
+        this.where = this.where.concat(" < " + this.processValue(value));
+
+        return this;
+    }
+
+    /**
+     * Greater or Equals
+     * @param value
+     * @return
+     */
+    public IQueryRevisionService goe( Object value )
+    {
+        this.where = this.where.concat(" >= " + this.processValue(value));
+
+        return this;
+    }
+
+    /**
+     * Lower or Equals
+     * @param value
+     * @return
+     */
+    public IQueryRevisionService loe( Object value )
+    {
+        this.where = this.where.concat(" <= " + this.processValue(value));
+
+        return this;
+    }
+
+    /**
+     * Used to cast a field in where clause
+     * @return
+     */
+    public IQueryRevisionService castAs( String field, String castAs)
+    {
+        this.where = this.where.concat(
+                field.charAt(0) == '$'
+                        ? "CAST (json_extract(" + SQLiteHelper.COLUMN_ENTITY + ", '" + field + "')"+" as " + castAs + ")"
+                        : "CAST (" + field + " as " + castAs + ")");
+
+        return this;
+    }
+
+    /**
+     *
+     * @param value
+     * @return
+     */
+    private Object processValue( Object value )
     {
         if( value == null )
         {
@@ -116,6 +207,10 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
         else if( value.getClass().isEnum() )
         {
             value = "'"+value.toString()+"'";
+        }
+        else if( value instanceof Calendar)
+        {
+            value = ((Calendar) value).getTime().getTime();
         }
         else
         {

@@ -32,12 +32,56 @@ public interface IQueryRevisionService<T>
      * @return
      */
     public IQueryRevisionService where( String field, Object value, String operator );
+
+    /**
+     *
+     * @param field
+     * @return
+     */
+    public IQueryRevisionService where( String field );
+
     /**
      *
      * @param value
      * @return
      */
-    public Object processValue( Object value );
+    public IQueryRevisionService eq( Object value );
+
+    /**
+     *
+     * @param value
+     * @return
+     */
+    public IQueryRevisionService gt( Object value );
+
+    /**
+     *
+     * @param value
+     * @return
+     */
+    public IQueryRevisionService lt( Object value );
+
+    /**
+     *
+     * @param value
+     * @return
+     */
+    public IQueryRevisionService goe( Object value );
+
+    /**
+     *
+     * @param value
+     * @return
+     */
+    public IQueryRevisionService loe( Object value );
+
+    /**
+     *
+     * @param field
+     * @param castAs
+     * @return
+     */
+    public IQueryRevisionService castAs( String field, String castAs );
     /**
      *
      * @param field
