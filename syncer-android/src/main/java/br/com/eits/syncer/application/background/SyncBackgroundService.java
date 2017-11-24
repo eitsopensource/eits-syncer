@@ -182,6 +182,7 @@ public class SyncBackgroundService extends JobService
 
                 Log.d( SyncTask.class.getSimpleName(), "Requesting to server to sync..." );
 
+                System.out.println( "[SYNC] "+serviceName );
                 final SyncData remoteSyncData = syncResource.syncronize( localSyncData );
 
                 Log.i( SyncTask.class.getSimpleName(), "Server returned "+remoteSyncData.getRevisions().size()+" revisions to sync." );

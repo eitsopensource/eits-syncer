@@ -6,5 +6,11 @@ allprojects {
         jcenter()
         mavenCentral()
         mavenLocal()
+        google()
+    }
+}
+buildscript {
+    repositories {
+        google()
     }
 }

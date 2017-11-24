@@ -18,7 +18,10 @@ import feign.Contract;
 import feign.Logger;
 import feign.RequestInterceptor;
 
+import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Objects;
+import java.util.Random;
 import java.util.Set;
 
 /**
@@ -31,6 +34,7 @@ public class Syncer
 	 *
 	 */
 	private static final int SYNC_JOB_ID = Integer.MAX_VALUE;
+
 	/**
 	 *
 	 */
@@ -175,7 +179,8 @@ public class Syncer
 		}
 
 		//we create an unique job Id using the service name value
-		final int jobId = Syncer.SYNC_JOB_ID + extras.getString(SyncResourceConfiguration.SERVICE_NAME_KEY).hashCode();
+//		final int jobId = Syncer.SYNC_JOB_ID + extras.getString(SyncResourceConfiguration.SERVICE_NAME_KEY).hashCode();
+		final int jobId = new Long( Calendar.getInstance().getTimeInMillis() ).intValue() + new Random().nextInt(9999);
 
 		final JobInfo jobInfo = new JobInfo.Builder( jobId, Syncer.SYNC_BACKGROUND_SERVICE_COMPONENT )
 				.setRequiredNetworkType( JobInfo.NETWORK_TYPE_ANY )
@@ -185,6 +190,7 @@ public class Syncer
 				.setPersisted( true )
 				.build();
 
+		System.out.println( "["+jobId+"] "+ extras.getString(SyncResourceConfiguration.SERVICE_NAME_KEY) );
 		final Integer result = Syncer.JOB_SCHEDULER.schedule( jobInfo );
 
 		if ( result != JobScheduler.RESULT_SUCCESS )

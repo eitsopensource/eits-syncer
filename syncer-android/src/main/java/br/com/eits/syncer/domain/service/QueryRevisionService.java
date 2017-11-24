@@ -58,7 +58,7 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
     public IQueryRevisionService where( String field, String value )
     {
         this.where = this.where.concat( field.charAt( 0 ) == '$'
-                ? "json_extract(" + SQLiteHelper.COLUMN_ENTITY + ", '" + field + "') = " + value
+                ? "json_extract(" + SQLiteHelper.COLUMN_ENTITY + ", '" + field + "') = '" + value + "'"
                 : field + " = " + value );
 
         return this;
