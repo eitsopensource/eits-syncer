@@ -1,20 +1,11 @@
+
 allprojects {
-	version = "0.0.21-SNAPSHOT"
+	version = "0.0.22-SNAPSHOT"
     group = 'com.github.eitsopensource'
 
     repositories {
         jcenter()
         mavenCentral()
         mavenLocal()
-        google()
     }
-}
-buildscript {
-    repositories {
-        google()
-    }
-}
-
-task wrapper(type: Wrapper) {
-    gradleVersion = '4.1'
 }
