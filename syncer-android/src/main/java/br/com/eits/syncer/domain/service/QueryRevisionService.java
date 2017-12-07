@@ -63,6 +63,21 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
 
         return this;
     }
+
+    /**
+     * @param field
+     * @param value
+     * @return
+     */
+    @Override
+    public IQueryRevisionService where( String field, Number value )
+    {
+        this.where = this.where.concat( field.charAt( 0 ) == '$'
+                ? "json_extract(" + SQLiteHelper.COLUMN_ENTITY + ", '" + field + "') = " + value
+                : field + " = " + value );
+
+        return this;
+    }
     /**
      * @param field
      * @param value

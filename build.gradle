@@ -1,6 +1,6 @@
 
 allprojects {
-	version = "0.0.23-SNAPSHOT"
+	version = "0.0.24-SNAPSHOT"
     group = 'com.github.eitsopensource'
 
     repositories {

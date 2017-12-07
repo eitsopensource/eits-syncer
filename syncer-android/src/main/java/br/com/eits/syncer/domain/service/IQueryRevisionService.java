@@ -30,6 +30,13 @@ public interface IQueryRevisionService<T>
      * @param value
      * @return
      */
+    public IQueryRevisionService where( String field, Number value );
+    /**
+     *
+     * @param field
+     * @param value
+     * @return
+     */
     public IQueryRevisionService whereLike( String field, String value );
     /**
      *
