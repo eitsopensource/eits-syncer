@@ -1,31 +1,27 @@
 package br.com.eits.syncer;
 
+import android.annotation.SuppressLint;
 import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
-import android.os.PersistableBundle;
 import android.util.Log;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.util.Objects;
+
 import br.com.eits.syncer.application.ApplicationHolder;
 import br.com.eits.syncer.application.background.SyncBackgroundService;
 import br.com.eits.syncer.domain.entity.SyncResourceConfiguration;
 import br.com.eits.syncer.domain.service.IRevisionService;
 import br.com.eits.syncer.domain.service.RevisionService;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import feign.Contract;
-import feign.Logger;
-import feign.RequestInterceptor;
-
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.Objects;
-import java.util.Random;
-import java.util.Set;
+import okhttp3.Interceptor;
+import okhttp3.logging.HttpLoggingInterceptor;
 
 /**
- *
  * @author rodrigo.p.fraga
  */
 public class Syncer
@@ -55,33 +51,26 @@ public class Syncer
 	{
 		try
 		{
-			Syncer.SYNC_BACKGROUND_SERVICE_COMPONENT = new ComponentName(ApplicationHolder.CONTEXT, SyncBackgroundService.class);
-			final ServiceInfo serviceInfo = ApplicationHolder.CONTEXT.getPackageManager().getServiceInfo(Syncer.SYNC_BACKGROUND_SERVICE_COMPONENT, PackageManager.GET_META_DATA);
+			Syncer.SYNC_BACKGROUND_SERVICE_COMPONENT = new ComponentName( ApplicationHolder.CONTEXT, SyncBackgroundService.class );
+			final ServiceInfo serviceInfo = ApplicationHolder.CONTEXT.getPackageManager().getServiceInfo( Syncer.SYNC_BACKGROUND_SERVICE_COMPONENT, PackageManager.GET_META_DATA );
 
 			//Get the mandatory URLs
-			final String urls = serviceInfo.metaData.getString("sync-urls");
-			Syncer.RESOURCE_CONFIGURATION.setSyncURLs(urls);
+			final String urls = serviceInfo.metaData.getString( "sync-urls" );
+			Syncer.RESOURCE_CONFIGURATION.setSyncURLs( urls );
 
 			//Get the optional basic credentials
-			final String credentials = serviceInfo.metaData.getString("sync-basic-credentials");
+			final String credentials = serviceInfo.metaData.getString( "sync-basic-credentials" );
 			if ( credentials != null )
 			{
 				Syncer.RESOURCE_CONFIGURATION.setBasicCredentials( credentials );
 			}
 
-			//Get the optional encoding
-			final String encoding = serviceInfo.metaData.getString("encoding");
-			if ( encoding != null )
-			{
-				Syncer.RESOURCE_CONFIGURATION.setEncondig( encoding );
-			}
-
 			//get the job scheduler
-			Syncer.JOB_SCHEDULER = ( JobScheduler ) ApplicationHolder.CONTEXT.getSystemService( Context.JOB_SCHEDULER_SERVICE );
+			Syncer.JOB_SCHEDULER = (JobScheduler) ApplicationHolder.CONTEXT.getSystemService( Context.JOB_SCHEDULER_SERVICE );
 		}
-		catch (Exception e)
+		catch ( Exception e )
 		{
-			throw new IllegalStateException("To use Syncer, you must setup the SyncBackgroudService at least as follow: " +
+			throw new IllegalStateException( "To use Syncer, you must setup the SyncBackgroudService at least as follow: " +
 					"    <service android:process=\":sync\"\n" +
 					"             android:permission=\"android.permission.BIND_JOB_SERVICE\"\n" +
 					"             android:name=\"br.com.eits.syncer.application.background.SyncBackgroundService\">\n" +
@@ -93,7 +82,7 @@ public class Syncer
 					"        //mandatory: sync service urls\n" +
 					"        <meta-data android:name=\"sync-urls\"\n" +
 					"                   android:value='{\"default\":\"http://host1.com\", \"service2\":\"http://host2.com\"}'/>\n" +
-					"    </service>");
+					"    </service>" );
 		}
 	}
 
@@ -102,25 +91,14 @@ public class Syncer
 	//-----------
 
 	/**
-	 *
 	 * @param requestInterceptor
 	 */
-	public static void withRequestInterceptor( RequestInterceptor requestInterceptor )
+	public static void withRequestInterceptor( Interceptor requestInterceptor )
 	{
 		Syncer.RESOURCE_CONFIGURATION.setRequestInterceptor( requestInterceptor );
 	}
 
 	/**
-	 *
-	 * @param contract
-	 */
-	public static void withContract( Contract contract )
-	{
-		Syncer.RESOURCE_CONFIGURATION.setContract(contract);
-	}
-
-	/**
-	 *
 	 * @param objectMapper
 	 * @return
 	 */
@@ -131,11 +109,10 @@ public class Syncer
 	}
 
 	/**
-	 *
 	 * @param logLevel
 	 * @return
 	 */
-	public static void withLogLevel( Logger.Level logLevel )
+	public static void withLogLevel( HttpLoggingInterceptor.Level logLevel )
 	{
 		Syncer.RESOURCE_CONFIGURATION.setLogLevel( logLevel );
 	}
@@ -143,12 +120,12 @@ public class Syncer
     /*-------------------------------------------------------------------
 	 * 		 						BEHAVIORS
 	 *-------------------------------------------------------------------*/
+
 	/**
-	 *
 	 * @param entityClass
 	 * @return
 	 */
-	public static <T> IRevisionService<T> of(Class<T> entityClass )
+	public static <T> IRevisionService<T> of( Class<T> entityClass )
 	{
 		return new RevisionService<>( entityClass );
 	}
@@ -156,53 +133,32 @@ public class Syncer
 	/**
 	 * Schedule a sync for each service configurated.
 	 */
-	public static void requestSync()
+	@SuppressLint("MissingPermission")
+	public static void scheduleRecurrentSync()
 	{
-		final Set<String> serviceNames = Syncer.syncResourceConfiguration().getServiceNames();
-
-		for ( String serviceName : serviceNames )
-		{
-			final PersistableBundle extras = new PersistableBundle();
-			extras.putString(SyncResourceConfiguration.SERVICE_NAME_KEY, serviceName);
-			Syncer.requestSync( extras );
-		}
-	}
-
-	/**
-	 *
-	 */
-	public static void requestSync( PersistableBundle extras )
-	{
-		if ( extras == null || extras.isEmpty() || !extras.containsKey(SyncResourceConfiguration.SERVICE_NAME_KEY) )
-		{
-			throw new IllegalArgumentException("The extras param must at least have the serviceName param.");
-		}
-
-		//we create an unique job Id using the service name value
-//		final int jobId = Syncer.SYNC_JOB_ID + extras.getString(SyncResourceConfiguration.SERVICE_NAME_KEY).hashCode();
-		final int jobId = new Long( Calendar.getInstance().getTimeInMillis() ).intValue() + new Random().nextInt(9999);
-
+		Syncer.JOB_SCHEDULER.cancelAll();
+		final int jobId = "eits//syncer".hashCode();
 		final JobInfo jobInfo = new JobInfo.Builder( jobId, Syncer.SYNC_BACKGROUND_SERVICE_COMPONENT )
 				.setRequiredNetworkType( JobInfo.NETWORK_TYPE_ANY )
+				.setPeriodic( 15 * 60 * 1000 )
 				.setRequiresDeviceIdle( false )
 				.setRequiresCharging( false )
-				.setExtras(extras)
-				.setPersisted( true )
+				.setPersisted( false )
 				.build();
-
-		System.out.println( "["+jobId+"] "+ extras.getString(SyncResourceConfiguration.SERVICE_NAME_KEY) );
-		final Integer result = Syncer.JOB_SCHEDULER.schedule( jobInfo );
-
-		if ( result != JobScheduler.RESULT_SUCCESS )
+		if ( Syncer.JOB_SCHEDULER.schedule( jobInfo ) != JobScheduler.RESULT_SUCCESS )
 		{
-			Log.w( Syncer.class.getSimpleName(), "Error doing the local operation. Was not possible to schedule for sync." );
+			Log.w( "[sync-bg]", "Could not schedule background sync" );
+		}
+		else
+		{
+			Log.i( "[sync-bg]", "Background sync scheduled." );
 		}
 	}
 
 	/**
 	 *
 	 */
-	public static void cancelSync()
+	public static void cancelScheduledSync()
 	{
 		Syncer.JOB_SCHEDULER.cancelAll();
 	}
@@ -210,6 +166,7 @@ public class Syncer
 	/*-------------------------------------------------------------------
 	 * 		 				  GETTERS AND SETTERS
 	 *-------------------------------------------------------------------*/
+
 	/**
 	 *
 	 */

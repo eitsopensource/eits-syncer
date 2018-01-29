@@ -7,9 +7,6 @@ import java.util.Objects;
 
 import javax.persistence.Id;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
  *
  */
@@ -66,8 +63,7 @@ public class Revision<T> implements Serializable
 	 * @param type
 	 * @param serviceName
 	 */
-	@JsonCreator
-	public Revision( @JsonProperty("entity") T entity, @JsonProperty("type") RevisionType type, @JsonProperty("serviceName") String serviceName )
+	public Revision( T entity, RevisionType type, String serviceName )
 	{
 		this.type = type;
 		this.synced = false;
@@ -92,6 +88,11 @@ public class Revision<T> implements Serializable
 		this.entity = entity;
 		this.serviceName = serviceName;
 		this.entityId = entityId;
+	}
+
+	public Revision()
+	{
+
 	}
 
 	/*-------------------------------------------------------------------
@@ -281,5 +282,21 @@ public class Revision<T> implements Serializable
 	public void setSynced( Boolean synced )
 	{
 		this.synced = synced;
+	}
+
+	public void setType( RevisionType type )
+	{
+		this.type = type;
+	}
+
+	public void setEntity( T entity )
+	{
+		this.entity = entity;
+		this.extractEntity();
+	}
+
+	public void setServiceName( String serviceName )
+	{
+		this.serviceName = serviceName;
 	}
 }

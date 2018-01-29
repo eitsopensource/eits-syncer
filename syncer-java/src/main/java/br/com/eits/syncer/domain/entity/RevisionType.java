@@ -17,17 +17,9 @@ public enum RevisionType
      * Indicates that the entity was deleted (removed) at that revision.
      */
     REMOVE;
-	
-    /**
-     *
-     */
-    private RevisionType()
-    {
-    	
-    }
-    
-    /**
-     * @param ordinal
+
+	/**
+	 * @param ordinal
      */
     public static RevisionType valueOf( int ordinal )
     {

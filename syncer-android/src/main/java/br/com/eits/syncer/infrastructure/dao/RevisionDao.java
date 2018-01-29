@@ -3,15 +3,16 @@ package br.com.eits.syncer.infrastructure.dao;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.text.TextUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import br.com.eits.syncer.Syncer;
 import br.com.eits.syncer.application.ApplicationHolder;
 import br.com.eits.syncer.domain.entity.Revision;
 import br.com.eits.syncer.domain.entity.RevisionType;
 import br.com.eits.syncer.domain.service.QueryRevisionService;
 import io.requery.android.database.sqlite.SQLiteDatabase;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by rodrigo.p.fraga on 03/11/16.
@@ -97,9 +98,7 @@ public class RevisionDao<T>
         final String where = SQLiteHelper.COLUMN_ID + " = ?";
         final Object[] whereArguments = new Object[] { id };
 
-        final Cursor cursor = database.query( SQLiteHelper.TABLE_REVISION, null, where, whereArguments, null, null, null );
-
-        try
+        try ( Cursor cursor = database.query( SQLiteHelper.TABLE_REVISION, null, where, whereArguments, null, null, null ) )
         {
             Revision<T> revision = null;
             if ( cursor.moveToFirst() )
@@ -107,14 +106,6 @@ public class RevisionDao<T>
                 revision = this.fromCursorToRevision( cursor );
             }
             return revision;
-        }
-        catch ( Exception e )
-        {
-            throw e;
-        }
-        finally
-        {
-            cursor.close();
         }
     }
 
@@ -134,9 +125,7 @@ public class RevisionDao<T>
         final String having = SQLiteHelper.TABLE_REVISION + "." + SQLiteHelper.COLUMN_TYPE + " <> " + RevisionType.REMOVE.ordinal();
         final String orderBy = SQLiteHelper.COLUMN_ID + " DESC";
 
-        final Cursor cursor = database.query( SQLiteHelper.TABLE_REVISION, null, where, whereArguments, groupBy, having, orderBy );
-
-        try
+        try ( Cursor cursor = database.query( SQLiteHelper.TABLE_REVISION, null, where, whereArguments, groupBy, having, orderBy ) )
         {
             Revision<T> revision = null;
             if ( cursor.moveToFirst() )
@@ -144,14 +133,6 @@ public class RevisionDao<T>
                 revision = this.fromCursorToRevision( cursor );
             }
             return revision;
-        }
-        catch ( Exception e )
-        {
-            throw e;
-        }
-        finally
-        {
-            cursor.close();
         }
     }
 
@@ -176,9 +157,7 @@ public class RevisionDao<T>
         final String having = SQLiteHelper.TABLE_REVISION + "." + SQLiteHelper.COLUMN_TYPE + " <> " + RevisionType.REMOVE.ordinal();
         final String orderBy = SQLiteHelper.COLUMN_ID + " DESC";
 
-        final Cursor cursor = database.query( tables, null, where, whereArguments, groupBy, having, orderBy );
-
-        try
+        try ( Cursor cursor = database.query( tables, null, where, whereArguments, groupBy, having, orderBy ) )
         {
             cursor.moveToFirst();
 
@@ -189,14 +168,6 @@ public class RevisionDao<T>
                 cursor.moveToNext();
             }
             return revisions;
-        }
-        catch ( Exception e )
-        {
-            throw e;
-        }
-        finally
-        {
-            cursor.close();
         }
     }
 
@@ -217,9 +188,7 @@ public class RevisionDao<T>
         final String orderBy = queryRevisionService.getOrderBy();
         final String limit = queryRevisionService.getLimit();
 
-        final Cursor cursor = database.queryWithFactory( null, false, tables, null, where, whereArguments, groupBy, having, orderBy, limit );
-
-        try
+        try ( Cursor cursor = database.queryWithFactory( null, false, tables, null, where, whereArguments, groupBy, having, orderBy, limit ) )
         {
             cursor.moveToFirst();
 
@@ -230,14 +199,6 @@ public class RevisionDao<T>
                 cursor.moveToNext();
             }
             return revisions;
-        }
-        catch ( Exception e )
-        {
-            throw e;
-        }
-        finally
-        {
-            cursor.close();
         }
     }
 
@@ -254,24 +215,14 @@ public class RevisionDao<T>
         final String orderBy = SQLiteHelper.COLUMN_REVISION_NUMBER + " DESC";
         final String limit = "1";
 
-        final Cursor cursor = database.queryWithFactory( null, false, SQLiteHelper.TABLE_REVISION, null, where, whereArguments, null, null, orderBy, limit );
-
-        try
+        try ( Cursor cursor = database.queryWithFactory( null, false, SQLiteHelper.TABLE_REVISION, null, where, whereArguments, null, null, orderBy, limit ) )
         {
             Revision<?> revision = null;
             if ( cursor.moveToFirst() )
             {
-                revision = this.fromCursorToRevision(cursor);
+                revision = this.fromCursorToRevision( cursor );
             }
             return revision;
-        }
-        catch ( Exception e )
-        {
-            throw e;
-        }
-        finally
-        {
-            cursor.close();
         }
     }
 
@@ -279,18 +230,15 @@ public class RevisionDao<T>
      *
      * @return
      */
-    public List<Revision<?>> listByUnsyncedByService( String serviceName, int count )
+    public List<Revision<?>> listByUnsyncedByService( String serviceName )
     {
         final SQLiteDatabase database = HELPER.getReadableDatabase();
 
         final String where = SQLiteHelper.COLUMN_SYNCED + " = ? AND "+SQLiteHelper.COLUMN_SERVICE_NAME + " = ?";
         final Object[] whereArguments = new Object[] { Boolean.FALSE, serviceName };
         final String orderBy = SQLiteHelper.COLUMN_REVISION_NUMBER + " ASC";
-        final String limit = String.valueOf(count);
 
-        final Cursor cursor = database.query( SQLiteHelper.TABLE_REVISION, null, where, whereArguments, null, null, orderBy, limit );
-
-        try
+        try ( Cursor cursor = database.query( SQLiteHelper.TABLE_REVISION, null, where, whereArguments, null, null, orderBy ) )
         {
             cursor.moveToFirst();
 
@@ -301,14 +249,6 @@ public class RevisionDao<T>
                 cursor.moveToNext();
             }
             return revisions;
-        }
-        catch ( Exception e )
-        {
-            throw e;
-        }
-        finally
-        {
-            cursor.close();
         }
     }
 
@@ -337,34 +277,34 @@ public class RevisionDao<T>
     }
 
     /**
-     *
      * @param cursor
      * @return
      */
+    @SuppressWarnings("unchecked")
     private Revision<T> fromCursorToRevision( Cursor cursor )
     {
         try
         {
-            final Class<?> entityClass = Class.forName( cursor.getString(SQLiteHelper.COLUMN_ENTITY_CLASSNAME_INDEX) );
-            final Object entity = this.toEntity( cursor.getString(SQLiteHelper.COLUMN_ENTITY_INDEX), entityClass );
+            final Class<?> entityClass = Class.forName( cursor.getString( SQLiteHelper.COLUMN_ENTITY_CLASSNAME_INDEX ) );
+            final Object entity = this.toEntity( cursor.getString( SQLiteHelper.COLUMN_ENTITY_INDEX ), entityClass );
 
-            final Revision revision = new Revision(
-                    cursor.getLong(SQLiteHelper.COLUMN_ID_INDEX),
+            final Revision<?> revision = new Revision<>(
+                    cursor.getLong( SQLiteHelper.COLUMN_ID_INDEX ),
                     entity,
-                    cursor.getString(SQLiteHelper.COLUMN_ENTITY_ID_INDEX),
-                    RevisionType.valueOf(cursor.getInt(SQLiteHelper.COLUMN_TYPE_INDEX)),
-                    cursor.getString(SQLiteHelper.COLUMN_SERVICE_NAME_INDEX)
+                    cursor.getString( SQLiteHelper.COLUMN_ENTITY_ID_INDEX ),
+                    RevisionType.valueOf( cursor.getInt( SQLiteHelper.COLUMN_TYPE_INDEX ) ),
+                    cursor.getString( SQLiteHelper.COLUMN_SERVICE_NAME_INDEX )
             );
 
             revision.setRevisionNumber( cursor.getLong( SQLiteHelper.COLUMN_REVISION_NUMBER_INDEX ) );
-            revision.setSynced( cursor.getLong( SQLiteHelper.COLUMN_SYNCED_INDEX ) == 1 ? true : false );
+            revision.setSynced( cursor.getLong( SQLiteHelper.COLUMN_SYNCED_INDEX ) == 1 );
 
-            return revision;
+            return (Revision<T>) revision;
         }
         catch ( ClassNotFoundException e )
         {
             e.printStackTrace();
-            throw new IllegalStateException("Could not parser the persisted json to an entity instance", e);
+            throw new IllegalStateException( "Could not parser the persisted json to an entity instance", e );
         }
     }
 

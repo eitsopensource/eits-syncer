@@ -2,16 +2,16 @@ package br.com.eits.syncer.domain.service;
 
 
 import android.app.Activity;
-import android.os.PersistableBundle;
-import br.com.eits.syncer.Syncer;
-import br.com.eits.syncer.domain.entity.Revision;
-import br.com.eits.syncer.domain.entity.RevisionType;
-import br.com.eits.syncer.domain.entity.SyncResourceConfiguration;
-import br.com.eits.syncer.infrastructure.dao.RevisionDao;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
+import br.com.eits.syncer.Syncer;
+import br.com.eits.syncer.domain.entity.Revision;
+import br.com.eits.syncer.domain.entity.RevisionType;
+import br.com.eits.syncer.domain.service.sync.SyncOnDemandService;
+import br.com.eits.syncer.infrastructure.dao.RevisionDao;
 
 /**
  *
@@ -44,7 +44,6 @@ public class RevisionService<T> implements IRevisionService<T>
     {
         this.entityClass = entityClass;
         this.serviceName = Syncer.syncResourceConfiguration().getDefaultServiceName();
-
     }
 
     /*-------------------------------------------------------------------
@@ -56,11 +55,7 @@ public class RevisionService<T> implements IRevisionService<T>
     protected Revision insertRevisionAndSync( Revision revision )
     {
         this.revisionDao.insertRevision( revision );
-
-        final PersistableBundle extras = new PersistableBundle();
-        extras.putString( SyncResourceConfiguration.SERVICE_NAME_KEY, this.serviceName );
-
-        Syncer.requestSync( extras );
+        SyncOnDemandService.syncNowBackground( this.serviceName );
         return revision;
     }
 
@@ -97,11 +92,7 @@ public class RevisionService<T> implements IRevisionService<T>
             revisions.add( revision );
         }
         this.revisionDao.insertRevisions( revisions );
-
-        final PersistableBundle extras = new PersistableBundle();
-        extras.putString( SyncResourceConfiguration.SERVICE_NAME_KEY, this.serviceName );
-
-        Syncer.requestSync( extras );
+        SyncOnDemandService.syncNowBackground( this.serviceName );
         return entities;
     }
 
@@ -127,11 +118,7 @@ public class RevisionService<T> implements IRevisionService<T>
             revisions.add( revision );
         }
         this.revisionDao.insertRevisions( revisions );
-
-        final PersistableBundle extras = new PersistableBundle();
-        extras.putString( SyncResourceConfiguration.SERVICE_NAME_KEY, this.serviceName );
-
-        Syncer.requestSync( extras );
+        SyncOnDemandService.syncNowBackground( this.serviceName );
         return entities;
     }
 
@@ -156,11 +143,7 @@ public class RevisionService<T> implements IRevisionService<T>
             revisions.add( revision );
         }
         this.revisionDao.insertRevisions( revisions );
-
-        final PersistableBundle extras = new PersistableBundle();
-        extras.putString( SyncResourceConfiguration.SERVICE_NAME_KEY, this.serviceName );
-
-        Syncer.requestSync( extras );
+        SyncOnDemandService.syncNowBackground( this.serviceName );
     }
 
     /**

@@ -1,11 +1,23 @@
 
 allprojects {
-	version = "0.0.24-SNAPSHOT"
-    group = 'com.github.eitsopensource'
+	version = "0.9.0"
+    group = 'br.com.eits.syncer'
 
     repositories {
         jcenter()
         mavenCentral()
         mavenLocal()
+    }
+}
+
+subprojects {
+    apply plugin: 'maven'
+
+    uploadArchives {
+        repositories {
+            mavenDeployer {
+                repository(id: "eits-repository-release", url: "http://maven.eits.com.br/content/repositories/releases") 
+            }
+        }
     }
 }

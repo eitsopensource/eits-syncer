@@ -1,11 +1,12 @@
 buildscript {
     repositories {
+        google()
         jcenter()
         mavenCentral()
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.2.0'
+        classpath 'com.android.tools.build:gradle:3.0.0-rc2'
         classpath 'com.github.dcendents:android-maven-gradle-plugin:1.5'
     }
 }
@@ -15,12 +16,12 @@ apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'maven-publish'
 
 android {
-    compileSdkVersion 24
-    buildToolsVersion "24.0.0"
+    compileSdkVersion 26
+    buildToolsVersion "26.0.2"
 
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 21
+        targetSdkVersion 26
         consumerProguardFiles 'proguard-rules.pro'
     }
 
@@ -39,11 +40,13 @@ def feignVersion = '9.5.0'
 dependencies {
     compile project(':syncer-java')
     compile 'io.requery:sqlite-android:3.15.1'
-    compile 'io.github.openfeign:feign-core:'+feignVersion
-    compile 'io.github.openfeign:feign-jackson:'+feignVersion
-    compile ('io.github.openfeign:feign-jaxrs:'+feignVersion) {
-        exclude module: 'jsr311-api'//conflit with android dependencies
-    }
+    compile 'com.squareup.retrofit2:retrofit:2.3.0'
+    compile 'com.squareup.okhttp3:logging-interceptor:3.9.1'
+    compile 'com.squareup.retrofit2:converter-jackson:2.3.0'
+    compile 'com.squareup.retrofit2:adapter-rxjava2:2.3.0'
+    compile 'io.reactivex.rxjava2:rxandroid:2.0.1'
+    compile 'io.reactivex.rxjava2:rxjava:2.1.6'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.9.2'
 }
 
 // build a jar with source files

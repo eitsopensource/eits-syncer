@@ -1,15 +1,10 @@
 package br.com.eits.syncer.domain.entity;
 
-import br.com.eits.syncer.application.restful.ISyncResource;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import feign.*;
-import feign.auth.BasicAuthRequestInterceptor;
-import feign.jackson.JacksonDecoder;
-import feign.jackson.JacksonEncoder;
-import feign.jaxrs.JAXRSContract;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -17,246 +12,240 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import br.com.eits.syncer.infrastructure.delegate.SyncServiceDelegate;
+import okhttp3.Authenticator;
+import okhttp3.Credentials;
+import okhttp3.Interceptor;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.Route;
+import okhttp3.logging.HttpLoggingInterceptor;
+import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
+import retrofit2.converter.jackson.JacksonConverterFactory;
+
 /**
  *
  */
 public class SyncResourceConfiguration
 {
-    /**
-     *
-     */
-    public static final String SERVICE_NAME_KEY = "serviceName";
-    /**
-     *
-     */
-    private static final Map<String, ISyncResource> SYNC_RESOURCE_CACHE = new HashMap<>();
+	/**
+	 *
+	 */
+	public static final String SERVICE_NAMES_KEY = "serviceNames";
+	/**
+	 *
+	 */
+	private static final Map<String, SyncServiceDelegate> SYNC_RESOURCE_CACHE = new HashMap<>();
 
     /*-------------------------------------------------------------------
 	 * 		 					ATTRIBUTES
 	 *-------------------------------------------------------------------*/
-    /**
-     *
-     */
-    private Map<String, String> syncURLs = new HashMap<>();
-    /**
-     *
-     */
-    private RequestInterceptor requestInterceptor;
-    /**
-     *
-     */
-    private String encoding;
-    /**
-     *
-     */
-    private ObjectMapper objectMapper = new ObjectMapper();
-    /**
-     *
-     */
-    private Contract contract = new JAXRSContract();
-    /**
-     *
-     */
-    private Logger.Level logLevel = Logger.Level.NONE;
+	/**
+	 *
+	 */
+	private Map<String, String> syncURLs = new HashMap<>();
+	/**
+	 *
+	 */
+	private Interceptor requestInterceptor;
+	/**
+	 *
+	 */
+	private Authenticator authenticator;
+	/**
+	 *
+	 */
+	private String encoding;
+	/**
+	 *
+	 */
+	private ObjectMapper objectMapper = new ObjectMapper();
+	/**
+	 *
+	 */
+	private HttpLoggingInterceptor.Level logLevel = HttpLoggingInterceptor.Level.HEADERS;
 
     /*-------------------------------------------------------------------
 	 * 		 					CONSTRUCTORS
 	 *-------------------------------------------------------------------*/
-    /**
-     *
-     */
-    public SyncResourceConfiguration()
-    {
-        //configure the default objectMapper
-        this.objectMapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
-        this.objectMapper.configure( SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false );
-        this.objectMapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );//nao serializa o json com null
-        this.objectMapper.enableDefaultTypingAsProperty( ObjectMapper.DefaultTyping.JAVA_LANG_OBJECT, "@type" );
-    }
+
+	/**
+	 *
+	 */
+	public SyncResourceConfiguration()
+	{
+		//configure the default objectMapper
+		this.objectMapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
+		this.objectMapper.configure( SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false );
+		this.objectMapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );//nao serializa o json com null
+		this.objectMapper.enableDefaultTypingAsProperty( ObjectMapper.DefaultTyping.JAVA_LANG_OBJECT, "@type" );
+	}
 
     /*-------------------------------------------------------------------
 	 * 		 					BEHAVIORS
 	 *-------------------------------------------------------------------*/
-    /**
-     *
-     * @param serviceName
-     * @return
-     */
-    public ISyncResource getSyncResource( String serviceName )
-    {
-        final String serviceUrl = this.syncURLs.get(serviceName);
-        Objects.requireNonNull( serviceUrl, "An URL was not found to the service name: "+serviceName );
 
-        ISyncResource syncResource = SYNC_RESOURCE_CACHE.get( serviceUrl );
+	/**
+	 * @param serviceName
+	 * @return
+	 */
+	public SyncServiceDelegate getSyncResource( String serviceName )
+	{
+		final String serviceUrl = this.syncURLs.get( serviceName );
+		Objects.requireNonNull( serviceUrl, "An URL was not found to the service name: " + serviceName );
 
-        //if is not cached
-        if ( syncResource == null )
-        {
-            final Feign.Builder builder = Feign.builder()
-                    .logger( new Logger.ErrorLogger() )
-                    .logLevel( this.logLevel )
-                    .contract( this.contract )
-                    .encoder( new JacksonEncoder( this.objectMapper ) )
-                    .decoder( new JacksonDecoder( this.objectMapper ) );
+		SyncServiceDelegate syncDelegate = SYNC_RESOURCE_CACHE.get( serviceUrl );
 
-            if ( this.requestInterceptor != null )
-            {
-                builder.requestInterceptor( this.requestInterceptor );
-            }
+		if ( syncDelegate == null )
+		{
+			final HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
+			loggingInterceptor.setLevel( this.logLevel );
+			final OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder()
+					.addInterceptor( loggingInterceptor );
+			if ( this.requestInterceptor != null )
+			{
+				clientBuilder.addInterceptor( this.requestInterceptor );
+			}
+			if ( this.authenticator != null )
+			{
+				clientBuilder.authenticator( this.authenticator );
+			}
+			final Retrofit.Builder builder = new Retrofit.Builder()
+					.addCallAdapterFactory( RxJava2CallAdapterFactory.createAsync() )
+					.addConverterFactory( JacksonConverterFactory.create( this.objectMapper ) )
+					.baseUrl( serviceUrl )
+					.client( clientBuilder.build() );
 
-            if ( this.encoding != null )
-            {
-                //configure encondig
-                builder.requestInterceptor(new RequestInterceptor()
-                {
-                    @Override
-                    public void apply(RequestTemplate template)
-                    {
-                        //template.header("Accept-Encoding", encoding.split(",") );
-                        template.header("Content-Encoding", encoding.split(",") );
-                    }
-                });
-            }
+			syncDelegate = builder.build().create( SyncServiceDelegate.class );
+			SYNC_RESOURCE_CACHE.put( serviceUrl, syncDelegate );
+		}
+		return syncDelegate;
 
-            syncResource = builder.target( ISyncResource.class, serviceUrl );
-            SYNC_RESOURCE_CACHE.put( serviceUrl, syncResource );
-        }
+	}
 
-        return syncResource;
-    }
+	/**
+	 * @param credentials
+	 */
+	public void setBasicCredentials( String credentials )
+	{
+		if ( credentials != null && !credentials.isEmpty() && credentials.contains( ":" ) )
+		{
+			final String username = credentials.split( ":" )[0];
+			final String password = credentials.split( ":" )[1];
 
-    /**
-     *
-     * @return default sync resource
-     */
-    public ISyncResource getSyncResource()
-    {
-        //get the first service name
-        return this.getSyncResource( this.getDefaultServiceName() );
-    }
+			this.authenticator = new Authenticator()
+			{
+				@Override
+				public Request authenticate( Route route, Response response ) throws IOException
+				{
+					final String credentials = Credentials.basic( username, password );
+					return response.request().newBuilder().header( "Authorization", credentials ).build();
+				}
+			};
+		}
+		else
+		{
+			throw new IllegalArgumentException( "The basic credentials must a meta-data like: " +
+					"        <meta-data android:name=\"sync-basic-credentials\"\n" +
+					"                   android:value=\"username:password\"/>" );
+		}
+	}
 
-    /**
-     *
-     * @param credentials
-     */
-    public void setBasicCredentials( String credentials )
-    {
-        if ( credentials != null && !credentials.isEmpty() && credentials.contains(":") )
-        {
-            final String username = credentials.split(":")[0];
-            final String password = credentials.split(":")[1];
+	/**
+	 * @param encoding
+	 */
+	public void setEncondig( String encoding )
+	{
+		if ( encoding == null || encoding.isEmpty() )
+		{
+			throw new IllegalArgumentException( "The enconding must be a value of gzip or/with deflate." );
+		}
 
-            this.requestInterceptor = new BasicAuthRequestInterceptor(username, password);
-        }
-        else
-        {
-            throw new IllegalArgumentException("The basic credentials must a meta-data like: " +
-                    "        <meta-data android:name=\"sync-basic-credentials\"\n" +
-                    "                   android:value=\"username:password\"/>");
-        }
-    }
+		this.encoding = encoding;
+	}
 
-    /**
-     *
-     * @param encoding
-     */
-    public void setEncondig( String encoding )
-    {
-        if ( encoding == null || encoding.isEmpty() )
-        {
-            throw new IllegalArgumentException("The enconding must be a value of gzip or/with deflate.");
-        }
+	/**
+	 * @param urls
+	 */
+	public void setSyncURLs( String urls )
+	{
+		Objects.requireNonNull( urls, "The Sync URLs must be not null." );
 
-        this.encoding = encoding;
-    }
+		try
+		{
+			this.syncURLs = this.objectMapper.readValue( urls, new TypeReference<Map<String, String>>()
+			{
+			} );
+		}
+		catch ( IOException e )
+		{
+			e.printStackTrace();
+			throw new IllegalArgumentException( "The sync-urls meta-data must be set like: " +
+					"<meta-data android:name=\"sync-urls\"\n" +
+					"            android:value='{\"default\":\"http://host1.com\", \"service2\":\"http://host2.com\"}'/>" );
+		}
+	}
 
-    /**
-     *
-     * @param urls
-     */
-    public void setSyncURLs( String urls )
-    {
-        Objects.requireNonNull( urls, "The Sync URLs must be not null." );
+	/**
+	 * @return
+	 */
+	public String getDefaultServiceName()
+	{
+		return (String) this.getServiceNames().toArray()[0];
+	}
 
-        try
-        {
-            this.syncURLs = this.objectMapper.readValue( urls, Map.class );
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-            throw new IllegalArgumentException("The sync-urls meta-data must be set like: " +
-                    "<meta-data android:name=\"sync-urls\"\n" +
-                    "            android:value='{\"default\":\"http://host1.com\", \"service2\":\"http://host2.com\"}'/>");
-        }
-    }
-
-    /**
-     *
-     * @return
-     */
-    public String getDefaultServiceName()
-    {
-        return (String) this.getServiceNames().toArray()[0];
-    }
-
-    /**
-     *
-     * @return
-     */
-    public Set<String> getServiceNames()
-    {
-        if ( syncURLs.isEmpty() ) throw new IllegalStateException("The Sync URLs is empty. Please verify you manifest.");
-        return this.syncURLs.keySet();
-    }
+	/**
+	 * @return
+	 */
+	public Set<String> getServiceNames()
+	{
+		if ( syncURLs.isEmpty() )
+		{
+			throw new IllegalStateException( "The Sync URLs is empty. Please verify you manifest." );
+		}
+		return this.syncURLs.keySet();
+	}
 
     /*-------------------------------------------------------------------
 	 * 		 					BEHAVIORS
 	 *-------------------------------------------------------------------*/
-    /**
-     *
-     * @param requestInterceptor
-     */
-    public void setRequestInterceptor(RequestInterceptor requestInterceptor)
-    {
-        this.requestInterceptor = requestInterceptor;
-    }
 
-    /**
-     *
-     * @param objectMapper
-     */
-    public void setObjectMapper(ObjectMapper objectMapper)
-    {
-        Objects.requireNonNull( objectMapper, "The objectMapper must be not null." );
-        this.objectMapper = objectMapper;
-    }
-    /**
-     *
-     * @return
-     */
-    public ObjectMapper getObjectMapper()
-    {
-        return this.objectMapper;
-    }
+	/**
+	 * @param requestInterceptor
+	 */
+	public void setRequestInterceptor( Interceptor requestInterceptor )
+	{
+		this.requestInterceptor = requestInterceptor;
+	}
 
-    /**
-     *
-     * @param contract
-     */
-    public void setContract(Contract contract)
-    {
-        Objects.requireNonNull( contract, "The feign contract must be not null." );
-        this.contract = contract;
-    }
+	/**
+	 * @param objectMapper
+	 */
+	public void setObjectMapper( ObjectMapper objectMapper )
+	{
+		Objects.requireNonNull( objectMapper, "The objectMapper must be not null." );
+		this.objectMapper = objectMapper;
+	}
 
-    /**
-     *
-     * @param logLevel
-     */
-    public void setLogLevel(Logger.Level logLevel)
-    {
-        if ( logLevel == null ) logLevel = Logger.Level.NONE;
-        this.logLevel = logLevel;
-    }
+	/**
+	 * @return
+	 */
+	public ObjectMapper getObjectMapper()
+	{
+		return this.objectMapper;
+	}
+
+	/**
+	 * @param logLevel
+	 */
+	public void setLogLevel( HttpLoggingInterceptor.Level logLevel )
+	{
+		if ( logLevel == null )
+		{
+			logLevel = HttpLoggingInterceptor.Level.NONE;
+		}
+		this.logLevel = logLevel;
+	}
 }
