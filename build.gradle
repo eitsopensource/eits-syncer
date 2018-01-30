@@ -1,6 +1,6 @@
 
 allprojects {
-	version = "0.9.0"
+	version = "0.10.0"
     group = 'br.com.eits.syncer'
 
     repositories {
@@ -16,7 +16,9 @@ subprojects {
     uploadArchives {
         repositories {
             mavenDeployer {
-                repository(id: "eits-repository-release", url: "http://maven.eits.com.br/content/repositories/releases") 
+                repository(id: "eits-repository-release", url: "http://maven.eits.com.br/content/repositories/releases") {
+                    authentication(userName: System.getProperty("deployUser"), password: System.getProperty("deployPassword"))
+                }
             }
         }
     }

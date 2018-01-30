@@ -1,5 +1,7 @@
 package br.com.eits.syncer.domain.entity;
 
+import android.content.SharedPreferences;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -12,6 +14,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import br.com.eits.syncer.application.ApplicationHolder;
 import br.com.eits.syncer.infrastructure.delegate.SyncServiceDelegate;
 import okhttp3.Authenticator;
 import okhttp3.Credentials;
@@ -150,6 +153,28 @@ public class SyncResourceConfiguration
 			throw new IllegalArgumentException( "The basic credentials must a meta-data like: " +
 					"        <meta-data android:name=\"sync-basic-credentials\"\n" +
 					"                   android:value=\"username:password\"/>" );
+		}
+	}
+
+	public void setBearerToken( final String preferences, final String key )
+	{
+		try
+		{
+			this.authenticator = new Authenticator()
+			{
+				@Override
+				public Request authenticate( Route route, Response response ) throws IOException
+				{
+					SharedPreferences settings = ApplicationHolder.CONTEXT.getSharedPreferences( preferences, 0 );
+					String token = settings.getString( key, null );
+					return response.request().newBuilder().header( "Authorization", "Bearer " + token ).build();
+				}
+			};
+		}
+		catch ( Exception e )
+		{
+			throw new IllegalArgumentException( "The manifest must contain an entry in this format: <meta-data android:name=\"sync-shared-preferences-token\" android:value=\"preferencesName.keyName\" />",
+					e );
 		}
 	}
 

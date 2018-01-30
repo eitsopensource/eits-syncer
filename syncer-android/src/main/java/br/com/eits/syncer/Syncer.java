@@ -65,6 +65,13 @@ public class Syncer
 				Syncer.RESOURCE_CONFIGURATION.setBasicCredentials( credentials );
 			}
 
+			final String bearerToken = serviceInfo.metaData.getString( "sync-shared-preferences-token" );
+			if ( bearerToken != null )
+			{
+				String[] str = bearerToken.split( "\\." );
+				Syncer.RESOURCE_CONFIGURATION.setBearerToken( str[0], str[1] );
+			}
+
 			//get the job scheduler
 			Syncer.JOB_SCHEDULER = (JobScheduler) ApplicationHolder.CONTEXT.getSystemService( Context.JOB_SCHEDULER_SERVICE );
 		}
