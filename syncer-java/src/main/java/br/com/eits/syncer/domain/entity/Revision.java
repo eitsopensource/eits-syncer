@@ -1,5 +1,7 @@
 package br.com.eits.syncer.domain.entity;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.Calendar;
@@ -7,10 +9,13 @@ import java.util.Objects;
 
 import javax.persistence.Id;
 
+import br.com.eits.syncer.infrastructure.jackson.RevisionDeserializer;
+
 /**
  *
  */
-public class Revision<T> implements Serializable
+@JsonDeserialize(using = RevisionDeserializer.class)
+public class Revision<T extends SyncEntity> implements Serializable
 {
 	/**
 	 *
@@ -289,6 +294,7 @@ public class Revision<T> implements Serializable
 		this.type = type;
 	}
 
+
 	public void setEntity( T entity )
 	{
 		this.entity = entity;
@@ -298,5 +304,10 @@ public class Revision<T> implements Serializable
 	public void setServiceName( String serviceName )
 	{
 		this.serviceName = serviceName;
+	}
+
+	public void setEntityClassName( String entityClassName )
+	{
+		this.entityClassName = entityClassName;
 	}
 }

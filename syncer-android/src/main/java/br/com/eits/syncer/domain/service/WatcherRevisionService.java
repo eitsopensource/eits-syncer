@@ -7,10 +7,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 
+import br.com.eits.syncer.domain.entity.SyncEntity;
+
 /**
  *
  */
-public class WatcherRevisionService<T> extends RevisionService<T> implements IWatcherRevisionService<T>
+public class WatcherRevisionService<T extends SyncEntity> extends RevisionService<T> implements IWatcherRevisionService<T>
 {
     /*-------------------------------------------------------------------
     * 		 					ATTRIBUTES

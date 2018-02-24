@@ -11,13 +11,14 @@ import br.com.eits.syncer.Syncer;
 import br.com.eits.syncer.application.ApplicationHolder;
 import br.com.eits.syncer.domain.entity.Revision;
 import br.com.eits.syncer.domain.entity.RevisionType;
+import br.com.eits.syncer.domain.entity.SyncEntity;
 import br.com.eits.syncer.domain.service.QueryRevisionService;
 import io.requery.android.database.sqlite.SQLiteDatabase;
 
 /**
  * Created by rodrigo.p.fraga on 03/11/16.
  */
-public class RevisionDao<T>
+public class RevisionDao<T extends SyncEntity>
 {
     /**
      *
@@ -286,7 +287,7 @@ public class RevisionDao<T>
         try
         {
             final Class<?> entityClass = Class.forName( cursor.getString( SQLiteHelper.COLUMN_ENTITY_CLASSNAME_INDEX ) );
-            final Object entity = this.toEntity( cursor.getString( SQLiteHelper.COLUMN_ENTITY_INDEX ), entityClass );
+            final SyncEntity entity = this.toEntity( cursor.getString( SQLiteHelper.COLUMN_ENTITY_INDEX ), entityClass );
 
             final Revision<?> revision = new Revision<>(
                     cursor.getLong( SQLiteHelper.COLUMN_ID_INDEX ),
@@ -297,6 +298,7 @@ public class RevisionDao<T>
             );
 
             revision.setRevisionNumber( cursor.getLong( SQLiteHelper.COLUMN_REVISION_NUMBER_INDEX ) );
+            revision.setEntityClassName( entityClass.getName() );
             revision.setSynced( cursor.getLong( SQLiteHelper.COLUMN_SYNCED_INDEX ) == 1 );
 
             return (Revision<T>) revision;
@@ -331,11 +333,11 @@ public class RevisionDao<T>
      * @param entityClass
      * @return
      */
-    private Object toEntity( String json, Class<?> entityClass )
+    private SyncEntity toEntity( String json, Class<?> entityClass )
     {
         try
         {
-            return Syncer.getMapper().readValue( json, entityClass );
+            return (SyncEntity) Syncer.getMapper().readValue( json, entityClass );
         }
         catch ( Exception e )
         {

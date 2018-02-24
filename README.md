@@ -1,6 +1,6 @@
 # eits-syncer
 
-A simple sync mechanics to client in Android or iOS to servers in Java, Ruby.
+A simple sync mechanics to client in Android or iOS to servers in Java.
 
 ### Android setup and usage (nosql style)
 A basic setup would be like:

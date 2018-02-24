@@ -10,13 +10,14 @@ import java.util.Objects;
 import br.com.eits.syncer.Syncer;
 import br.com.eits.syncer.domain.entity.Revision;
 import br.com.eits.syncer.domain.entity.RevisionType;
+import br.com.eits.syncer.domain.entity.SyncEntity;
 import br.com.eits.syncer.domain.service.sync.SyncOnDemandService;
 import br.com.eits.syncer.infrastructure.dao.RevisionDao;
 
 /**
  *
  */
-public class RevisionService<T> implements IRevisionService<T>
+public class RevisionService<T extends SyncEntity> implements IRevisionService<T>
 {
     /*-------------------------------------------------------------------
     * 		 					ATTRIBUTES
@@ -182,11 +183,11 @@ public class RevisionService<T> implements IRevisionService<T>
     }
 
     /**
-     *
      * @return
      */
     @Override
-    public IQueryRevisionService query()
+    @SuppressWarnings("unchecked")
+    public IQueryRevisionService<T> query()
     {
         return new QueryRevisionService( this.entityClass );
     }

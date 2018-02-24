@@ -33,10 +33,6 @@ import io.reactivex.schedulers.Schedulers;
 
 class PersistentSyncTask implements ObservableOnSubscribe<Void>
 {
-	private static final int RETRY_MULTIPLIER = 1;
-
-	private static final int MAX_INTERVAL = 3;
-
 	private final RevisionDao revisionDao = new RevisionDao();
 
 	private final String serviceName;
@@ -58,6 +54,11 @@ class PersistentSyncTask implements ObservableOnSubscribe<Void>
 		this.serviceName = serviceName;
 		this.syncResource = syncResource;
 		this.tag = "[sync-task//" + serviceName + "]";
+	}
+
+	boolean isRunning()
+	{
+		return running;
 	}
 
 	@Override
@@ -133,6 +134,7 @@ class PersistentSyncTask implements ObservableOnSubscribe<Void>
 					catch ( Exception e )
 					{
 						consecutiveFailureCount++;
+						Log.w( tag, e.getMessage(), e );
 						throw e;
 					}
 				}

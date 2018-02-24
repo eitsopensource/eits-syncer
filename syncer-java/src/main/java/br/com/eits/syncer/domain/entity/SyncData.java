@@ -1,5 +1,6 @@
 package br.com.eits.syncer.domain.entity;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -20,7 +21,7 @@ public class SyncData
 	/**
 	 * An ordered revision list to sync logic.
 	 */
-	private List<Revision<?>> revisions;
+	private List<Revision<?>> revisions = new ArrayList<>();
 
 	/**
 	 * Id da sincronização para paginação das revisões.

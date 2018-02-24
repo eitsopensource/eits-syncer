@@ -15,9 +15,12 @@ import java.util.Objects;
 
 import br.com.eits.syncer.application.ApplicationHolder;
 import br.com.eits.syncer.application.background.SyncBackgroundService;
+import br.com.eits.syncer.domain.entity.SyncEntity;
 import br.com.eits.syncer.domain.entity.SyncResourceConfiguration;
 import br.com.eits.syncer.domain.service.IRevisionService;
 import br.com.eits.syncer.domain.service.RevisionService;
+import br.com.eits.syncer.domain.service.sync.SyncOnDemandService;
+import io.reactivex.Observable;
 import okhttp3.Interceptor;
 import okhttp3.logging.HttpLoggingInterceptor;
 
@@ -132,7 +135,7 @@ public class Syncer
 	 * @param entityClass
 	 * @return
 	 */
-	public static <T> IRevisionService<T> of( Class<T> entityClass )
+	public static <T extends SyncEntity> IRevisionService<T> of( Class<T> entityClass )
 	{
 		return new RevisionService<>( entityClass );
 	}
@@ -168,6 +171,20 @@ public class Syncer
 	public static void cancelScheduledSync()
 	{
 		Syncer.JOB_SCHEDULER.cancelAll();
+	}
+
+	/**
+	 * Blocks until syncs are all finished and does not allow syncs to occur until reenabled.
+	 */
+	public static void disableSync()
+	{
+		cancelScheduledSync();
+		SyncOnDemandService.disable();
+	}
+
+	public static void enableSync()
+	{
+		SyncOnDemandService.enable();
 	}
 
 	/*-------------------------------------------------------------------

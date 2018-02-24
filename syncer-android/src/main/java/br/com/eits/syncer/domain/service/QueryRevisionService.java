@@ -5,12 +5,13 @@ import java.util.List;
 
 import br.com.eits.syncer.domain.entity.Revision;
 import br.com.eits.syncer.domain.entity.RevisionType;
+import br.com.eits.syncer.domain.entity.SyncEntity;
 import br.com.eits.syncer.infrastructure.dao.SQLiteHelper;
 
 /**
  * Created by rodrigo.p.fraga on 19/04/17.
  */
-public class QueryRevisionService <T> extends RevisionService<T> implements IQueryRevisionService<T>
+public class QueryRevisionService <T extends SyncEntity> extends RevisionService<T> implements IQueryRevisionService<T>
 {
     /*-------------------------------------------------------------------
     * 		 					ATTRIBUTES
@@ -55,7 +56,7 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
      * @return
      */
     @Override
-    public IQueryRevisionService where( String field, String value )
+    public IQueryRevisionService<T> where( String field, String value )
     {
         this.where = this.where.concat( field.charAt( 0 ) == '$'
                 ? "json_extract(" + SQLiteHelper.COLUMN_ENTITY + ", '" + field + "') = '" + value + "'"
@@ -70,7 +71,7 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
      * @return
      */
     @Override
-    public IQueryRevisionService where( String field, Number value )
+    public IQueryRevisionService<T> where( String field, Number value )
     {
         this.where = this.where.concat( field.charAt( 0 ) == '$'
                 ? "json_extract(" + SQLiteHelper.COLUMN_ENTITY + ", '" + field + "') = " + value
@@ -84,7 +85,7 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
      * @return
      */
     @Override
-    public IQueryRevisionService whereLike( String field, String value )
+    public IQueryRevisionService<T> whereLike( String field, String value )
     {
         value = value == null ? "" : value;
         this.where = this.where.concat(
@@ -101,7 +102,7 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
      * @return
      */
     @Override
-    public IQueryRevisionService join( Class<?> joinEntity, long joinEntityId )
+    public IQueryRevisionService<T> join( Class<?> joinEntity, long joinEntityId )
     {
         final String simpleClassName = joinEntity.getSimpleName().substring(0, 1).toLowerCase() + joinEntity.getSimpleName().substring(1);
         String entityIdName = Revision.extractEntityIdField( joinEntity ).getName();
@@ -118,7 +119,7 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
      * @return
      */
     @Override
-    public IQueryRevisionService filterBy( String filters )
+    public IQueryRevisionService<T> filterBy( String filters )
     {
         filters = filters != null ? filters : "";
 
@@ -133,7 +134,7 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
      * @return
      */
     @Override
-    public IQueryRevisionService and()
+    public IQueryRevisionService<T> and()
     {
         this.where = this.where.concat(" AND ");
         return this;
@@ -144,7 +145,7 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
      * @return
      */
     @Override
-    public IQueryRevisionService or()
+    public IQueryRevisionService<T> or()
     {
         this.where = this.where.concat(" OR ");
         return this;
@@ -155,7 +156,7 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
      * @return
      */
     @Override
-    public IQueryRevisionService begin()
+    public IQueryRevisionService<T> begin()
     {
         this.where = this.where.concat(" ( ");
         return this;
@@ -166,7 +167,7 @@ public class QueryRevisionService <T> extends RevisionService<T> implements IQue
      * @return
      */
     @Override
-    public IQueryRevisionService end()
+    public IQueryRevisionService<T> end()
     {
         this.where = this.where.concat(" ) ");
         return this;

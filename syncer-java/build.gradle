@@ -8,6 +8,7 @@ dependencies {
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.9.2'
     compile group: 'org.hibernate.javax.persistence', name: 'hibernate-jpa-2.1-api', version: '1.0.0.Final'
     compile 'org.hibernate:hibernate-validator:5.3.4.Final'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.9.2'
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {

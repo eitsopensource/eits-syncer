@@ -79,7 +79,7 @@ public interface IRevisionService<T>
      *
      * @return
      */
-    public IQueryRevisionService query();
+    public IQueryRevisionService<T> query();
 
     /**
      *

@@ -5,7 +5,9 @@ import android.util.Log;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
 
 import br.com.eits.syncer.Syncer;
 import io.reactivex.Observable;
@@ -25,6 +27,8 @@ public class SyncOnDemandService
 	private static final Map<String, PersistentSyncTask> PERSISTENT_TASKS = new ConcurrentHashMap<>();
 	private static final String TAG = "[sync]";
 
+	private static boolean disabled = false;
+
 	static
 	{
 		for ( String serviceName : Syncer.syncResourceConfiguration().getServiceNames() )
@@ -33,8 +37,24 @@ public class SyncOnDemandService
 		}
 	}
 
+	public static boolean isDisabled()
+	{
+		return disabled;
+	}
+
 	public static Observable<Void> syncNow( String serviceName )
 	{
+		if ( disabled )
+		{
+			return Observable.create( new ObservableOnSubscribe<Void>()
+			{
+				@Override
+				public void subscribe( ObservableEmitter<Void> e ) throws Exception
+				{
+					e.onComplete();
+				}
+			} );
+		}
 		final PersistentSyncTask task = PERSISTENT_TASKS.get( serviceName );
 		if ( task == null )
 		{
@@ -127,6 +147,28 @@ public class SyncOnDemandService
 				}
 			}
 		} ).subscribeOn( Schedulers.io() ).observeOn( AndroidSchedulers.mainThread() );
+	}
+
+	public static void disable()
+	{
+		disabled = true;
+	}
+
+	private static boolean allNotRunning()
+	{
+		for ( Map.Entry<String, PersistentSyncTask> entry : PERSISTENT_TASKS.entrySet() )
+		{
+			if ( entry.getValue().isRunning() )
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	public static void enable()
+	{
+		disabled = false;
 	}
 
 	private static String tagFor( String serviceName )
