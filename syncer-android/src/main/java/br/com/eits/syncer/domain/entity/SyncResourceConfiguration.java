@@ -98,11 +98,6 @@ public class SyncResourceConfiguration
 	{
 		final String serviceUrl = this.syncURLs.get( serviceName );
 		Objects.requireNonNull( serviceUrl, "An URL was not found to the service name: " + serviceName );
-
-		SyncServiceDelegate syncDelegate = SYNC_RESOURCE_CACHE.get( serviceUrl );
-
-		if ( syncDelegate == null )
-		{
 			final HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
 			loggingInterceptor.setLevel( this.logLevel );
 			final OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder()
@@ -121,38 +116,31 @@ public class SyncResourceConfiguration
 					.baseUrl( serviceUrl )
 					.client( clientBuilder.build() );
 
-			syncDelegate = builder.build().create( SyncServiceDelegate.class );
-			SYNC_RESOURCE_CACHE.put( serviceUrl, syncDelegate );
-		}
-		return syncDelegate;
-
+			return builder.build().create( SyncServiceDelegate.class );
 	}
 
 	/**
 	 * @param credentials
 	 */
-	public void setBasicCredentials( String credentials )
+	public void setBasicCredentials( final String preferences, final String key )
 	{
-		if ( credentials != null && !credentials.isEmpty() && credentials.contains( ":" ) )
+		try
 		{
-			final String username = credentials.split( ":" )[0];
-			final String password = credentials.split( ":" )[1];
-
 			this.authenticator = new Authenticator()
 			{
 				@Override
 				public Request authenticate( Route route, Response response ) throws IOException
 				{
-					final String credentials = Credentials.basic( username, password );
-					return response.request().newBuilder().header( "Authorization", credentials ).build();
+					SharedPreferences settings = ApplicationHolder.CONTEXT.getSharedPreferences( preferences, 0 );
+					String token = settings.getString( key, null );
+					return response.request().newBuilder().header( "Authorization", Credentials.basic( token.split( ":" )[0], token.split( ":" )[1] ) ).build();
 				}
 			};
 		}
-		else
+		catch ( Exception e )
 		{
-			throw new IllegalArgumentException( "The basic credentials must a meta-data like: " +
-					"        <meta-data android:name=\"sync-basic-credentials\"\n" +
-					"                   android:value=\"username:password\"/>" );
+			throw new IllegalArgumentException( "The manifest must contain an entry in this format: <meta-data android:name=\"sync-shared-preferences-basic\" android:value=\"preferencesName.keyName\" />",
+					e );
 		}
 	}
 

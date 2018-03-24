@@ -13,9 +13,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import br.com.eits.syncer.Syncer;
 import br.com.eits.syncer.application.ApplicationHolder;
 import br.com.eits.syncer.domain.entity.Revision;
 import br.com.eits.syncer.domain.entity.SyncData;
+import br.com.eits.syncer.domain.entity.SyncResourceConfiguration;
 import br.com.eits.syncer.domain.entity.SyncTransaction;
 import br.com.eits.syncer.infrastructure.dao.RevisionDao;
 import br.com.eits.syncer.infrastructure.delegate.SyncServiceDelegate;
@@ -37,8 +39,6 @@ class PersistentSyncTask implements ObservableOnSubscribe<Void>
 
 	private final String serviceName;
 
-	private final SyncServiceDelegate syncResource;
-
 	private List<ObservableEmitter<Void>> subscribers = new ArrayList<>();
 
 	private boolean running = false;
@@ -49,10 +49,9 @@ class PersistentSyncTask implements ObservableOnSubscribe<Void>
 
 	private final String tag;
 
-	PersistentSyncTask( String serviceName, SyncServiceDelegate syncResource )
+	PersistentSyncTask( String serviceName )
 	{
 		this.serviceName = serviceName;
-		this.syncResource = syncResource;
 		this.tag = "[sync-task//" + serviceName + "]";
 	}
 
@@ -81,6 +80,7 @@ class PersistentSyncTask implements ObservableOnSubscribe<Void>
 	{
 		if ( !this.running )
 		{
+			final SyncServiceDelegate syncResource = Syncer.syncResourceConfiguration().getSyncResource( serviceName );
 			@SuppressWarnings("unchecked") final List<Revision<?>> revisions = revisionDao.listByUnsyncedByService( serviceName );
 			Log.i( tag, revisions.size() + " revisions to sync." );
 			final Revision lastSyncedRevision = revisionDao.findByLastRevisionNumber( serviceName );
@@ -138,7 +138,7 @@ class PersistentSyncTask implements ObservableOnSubscribe<Void>
 						throw e;
 					}
 				}
-			} ).subscribeOn( Schedulers.io() ).observeOn( AndroidSchedulers.mainThread() ).retry( 3 ).subscribe( new Consumer<SyncData>()
+			} ).subscribeOn( Schedulers.io() ).observeOn( Schedulers.trampoline() ).retry( 3 ).subscribe( new Consumer<SyncData>()
 			{
 				@Override
 				public void accept( SyncData syncData ) throws Exception

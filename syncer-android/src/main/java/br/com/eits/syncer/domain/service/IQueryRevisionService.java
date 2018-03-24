@@ -10,62 +10,81 @@ public interface IQueryRevisionService<T>
 	/**
 	 * @return
 	 */
-	public List<T> list();
+	List<T> list();
 
 	/**
 	 * @return
 	 */
-	public T singleResult();
-
-	/**
-	 * @param field
-	 * @param value
-	 * @return
-	 */
-	public IQueryRevisionService<T> where( String field, String value );
+	T singleResult();
 
 	/**
 	 * @param field
 	 * @param value
 	 * @return
 	 */
-	public IQueryRevisionService<T> where( String field, Number value );
+	IQueryRevisionService<T> where( String field, Object value );
+
+	/**
+	 *
+	 */
+	IQueryRevisionService<T> where( String field, Object value, String operator );
+
+	IQueryRevisionService<T> where( String field );
+
+	IQueryRevisionService<T> eq( Object value );
+
+	IQueryRevisionService<T> gt( Object value );
+
+	IQueryRevisionService<T> lt( Object value );
+
+	IQueryRevisionService<T> goe( Object value );
+
+	IQueryRevisionService<T> loe( Object value );
+
+	IQueryRevisionService<T> castAs( String field, String castAs );
 
 	/**
 	 * @param field
 	 * @param value
 	 * @return
 	 */
-	public IQueryRevisionService<T> whereLike( String field, String value );
+	IQueryRevisionService<T> where( String field, Number value );
+
+	/**
+	 * @param field
+	 * @param value
+	 * @return
+	 */
+	IQueryRevisionService<T> whereLike( String field, String value );
 
 	/**
 	 * @param joinEntity
 	 * @return
 	 */
-	public IQueryRevisionService<T> join( Class<?> joinEntity, long joinEntityId );
+	IQueryRevisionService<T> join( Class<?> joinEntity, long joinEntityId );
 
 	/**
 	 * @return
 	 */
-	public IQueryRevisionService<T> filterBy( String filters );
+	IQueryRevisionService<T> filterBy( String filters );
 
 	/**
 	 * @return
 	 */
-	public IQueryRevisionService<T> begin();
+	IQueryRevisionService<T> begin();
 
 	/**
 	 * @return
 	 */
-	public IQueryRevisionService<T> end();
+	IQueryRevisionService<T> end();
 
 	/**
 	 * @return
 	 */
-	public IQueryRevisionService<T> and();
+	IQueryRevisionService<T> and();
 
 	/**
 	 * @return
 	 */
-	public IQueryRevisionService<T> or();
+	IQueryRevisionService<T> or();
 }

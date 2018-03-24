@@ -33,7 +33,7 @@ public class SyncOnDemandService
 	{
 		for ( String serviceName : Syncer.syncResourceConfiguration().getServiceNames() )
 		{
-			PERSISTENT_TASKS.put( serviceName, new PersistentSyncTask( serviceName, Syncer.syncResourceConfiguration().getSyncResource( serviceName ) ) );
+			PERSISTENT_TASKS.put( serviceName, new PersistentSyncTask( serviceName ) );
 		}
 	}
 

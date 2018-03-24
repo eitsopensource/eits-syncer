@@ -62,10 +62,11 @@ public class Syncer
 			Syncer.RESOURCE_CONFIGURATION.setSyncURLs( urls );
 
 			//Get the optional basic credentials
-			final String credentials = serviceInfo.metaData.getString( "sync-basic-credentials" );
+			final String credentials = serviceInfo.metaData.getString( "sync-shared-preferences-basic" );
 			if ( credentials != null )
 			{
-				Syncer.RESOURCE_CONFIGURATION.setBasicCredentials( credentials );
+				String[] str = credentials.split( "\\." );
+				Syncer.RESOURCE_CONFIGURATION.setBasicCredentials( str[0], str[1] );
 			}
 
 			final String bearerToken = serviceInfo.metaData.getString( "sync-shared-preferences-token" );
