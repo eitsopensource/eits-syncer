@@ -1,7 +1,5 @@
 package br.com.eits.syncer.domain.entity;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.Calendar;
@@ -10,6 +8,7 @@ import java.util.Objects;
 import javax.persistence.Id;
 
 import br.com.eits.syncer.infrastructure.jackson.RevisionDeserializer;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 /**
  *
@@ -58,12 +57,16 @@ public class Revision<T extends SyncEntity> implements Serializable
 	 */
 	private String serviceName;
 
+	/**
+	 * old entity ID
+	 */
+	private Long oldId;
+
 	/*-------------------------------------------------------------------
 	 *				 		     CONSTRUCTORS
 	 *-------------------------------------------------------------------*/
 
 	/**
-	 *
 	 * @param entity
 	 * @param type
 	 * @param serviceName
@@ -78,7 +81,6 @@ public class Revision<T extends SyncEntity> implements Serializable
 	}
 
 	/**
-	 *
 	 * @param id
 	 * @param entity
 	 * @param entityId
@@ -103,35 +105,16 @@ public class Revision<T extends SyncEntity> implements Serializable
 	/*-------------------------------------------------------------------
 	 *				 		     BEHAVIORS
 	 *-------------------------------------------------------------------*/
-	/**
-	 * 
-	 */
-	private void extractEntity()
-	{
-		this.entityClassName = this.entity.getClass().getName();
-
-		try
-		{
-			final Field entityIdField = extractEntityIdField( this.entity.getClass() );
-			entityIdField.setAccessible( true );
-			final Serializable entityId = entityIdField.get( this.entity ) != null ? entityIdField.get( this.entity ).toString() : Calendar.getInstance().getTimeInMillis();
-			entityIdField.set( this.entity, new Long( entityId.toString() ) );
-			this.entityId = entityId.toString();
-		}
-		catch ( Exception e )
-		{
-			e.printStackTrace();
-			throw new IllegalStateException( "Can not extract entity." );
-		}
-	}
 
 	/**
-	 * 
 	 * @return
 	 */
 	public static Field extractEntityIdField( Class<?> entityClass )
 	{
-		if ( entityClass == null ) throw new IllegalArgumentException( "Entity Class can not be null." );
+		if ( entityClass == null )
+		{
+			throw new IllegalArgumentException( "Entity Class can not be null." );
+		}
 
 		try
 		{
@@ -164,29 +147,55 @@ public class Revision<T extends SyncEntity> implements Serializable
 
 	/**
 	 *
-	 * @param o
-	 * @return
+	 */
+	private void extractEntity()
+	{
+		this.entityClassName = this.entity.getClass().getName();
+
+		try
+		{
+			final Field entityIdField = extractEntityIdField( this.entity.getClass() );
+			entityIdField.setAccessible( true );
+			final Serializable entityId = entityIdField.get( this.entity ) != null ? entityIdField.get( this.entity ).toString() : Calendar.getInstance().getTimeInMillis();
+			entityIdField.set( this.entity, Long.valueOf( entityId.toString() ) );
+			this.entityId = entityId.toString();
+		}
+		catch ( Exception e )
+		{
+			e.printStackTrace();
+			throw new IllegalStateException( "Can not extract entity." );
+		}
+	}
+
+	/**
+	 *
 	 */
 	@Override
-	public boolean equals(Object o)
+	public boolean equals( Object o )
 	{
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+		if ( this == o )
+		{
+			return true;
+		}
+		if ( o == null || getClass() != o.getClass() )
+		{
+			return false;
+		}
 		Revision<?> revision = (Revision<?>) o;
-		return Objects.equals(id, revision.id) &&
-				Objects.equals(revisionNumber, revision.revisionNumber) &&
-				Objects.equals(synced, revision.synced) &&
+		return Objects.equals( id, revision.id ) &&
+				Objects.equals( revisionNumber, revision.revisionNumber ) &&
+				Objects.equals( synced, revision.synced ) &&
 				type == revision.type &&
-				Objects.equals(entity, revision.entity) &&
-				Objects.equals(entityClassName, revision.entityClassName) &&
-				Objects.equals(entityId, revision.entityId) &&
-				Objects.equals(serviceName, revision.serviceName);
+				Objects.equals( entity, revision.entity ) &&
+				Objects.equals( entityClassName, revision.entityClassName ) &&
+				Objects.equals( entityId, revision.entityId ) &&
+				Objects.equals( serviceName, revision.serviceName );
 	}
 
 	@Override
 	public int hashCode()
 	{
-		return Objects.hash(id, revisionNumber, synced, type, entity, entityClassName, entityId, serviceName);
+		return Objects.hash( id, revisionNumber, synced, type, entity, entityClassName, entityId, serviceName );
 	}
 
 	/*-------------------------------------------------------------------
@@ -202,7 +211,6 @@ public class Revision<T extends SyncEntity> implements Serializable
 	}
 
 	/**
-	 *
 	 * @param id
 	 */
 	public void setId( Long id )
@@ -211,7 +219,6 @@ public class Revision<T extends SyncEntity> implements Serializable
 	}
 
 	/**
-	 *
 	 * @return
 	 */
 	public RevisionType getType()
@@ -219,8 +226,12 @@ public class Revision<T extends SyncEntity> implements Serializable
 		return this.type;
 	}
 
+	public void setType( RevisionType type )
+	{
+		this.type = type;
+	}
+
 	/**
-	 *
 	 * @return
 	 */
 	public T getEntity()
@@ -228,8 +239,13 @@ public class Revision<T extends SyncEntity> implements Serializable
 		return this.entity;
 	}
 
+	public void setEntity( T entity )
+	{
+		this.entity = entity;
+		this.extractEntity();
+	}
+
 	/**
-	 *
 	 * @return
 	 */
 	public String getEntityClassName()
@@ -237,8 +253,12 @@ public class Revision<T extends SyncEntity> implements Serializable
 		return this.entityClassName;
 	}
 
+	public void setEntityClassName( String entityClassName )
+	{
+		this.entityClassName = entityClassName;
+	}
+
 	/**
-	 *
 	 * @return
 	 */
 	public String getServiceName()
@@ -246,8 +266,12 @@ public class Revision<T extends SyncEntity> implements Serializable
 		return this.serviceName;
 	}
 
+	public void setServiceName( String serviceName )
+	{
+		this.serviceName = serviceName;
+	}
+
 	/**
-	 * 
 	 * @return
 	 */
 	public String getEntityId()
@@ -272,7 +296,6 @@ public class Revision<T extends SyncEntity> implements Serializable
 	}
 
 	/**
-	 *
 	 * @return
 	 */
 	public Boolean getSynced()
@@ -281,7 +304,6 @@ public class Revision<T extends SyncEntity> implements Serializable
 	}
 
 	/**
-	 *
 	 * @param synced
 	 */
 	public void setSynced( Boolean synced )
@@ -289,25 +311,13 @@ public class Revision<T extends SyncEntity> implements Serializable
 		this.synced = synced;
 	}
 
-	public void setType( RevisionType type )
+	public Long getOldId()
 	{
-		this.type = type;
+		return oldId;
 	}
 
-
-	public void setEntity( T entity )
+	public void setOldId( Long oldId )
 	{
-		this.entity = entity;
-		this.extractEntity();
-	}
-
-	public void setServiceName( String serviceName )
-	{
-		this.serviceName = serviceName;
-	}
-
-	public void setEntityClassName( String entityClassName )
-	{
-		this.entityClassName = entityClassName;
+		this.oldId = oldId;
 	}
 }

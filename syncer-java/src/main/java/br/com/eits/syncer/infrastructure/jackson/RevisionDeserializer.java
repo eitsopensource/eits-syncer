@@ -1,20 +1,17 @@
 package br.com.eits.syncer.infrastructure.jackson;
 
-import com.fasterxml.jackson.annotation.ObjectIdResolver;
+import java.io.IOException;
+
+import br.com.eits.syncer.domain.entity.Revision;
+import br.com.eits.syncer.domain.entity.RevisionType;
+import br.com.eits.syncer.domain.entity.SyncEntity;
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import java.io.IOException;
-
-import br.com.eits.syncer.domain.entity.Revision;
-import br.com.eits.syncer.domain.entity.RevisionType;
-import br.com.eits.syncer.domain.entity.SyncEntity;
 
 /**
  * Created by eduardo on 31/01/2018.
@@ -40,10 +37,12 @@ public class RevisionDeserializer extends StdDeserializer<Revision<?>>
 			revision.setRevisionNumber( node.get( "revisionNumber" ).asLong() );
 			revision.setSynced( node.get( "synced" ).asBoolean() );
 			revision.setType( RevisionType.valueOf( node.get( "type" ).asText() ) );
-			revision.setServiceName( node.get( "serviceName" ).asText() );
+			revision.setServiceName( node.get( "serviceName" ) != null ? node.get( "serviceName" ).asText() : null );
 			// finding out what's our child's class name
-			String entityClassName = node.get( "entityClassName" ).isNull() ? null : node.get( "entityClassName" ).asText();
+			String entityClassName = node.get( "entityClassName" ) != null ? node.get( "entityClassName" ).asText() : null;
 			revision.setEntityClassName( entityClassName );
+			Long oldId = node.get( "oldId" ) == null ? null : node.get( "oldId" ).asLong();
+			revision.setOldId( oldId );
 
 			if ( entityClassName == null )
 			{

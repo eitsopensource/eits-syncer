@@ -1,25 +1,30 @@
 package br.com.eits.syncer.domain.entity;
 
-import android.content.SharedPreferences;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
+import android.content.SharedPreferences;
+import br.com.eits.syncer.application.ApplicationHolder;
+import br.com.eits.syncer.infrastructure.delegate.SyncServiceDelegate;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-
-import br.com.eits.syncer.application.ApplicationHolder;
-import br.com.eits.syncer.infrastructure.delegate.SyncServiceDelegate;
 import okhttp3.Authenticator;
+import okhttp3.ConnectionSpec;
 import okhttp3.Credentials;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
+import okhttp3.Protocol;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.Route;
@@ -42,7 +47,7 @@ public class SyncResourceConfiguration
 	 */
 	private static final Map<String, SyncServiceDelegate> SYNC_RESOURCE_CACHE = new HashMap<>();
 
-    /*-------------------------------------------------------------------
+	/*-------------------------------------------------------------------
 	 * 		 					ATTRIBUTES
 	 *-------------------------------------------------------------------*/
 	/**
@@ -52,7 +57,16 @@ public class SyncResourceConfiguration
 	/**
 	 *
 	 */
+	private Map<String, Object> postReceiveHooks = new HashMap<>();
+	/**
+	 *
+	 */
 	private Interceptor requestInterceptor;
+
+	/**
+	 *
+	 */
+	private Interceptor networkInterceptor;
 	/**
 	 *
 	 */
@@ -70,7 +84,9 @@ public class SyncResourceConfiguration
 	 */
 	private HttpLoggingInterceptor.Level logLevel = HttpLoggingInterceptor.Level.HEADERS;
 
-    /*-------------------------------------------------------------------
+	private List<String> syncOrder;
+
+	/*-------------------------------------------------------------------
 	 * 		 					CONSTRUCTORS
 	 *-------------------------------------------------------------------*/
 
@@ -86,7 +102,7 @@ public class SyncResourceConfiguration
 		this.objectMapper.enableDefaultTypingAsProperty( ObjectMapper.DefaultTyping.JAVA_LANG_OBJECT, "@type" );
 	}
 
-    /*-------------------------------------------------------------------
+	/*-------------------------------------------------------------------
 	 * 		 					BEHAVIORS
 	 *-------------------------------------------------------------------*/
 
@@ -98,29 +114,48 @@ public class SyncResourceConfiguration
 	{
 		final String serviceUrl = this.syncURLs.get( serviceName );
 		Objects.requireNonNull( serviceUrl, "An URL was not found to the service name: " + serviceName );
-			final HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
-			loggingInterceptor.setLevel( this.logLevel );
-			final OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder()
-					.addInterceptor( loggingInterceptor );
-			if ( this.requestInterceptor != null )
-			{
-				clientBuilder.addInterceptor( this.requestInterceptor );
-			}
-			if ( this.authenticator != null )
-			{
-				clientBuilder.authenticator( this.authenticator );
-			}
-			final Retrofit.Builder builder = new Retrofit.Builder()
-					.addCallAdapterFactory( RxJava2CallAdapterFactory.createAsync() )
-					.addConverterFactory( JacksonConverterFactory.create( this.objectMapper ) )
-					.baseUrl( serviceUrl )
-					.client( clientBuilder.build() );
+		final HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
+		loggingInterceptor.setLevel( this.logLevel );
+		final OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder()
+				.addInterceptor( new ConnectionCloseInterceptor() )
+				.addInterceptor( loggingInterceptor )
+				.protocols( Collections.singletonList( Protocol.HTTP_1_1 ) )
+				.connectTimeout( 5, TimeUnit.SECONDS )
+				.writeTimeout( 30, TimeUnit.MINUTES )
+				.readTimeout( 30, TimeUnit.MINUTES );
+		if ( this.requestInterceptor != null )
+		{
+			clientBuilder.addInterceptor( this.requestInterceptor );
+		}
+		if ( this.authenticator != null )
+		{
+			clientBuilder.authenticator( this.authenticator );
+		}
+		if ( this.networkInterceptor != null )
+		{
+			clientBuilder.addNetworkInterceptor( this.networkInterceptor );
+		}
+		final Retrofit.Builder builder = new Retrofit.Builder()
+				.addCallAdapterFactory( RxJava2CallAdapterFactory.createAsync() )
+				.addConverterFactory( JacksonConverterFactory.create( this.objectMapper ) )
+				.baseUrl( serviceUrl )
+				.client( clientBuilder.build() );
 
-			return builder.build().create( SyncServiceDelegate.class );
+		return builder.build().create( SyncServiceDelegate.class );
+	}
+
+	private static class ConnectionCloseInterceptor implements Interceptor
+	{
+
+		@Override
+		public Response intercept( Chain chain ) throws IOException
+		{
+			return chain.proceed( chain.request().newBuilder().header( "Connection", "close" ).build() );
+		}
 	}
 
 	/**
-	 * @param credentials
+	 *
 	 */
 	public void setBasicCredentials( final String preferences, final String key )
 	{
@@ -221,10 +256,6 @@ public class SyncResourceConfiguration
 		return this.syncURLs.keySet();
 	}
 
-    /*-------------------------------------------------------------------
-	 * 		 					BEHAVIORS
-	 *-------------------------------------------------------------------*/
-
 	/**
 	 * @param requestInterceptor
 	 */
@@ -234,20 +265,24 @@ public class SyncResourceConfiguration
 	}
 
 	/**
+	 * @return
+	 */
+	public ObjectMapper getObjectMapper()
+	{
+		return this.objectMapper;
+	}
+
+	/*-------------------------------------------------------------------
+	 * 		 					BEHAVIORS
+	 *-------------------------------------------------------------------*/
+
+	/**
 	 * @param objectMapper
 	 */
 	public void setObjectMapper( ObjectMapper objectMapper )
 	{
 		Objects.requireNonNull( objectMapper, "The objectMapper must be not null." );
 		this.objectMapper = objectMapper;
-	}
-
-	/**
-	 * @return
-	 */
-	public ObjectMapper getObjectMapper()
-	{
-		return this.objectMapper;
 	}
 
 	/**
@@ -260,5 +295,60 @@ public class SyncResourceConfiguration
 			logLevel = HttpLoggingInterceptor.Level.NONE;
 		}
 		this.logLevel = logLevel;
+	}
+
+	public List<String> getSyncOrder()
+	{
+		return syncOrder;
+	}
+
+	public void setSyncOrder( String order )
+	{
+		if ( order == null )
+		{
+			syncOrder = new ArrayList<>( syncURLs.keySet() );
+		}
+		else
+		{
+			syncOrder = Arrays.asList( order.split( "\\s+" ) );
+		}
+	}
+
+	public Map<String, Object> getPostReceiveHooks()
+	{
+		return postReceiveHooks;
+	}
+
+	public void setPostReceiveHooks( String data )
+	{
+		if ( data != null )
+		{
+			try
+			{
+				Map<String, String> names = this.objectMapper.readValue( data, new TypeReference<Map<String, String>>()
+				{
+				} );
+				for ( String service : names.keySet() )
+				{
+					Class<?> clazz = Class.forName( names.get( service ) );
+					this.postReceiveHooks.put( service, clazz.newInstance() );
+				}
+			}
+
+			catch ( Exception e )
+			{
+				throw new IllegalArgumentException( "Could not install post-receive hooks.", e );
+			}
+		}
+	}
+
+	public Interceptor getNetworkInterceptor()
+	{
+		return networkInterceptor;
+	}
+
+	public void setNetworkInterceptor( Interceptor networkInterceptor )
+	{
+		this.networkInterceptor = networkInterceptor;
 	}
 }

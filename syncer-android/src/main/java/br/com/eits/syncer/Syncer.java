@@ -61,6 +61,11 @@ public class Syncer
 			final String urls = serviceInfo.metaData.getString( "sync-urls" );
 			Syncer.RESOURCE_CONFIGURATION.setSyncURLs( urls );
 
+			String serviceOrder = serviceInfo.metaData.getString( "services-sorted" );
+			Syncer.RESOURCE_CONFIGURATION.setSyncOrder( serviceOrder );
+
+			Syncer.RESOURCE_CONFIGURATION.setPostReceiveHooks( serviceInfo.metaData.getString( "post-receive-hooks" ) );
+
 			//Get the optional basic credentials
 			final String credentials = serviceInfo.metaData.getString( "sync-shared-preferences-basic" );
 			if ( credentials != null )
@@ -74,6 +79,42 @@ public class Syncer
 			{
 				String[] str = bearerToken.split( "\\." );
 				Syncer.RESOURCE_CONFIGURATION.setBearerToken( str[0], str[1] );
+			}
+
+			final String interceptorClassName = serviceInfo.metaData.getString( "sync-interceptor-class-name" );
+			if ( interceptorClassName != null )
+			{
+				try
+				{
+					Class clazz = Class.forName( interceptorClassName );
+					if ( clazz != null )
+					{
+						Interceptor instance = (Interceptor) clazz.newInstance();
+						Syncer.RESOURCE_CONFIGURATION.setRequestInterceptor( instance );
+					}
+				}
+				catch ( Exception e )
+				{
+					throw new IllegalArgumentException( "Não foi possível localizar ou instanciar o interceptor " + interceptorClassName, e );
+				}
+			}
+
+			final String networkInterceptorClassName = serviceInfo.metaData.getString( "sync-network-interceptor-class-name" );
+			if ( networkInterceptorClassName != null )
+			{
+				try
+				{
+					Class clazz = Class.forName( networkInterceptorClassName );
+					if ( clazz != null )
+					{
+						Interceptor instance = (Interceptor) clazz.newInstance();
+						Syncer.RESOURCE_CONFIGURATION.setNetworkInterceptor( instance );
+					}
+				}
+				catch ( Exception e )
+				{
+					throw new IllegalArgumentException( "Não foi possível localizar ou instanciar o networkInterceptor " + networkInterceptorClassName, e );
+				}
 			}
 
 			//get the job scheduler

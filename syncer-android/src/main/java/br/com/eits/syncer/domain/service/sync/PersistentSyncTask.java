@@ -15,6 +15,7 @@ import java.util.UUID;
 
 import br.com.eits.syncer.Syncer;
 import br.com.eits.syncer.application.ApplicationHolder;
+import br.com.eits.syncer.domain.entity.PostReceiveHook;
 import br.com.eits.syncer.domain.entity.Revision;
 import br.com.eits.syncer.domain.entity.SyncData;
 import br.com.eits.syncer.domain.entity.SyncResourceConfiguration;
@@ -49,10 +50,13 @@ class PersistentSyncTask implements ObservableOnSubscribe<Void>
 
 	private final String tag;
 
+	private final PostReceiveHook postReceiveHook;
+
 	PersistentSyncTask( String serviceName )
 	{
 		this.serviceName = serviceName;
 		this.tag = "[sync-task//" + serviceName + "]";
+		this.postReceiveHook = (PostReceiveHook) Syncer.syncResourceConfiguration().getPostReceiveHooks().get( serviceName );
 	}
 
 	boolean isRunning()
@@ -195,6 +199,10 @@ class PersistentSyncTask implements ObservableOnSubscribe<Void>
 			newRevision.setSynced( true );
 			revisionDao.insertRevision( newRevision );
 			revisionDao.removeOldRevisions( newRevision );
+			if ( postReceiveHook != null )
+			{
+				postReceiveHook.afterInsert( revision );
+			}
 		}
 	}
 

@@ -14,6 +14,7 @@ import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.Observer;
+import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
@@ -42,7 +43,7 @@ public class SyncOnDemandService
 		return disabled;
 	}
 
-	public static Observable<Void> syncNow( String serviceName )
+	private static Observable<Void> syncNow( String serviceName )
 	{
 		if ( disabled )
 		{
@@ -60,8 +61,7 @@ public class SyncOnDemandService
 		{
 			throw new IllegalArgumentException( "There is no service defined with the name \"" + serviceName + "\"." );
 		}
-		return Observable.create( task )
-				.subscribeOn( Schedulers.io() ).observeOn( AndroidSchedulers.mainThread() );
+		return Observable.create( task );
 	}
 
 	public static void syncNowBackground( final String serviceName )
@@ -105,10 +105,10 @@ public class SyncOnDemandService
 			public void subscribe( final ObservableEmitter<String> serviceDoneEmitter ) throws Exception
 			{
 				final Set<String> completedServices = new HashSet<>();
-				for ( final String serviceName : PERSISTENT_TASKS.keySet() )
+				for ( final String serviceName : Syncer.syncResourceConfiguration().getSyncOrder() )
 				{
 					syncNow( serviceName )
-							.subscribe( new Observer<Void>()
+							.blockingSubscribe( new Observer<Void>()
 							{
 								private Disposable subscription;
 
