@@ -117,6 +117,8 @@ public class Syncer
 				}
 			}
 
+			RESOURCE_CONFIGURATION.setLogLevel( serviceInfo.metaData.getString( "sync-log-level" ) );
+
 			//get the job scheduler
 			Syncer.JOB_SCHEDULER = (JobScheduler) ApplicationHolder.CONTEXT.getSystemService( Context.JOB_SCHEDULER_SERVICE );
 		}
@@ -160,15 +162,6 @@ public class Syncer
 		Syncer.RESOURCE_CONFIGURATION.setObjectMapper( objectMapper );
 	}
 
-	/**
-	 * @param logLevel
-	 * @return
-	 */
-	public static void withLogLevel( HttpLoggingInterceptor.Level logLevel )
-	{
-		Syncer.RESOURCE_CONFIGURATION.setLogLevel( logLevel );
-	}
-
     /*-------------------------------------------------------------------
 	 * 		 						BEHAVIORS
 	 *-------------------------------------------------------------------*/
@@ -188,23 +181,24 @@ public class Syncer
 	@SuppressLint("MissingPermission")
 	public static void scheduleRecurrentSync()
 	{
-		Syncer.JOB_SCHEDULER.cancelAll();
-		final int jobId = "eits//syncer".hashCode();
-		final JobInfo jobInfo = new JobInfo.Builder( jobId, Syncer.SYNC_BACKGROUND_SERVICE_COMPONENT )
-				.setRequiredNetworkType( JobInfo.NETWORK_TYPE_ANY )
-				.setPeriodic( 15 * 60 * 1000 )
-				.setRequiresDeviceIdle( false )
-				.setRequiresCharging( false )
-				.setPersisted( false )
-				.build();
-		if ( Syncer.JOB_SCHEDULER.schedule( jobInfo ) != JobScheduler.RESULT_SUCCESS )
-		{
-			Log.w( "[sync-bg]", "Could not schedule background sync" );
-		}
-		else
-		{
-			Log.i( "[sync-bg]", "Background sync scheduled." );
-		}
+		Log.w( "[sync-bg]", "Background sync is disabled" );
+//		Syncer.JOB_SCHEDULER.cancelAll();
+//		final int jobId = "eits//syncer".hashCode();
+//		final JobInfo jobInfo = new JobInfo.Builder( jobId, Syncer.SYNC_BACKGROUND_SERVICE_COMPONENT )
+//				.setRequiredNetworkType( JobInfo.NETWORK_TYPE_ANY )
+//				.setPeriodic( 15 * 60 * 1000 )
+//				.setRequiresDeviceIdle( false )
+//				.setRequiresCharging( false )
+//				.setPersisted( false )
+//				.build();
+//		if ( Syncer.JOB_SCHEDULER.schedule( jobInfo ) != JobScheduler.RESULT_SUCCESS )
+//		{
+//			Log.w( "[sync-bg]", "Could not schedule background sync" );
+//		}
+//		else
+//		{
+//			Log.i( "[sync-bg]", "Background sync scheduled." );
+//		}
 	}
 
 	/**

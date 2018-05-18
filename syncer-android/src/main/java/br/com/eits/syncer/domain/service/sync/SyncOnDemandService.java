@@ -66,35 +66,36 @@ public class SyncOnDemandService
 
 	public static void syncNowBackground( final String serviceName )
 	{
-		syncNow( serviceName ).observeOn( Schedulers.io() )
-				.subscribe( new Observer<Void>()
-				{
-					private final String tag = tagFor( serviceName );
-
-					@Override
-					public void onSubscribe( Disposable d )
-					{
-						Log.i( tag, "Starting background sync" );
-					}
-
-					@Override
-					public void onNext( Void aVoid )
-					{
-
-					}
-
-					@Override
-					public void onError( Throwable e )
-					{
-						Log.i( tag, "Sync failed" );
-					}
-
-					@Override
-					public void onComplete()
-					{
-						Log.i( tag, "Sync complete" );
-					}
-				} );
+		Log.i( tagFor( serviceName ), "bg sync request - ignoring" );
+//		syncNow( serviceName ).observeOn( Schedulers.io() )
+//				.subscribe( new Observer<Void>()
+//				{
+//					private final String tag = tagFor( serviceName );
+//
+//					@Override
+//					public void onSubscribe( Disposable d )
+//					{
+//						Log.i( tag, "Starting background sync" );
+//					}
+//
+//					@Override
+//					public void onNext( Void aVoid )
+//					{
+//
+//					}
+//
+//					@Override
+//					public void onError( Throwable e )
+//					{
+//						Log.i( tag, "Sync failed" );
+//					}
+//
+//					@Override
+//					public void onComplete()
+//					{
+//						Log.i( tag, "Sync complete" );
+//					}
+//				} );
 	}
 
 	public static Observable<String> syncAllNow()

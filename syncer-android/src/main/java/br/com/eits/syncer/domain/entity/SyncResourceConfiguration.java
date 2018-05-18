@@ -116,13 +116,18 @@ public class SyncResourceConfiguration
 		Objects.requireNonNull( serviceUrl, "An URL was not found to the service name: " + serviceName );
 		final HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
 		loggingInterceptor.setLevel( this.logLevel );
-		final OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder()
-				.addInterceptor( new ConnectionCloseInterceptor() )
-				.addInterceptor( loggingInterceptor )
+		final OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
+		if ( this.logLevel != HttpLoggingInterceptor.Level.NONE )
+		{
+			clientBuilder.addInterceptor( loggingInterceptor );
+		}
+		clientBuilder
+				.retryOnConnectionFailure( true )
 				.protocols( Collections.singletonList( Protocol.HTTP_1_1 ) )
 				.connectTimeout( 5, TimeUnit.SECONDS )
 				.writeTimeout( 30, TimeUnit.MINUTES )
 				.readTimeout( 30, TimeUnit.MINUTES );
+
 		if ( this.requestInterceptor != null )
 		{
 			clientBuilder.addInterceptor( this.requestInterceptor );
@@ -288,13 +293,13 @@ public class SyncResourceConfiguration
 	/**
 	 * @param logLevel
 	 */
-	public void setLogLevel( HttpLoggingInterceptor.Level logLevel )
+	public void setLogLevel( String level )
 	{
 		if ( logLevel == null )
 		{
 			logLevel = HttpLoggingInterceptor.Level.NONE;
 		}
-		this.logLevel = logLevel;
+		this.logLevel = HttpLoggingInterceptor.Level.valueOf( level );
 	}
 
 	public List<String> getSyncOrder()
