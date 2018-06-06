@@ -213,7 +213,8 @@ public class QueryRevisionService<T extends SyncEntity> extends RevisionService<
 		filters = filters != null ? filters : "";
 
 		this.tables = this.tables.concat( ", " + this.joinTable );
-		this.where = this.where.concat( " AND json_each.type NOT IN ( 'object', 'array' ) AND json_each.value LIKE '%" + filters + "%'" );
+		this.where = this.where.concat( this.where.trim().endsWith( "AND" ) ? " " : " AND " );
+		this.where = this.where.concat( "json_each.type NOT IN ( 'object', 'array' ) AND json_each.value LIKE '%" + filters + "%'" );
 
 		return this;
 	}
