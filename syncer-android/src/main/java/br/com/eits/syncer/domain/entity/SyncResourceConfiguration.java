@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import android.content.SharedPreferences;
@@ -19,6 +21,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.internal.schedulers.ExecutorScheduler;
+import io.reactivex.schedulers.Schedulers;
 import okhttp3.Authenticator;
 import okhttp3.ConnectionSpec;
 import okhttp3.Credentials;
@@ -141,7 +146,7 @@ public class SyncResourceConfiguration
 			clientBuilder.addNetworkInterceptor( this.networkInterceptor );
 		}
 		final Retrofit.Builder builder = new Retrofit.Builder()
-				.addCallAdapterFactory( RxJava2CallAdapterFactory.createAsync() )
+				.addCallAdapterFactory( RxJava2CallAdapterFactory.createWithScheduler( new ExecutorScheduler( new ThreadPoolExecutor( 2, 4, 1, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>( 20 ) ) ) ) )
 				.addConverterFactory( JacksonConverterFactory.create( this.objectMapper ) )
 				.baseUrl( serviceUrl )
 				.client( clientBuilder.build() );

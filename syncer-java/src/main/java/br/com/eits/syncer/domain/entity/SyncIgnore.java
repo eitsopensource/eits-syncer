@@ -13,4 +13,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface SyncIgnore
 {
+	Class<? extends IgnoreCondition> condition() default IgnoreCondition.class;
 }

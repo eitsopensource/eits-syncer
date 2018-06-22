@@ -1,6 +1,6 @@
 
 allprojects {
-	version = "0.15.8"
+	version = "0.16.3"
     group = 'br.com.eits.syncer'
 
     repositories {

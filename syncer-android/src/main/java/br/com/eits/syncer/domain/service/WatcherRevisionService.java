@@ -8,6 +8,7 @@ import java.util.Objects;
 import java.util.concurrent.Callable;
 
 import br.com.eits.syncer.domain.entity.SyncEntity;
+import io.requery.android.database.sqlite.SQLiteDatabase;
 
 /**
  *
@@ -125,4 +126,10 @@ public class WatcherRevisionService<T extends SyncEntity> extends RevisionServic
         Watcher.addWatcher( watcher );
         watcher.execute();
     }
+
+	@Override
+	public T update( SQLiteDatabase database, T entity )
+	{
+		return update( entity );
+	}
 }

@@ -18,17 +18,17 @@ import br.com.eits.syncer.application.ApplicationHolder;
 import br.com.eits.syncer.domain.entity.PostReceiveHook;
 import br.com.eits.syncer.domain.entity.Revision;
 import br.com.eits.syncer.domain.entity.SyncData;
-import br.com.eits.syncer.domain.entity.SyncResourceConfiguration;
 import br.com.eits.syncer.domain.entity.SyncTransaction;
 import br.com.eits.syncer.infrastructure.dao.RevisionDao;
+import br.com.eits.syncer.infrastructure.dao.SQLiteHelper;
 import br.com.eits.syncer.infrastructure.delegate.SyncServiceDelegate;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
-import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
+import io.requery.android.database.sqlite.SQLiteDatabase;
 
 /**
  * Created by eduardo on 22/01/2018.
@@ -80,6 +80,7 @@ class PersistentSyncTask implements ObservableOnSubscribe<Void>
 		start();
 	}
 
+	@SuppressLint("CheckResult")
 	private synchronized void start()
 	{
 		if ( !this.running )
@@ -91,6 +92,7 @@ class PersistentSyncTask implements ObservableOnSubscribe<Void>
 			final long lastRevisionNumber = lastSyncedRevision != null ? (lastSyncedRevision.getRevisionNumber() + 1L) : 1L;
 			final SyncData localSyncData = new SyncData( lastRevisionNumber, revisions );
 			localSyncData.setTransactionId( UUID.randomUUID().toString() );
+			final SQLiteDatabase database = new SQLiteHelper( ApplicationHolder.CONTEXT ).getWritableDatabase();
 			Observable.create( new ObservableOnSubscribe<SyncData>()
 			{
 				@Override
@@ -99,6 +101,7 @@ class PersistentSyncTask implements ObservableOnSubscribe<Void>
 					running = true;
 					try
 					{
+						database.beginTransaction();
 						if ( consecutiveFailureCount > 0 )
 						{
 							int sleepSeconds = 1;
@@ -133,13 +136,24 @@ class PersistentSyncTask implements ObservableOnSubscribe<Void>
 						Log.i( tag, "Informing completion of synchronization " + localSyncData.getTransactionId() + " for service " + serviceName );
 						syncResource.endSynchronization( localSyncData.getTransactionId() ).subscribeOn( Schedulers.io() ).subscribe();
 						receivedPages.remove( localSyncData.getTransactionId() );
+						database.setTransactionSuccessful();
 						emitter.onComplete();
 					}
 					catch ( Exception e )
 					{
 						consecutiveFailureCount++;
+						database.endTransaction();
+						database.beginTransaction();
 						Log.w( tag, e.getMessage(), e );
 						throw e;
+					}
+					finally
+					{
+						if ( database.inTransaction() )
+						{
+							database.endTransaction();
+						}
+						database.close();
 					}
 				}
 			} ).subscribeOn( Schedulers.io() ).observeOn( Schedulers.trampoline() ).retry( 3 ).subscribe( new Consumer<SyncData>()
@@ -147,7 +161,7 @@ class PersistentSyncTask implements ObservableOnSubscribe<Void>
 				@Override
 				public void accept( SyncData syncData ) throws Exception
 				{
-					storeReceivedRevisions( localSyncData, syncData );
+					storeReceivedRevisions( database, localSyncData, syncData );
 				}
 			}, new Consumer<Throwable>()
 			{
@@ -177,7 +191,7 @@ class PersistentSyncTask implements ObservableOnSubscribe<Void>
 	}
 
 	@SuppressWarnings("unchecked")
-	private void storeReceivedRevisions( SyncData localSyncData, SyncData data )
+	private void storeReceivedRevisions( SQLiteDatabase database, SyncData localSyncData, SyncData data )
 	{
 		Log.i( tag, "Server returned " + data.getRevisions().size() + " revisions to sync." );
 
@@ -189,7 +203,7 @@ class PersistentSyncTask implements ObservableOnSubscribe<Void>
 			revisionIds[i] = String.valueOf( revision.getId() );
 		}
 		//remove unused revisions
-		revisionDao.remove( revisionIds );
+		revisionDao.remove( database, revisionIds );
 
 		//save remote revisions as synced
 		for ( Revision<?> revision : data.getRevisions() )
@@ -197,11 +211,11 @@ class PersistentSyncTask implements ObservableOnSubscribe<Void>
 			final Revision<?> newRevision = new Revision<>( revision.getEntity(), revision.getType(), revision.getServiceName() );
 			newRevision.setRevisionNumber( revision.getRevisionNumber() );
 			newRevision.setSynced( true );
-			revisionDao.insertRevision( newRevision );
-			revisionDao.removeOldRevisions( newRevision );
+			revisionDao.insertRevisionIfNotExists( database, newRevision );
+			revisionDao.removeOldRevisions( database, newRevision );
 			if ( postReceiveHook != null )
 			{
-				postReceiveHook.afterInsert( revision );
+				postReceiveHook.afterInsert( database, revision );
 			}
 		}
 	}

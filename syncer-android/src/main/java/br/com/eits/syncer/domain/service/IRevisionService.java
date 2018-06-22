@@ -1,6 +1,7 @@
 package br.com.eits.syncer.domain.service;
 
 import android.app.Activity;
+import io.requery.android.database.sqlite.SQLiteDatabase;
 
 import java.util.List;
 
@@ -14,84 +15,91 @@ public interface IRevisionService<T>
      * @param entity
      * @return
      */
-    public T insert( T entity );
+	T insert( T entity );
     /**
      *
      * @param entities
      * @return
      */
-    public List<T> insert( List<T> entities );
+	List<T> insert( List<T> entities );
+
+	/**
+	 * @param entity
+	 * @return
+	 */
+	T insertAsSynced( T entity );
 
     /**
      *
      * @param entity
      * @return
      */
-    public T insertAsSynced( T entity );
+    T update( T entity );
 
-    /**
+	/**
      *
-     * @param entity
+     * @param database
+	 * @param entity
      * @return
      */
-    public T update( T entity );
+    T update( SQLiteDatabase database, T entity );
 
-    /**
+	/**
      *
      * @param entities
      * @return
      */
-    public List<T> update( List<T> entities );
+    List<T> update( List<T> entities );
 
-    /**
+	/**
      *
      * @param entity
      */
-    public void remove( T entity );
+    void remove( T entity );
 
-    /**
+	/**
      *
      * @param entities
      */
-    public void remove( List<T> entities );
+    void remove( List<T> entities );
 
-    /**
+	/**
      *
      * @param entityId
      * @return
      */
-    public T findByEntityId( Object entityId );
+    T findByEntityId( Object entityId );
 
-    /**
+	/**
      *
      * @return
      */
-    public List<T> listAll();
+    List<T> listAll();
 
-    /**
+	/**
      *
      * @param filters
      * @return
      */
-    public List<T> listByFilters( String filters );
+    List<T> listByFilters( String filters );
 
-    /**
+	/**
      *
      * @return
      */
-    public IQueryRevisionService<T> query();
+    IQueryRevisionService<T> query();
 
-    /**
+	/**
      *
      * @param activity
      * @return
      */
-    public IWatcherRevisionService<T> watch(Activity activity );
+    IWatcherRevisionService<T> watch( Activity activity );
 
-    /**
+	/**
      *
      * @param serviceName
      * @return
      */
-    public IRevisionService<T> to(String serviceName );
+    IRevisionService<T> to( String serviceName );
 }

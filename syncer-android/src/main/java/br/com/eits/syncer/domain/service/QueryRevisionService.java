@@ -8,6 +8,7 @@ import br.com.eits.syncer.domain.entity.Revision;
 import br.com.eits.syncer.domain.entity.RevisionType;
 import br.com.eits.syncer.domain.entity.SyncEntity;
 import br.com.eits.syncer.infrastructure.dao.SQLiteHelper;
+import io.requery.android.database.sqlite.SQLiteDatabase;
 
 /**
  * Created by rodrigo.p.fraga on 19/04/17.

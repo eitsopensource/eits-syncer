@@ -13,6 +13,7 @@ import br.com.eits.syncer.domain.entity.RevisionType;
 import br.com.eits.syncer.domain.entity.SyncEntity;
 import br.com.eits.syncer.domain.service.sync.SyncOnDemandService;
 import br.com.eits.syncer.infrastructure.dao.RevisionDao;
+import io.requery.android.database.sqlite.SQLiteDatabase;
 
 /**
  *
@@ -106,6 +107,14 @@ public class RevisionService<T extends SyncEntity> implements IRevisionService<T
         this.insertRevisionAndSync( revision );
         return entity;
     }
+
+	@Override
+	public T update( SQLiteDatabase database, T entity )
+	{
+		final Revision revision = new Revision( entity, RevisionType.UPDATE, this.serviceName );
+		this.revisionDao.insertRevision( database, revision );
+		return entity;
+	}
 
     /**
      *
