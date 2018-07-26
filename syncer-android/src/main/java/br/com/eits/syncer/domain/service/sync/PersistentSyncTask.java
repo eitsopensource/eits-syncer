@@ -34,7 +34,7 @@ import io.requery.android.database.sqlite.SQLiteDatabase;
  * Created by eduardo on 22/01/2018.
  */
 
-class PersistentSyncTask implements ObservableOnSubscribe<Void>
+public class PersistentSyncTask implements ObservableOnSubscribe<Void>
 {
 	private final RevisionDao revisionDao = new RevisionDao();
 
@@ -110,11 +110,11 @@ class PersistentSyncTask implements ObservableOnSubscribe<Void>
 						}
 						if ( inAirplaneMode() )
 						{
-							throw new RuntimeException( "Airplane mode on, can't sync." );
+							throw new AirplaneModeEnabledException( "Airplane mode on, can't sync." );
 						}
 						if ( !networkConnectionActive() )
 						{
-							throw new RuntimeException( "No connections are active." );
+							throw new NoNetworkConnectivityException( "No connections are active." );
 						}
 						if ( !receivedPages.containsKey( localSyncData.getTransactionId() ) )
 						{
@@ -149,11 +149,14 @@ class PersistentSyncTask implements ObservableOnSubscribe<Void>
 					}
 					finally
 					{
-						if ( database.inTransaction() )
+						if ( database.isOpen() )
 						{
-							database.endTransaction();
+							if ( database.inTransaction() )
+							{
+								database.endTransaction();
+							}
+							database.close();
 						}
-						database.close();
 					}
 				}
 			} ).subscribeOn( Schedulers.io() ).observeOn( Schedulers.trampoline() ).retry( 3 ).subscribe( new Consumer<SyncData>()
@@ -261,6 +264,22 @@ class PersistentSyncTask implements ObservableOnSubscribe<Void>
 		private TxInfo( int total )
 		{
 			this.total = total;
+		}
+	}
+
+	public static class AirplaneModeEnabledException extends RuntimeException
+	{
+		public AirplaneModeEnabledException( String message )
+		{
+			super( message );
+		}
+	}
+
+	public static class NoNetworkConnectivityException extends RuntimeException
+	{
+		public NoNetworkConnectivityException( String message )
+		{
+			super( message );
 		}
 	}
 }
