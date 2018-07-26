@@ -92,15 +92,19 @@ public class PersistentSyncTask implements ObservableOnSubscribe<Void>
 			final long lastRevisionNumber = lastSyncedRevision != null ? (lastSyncedRevision.getRevisionNumber() + 1L) : 1L;
 			final SyncData localSyncData = new SyncData( lastRevisionNumber, revisions );
 			localSyncData.setTransactionId( UUID.randomUUID().toString() );
-			final SQLiteDatabase database = new SQLiteHelper( ApplicationHolder.CONTEXT ).getWritableDatabase();
-			Observable.create( new ObservableOnSubscribe<SyncData>()
+			Observable.create( new ObservableOnSubscribe<SyncState>()
 			{
 				@Override
-				public void subscribe( ObservableEmitter<SyncData> emitter ) throws Exception
+				public void subscribe( ObservableEmitter<SyncState> emitter ) throws Exception
 				{
 					running = true;
+					SQLiteDatabase database = new SQLiteHelper( ApplicationHolder.CONTEXT ).getWritableDatabase();
 					try
 					{
+						if ( !database.isOpen() )
+						{
+							database = new SQLiteHelper( ApplicationHolder.CONTEXT ).getWritableDatabase();
+						}
 						database.beginTransaction();
 						if ( consecutiveFailureCount > 0 )
 						{
@@ -131,7 +135,7 @@ public class PersistentSyncTask implements ObservableOnSubscribe<Void>
 						{
 							Log.i( tag, "[" + serviceName + "] getting page " + (transactionInfo.received + 1) + " of " + transactionInfo.total );
 							final SyncData pagedData = syncResource.getPagedData( localSyncData.getTransactionId(), transactionInfo.received + 1 ).blockingSingle();
-							emitter.onNext( pagedData );
+							emitter.onNext( new SyncState( database, pagedData ) );
 						}
 						Log.i( tag, "Informing completion of synchronization " + localSyncData.getTransactionId() + " for service " + serviceName );
 						syncResource.endSynchronization( localSyncData.getTransactionId() ).subscribeOn( Schedulers.io() ).subscribe();
@@ -159,12 +163,12 @@ public class PersistentSyncTask implements ObservableOnSubscribe<Void>
 						}
 					}
 				}
-			} ).subscribeOn( Schedulers.io() ).observeOn( Schedulers.trampoline() ).retry( 3 ).subscribe( new Consumer<SyncData>()
+			} ).subscribeOn( Schedulers.io() ).observeOn( Schedulers.trampoline() ).retry( 3 ).subscribe( new Consumer<SyncState>()
 			{
 				@Override
-				public void accept( SyncData syncData ) throws Exception
+				public void accept( SyncState syncData ) throws Exception
 				{
-					storeReceivedRevisions( database, localSyncData, syncData );
+					storeReceivedRevisions( syncData.database, localSyncData, syncData.syncData );
 				}
 			}, new Consumer<Throwable>()
 			{
@@ -253,6 +257,18 @@ public class PersistentSyncTask implements ObservableOnSubscribe<Void>
 		catch ( Exception e )
 		{
 			return false;
+		}
+	}
+
+	private static class SyncState
+	{
+		final SQLiteDatabase database;
+		final SyncData syncData;
+
+		private SyncState( SQLiteDatabase database, SyncData syncData )
+		{
+			this.database = database;
+			this.syncData = syncData;
 		}
 	}
 
