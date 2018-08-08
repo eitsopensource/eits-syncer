@@ -96,6 +96,8 @@ public class SyncResourceConfiguration
                     .logger( new Logger.ErrorLogger() )
                     .logLevel( this.logLevel )
                     .contract( this.contract )
+                    .retryer( Retryer.NEVER_RETRY ) //avoid Feign to retry failed requests
+                    .options( new Request.Options( 0, 0 ) ) //make requests without timeout
                     .encoder( new JacksonEncoder( this.objectMapper ) )
                     .decoder( new JacksonDecoder( this.objectMapper ) );
 
