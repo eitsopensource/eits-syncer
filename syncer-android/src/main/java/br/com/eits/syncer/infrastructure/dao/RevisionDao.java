@@ -285,20 +285,18 @@ public class RevisionDao<T extends SyncEntity>
 
 		String where = SQLiteHelper.COLUMN_REVISION_NUMBER + " = ? AND " + SQLiteHelper.COLUMN_ENTITY_CLASSNAME + " = ? AND " + SQLiteHelper.COLUMN_TYPE + " = ?";
 		Object[] whereArgs = new Object[]{revision.getRevisionNumber(), revision.getEntityClassName(), revision.getType().ordinal()};
-		boolean exists = false;
 		try ( Cursor cursor = database.query( SQLiteHelper.TABLE_REVISION, null, where, whereArgs, null, null, null ) )
 		{
-			exists = cursor.moveToFirst();
-		}
-
-		if ( exists )
-		{
-			Log.i( "RevisionDao", "Skipping revision " + revision.getRevisionNumber() + " for " + revision.getEntity().getClass().getSimpleName() + " id " + revision.getEntityId() );
-		}
-		else
-		{
-			final long revisionId = database.insert( SQLiteHelper.TABLE_REVISION, null, values );
-			revision.setId( revisionId );
+			if ( cursor.moveToFirst() )
+			{
+				Log.i( "RevisionDao", "Skipping revision " + revision.getRevisionNumber() + " for " + revision.getEntity().getClass().getSimpleName() + " id " + revision.getEntityId() );
+				revision.setId( cursor.getLong( SQLiteHelper.COLUMN_ID_INDEX ) );
+			}
+			else
+			{
+				final long revisionId = database.insert( SQLiteHelper.TABLE_REVISION, null, values );
+				revision.setId( revisionId );
+			}
 		}
 		return revision;
 	}
